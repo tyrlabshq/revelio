@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: revelio
+      POSTGRES_USER: revelio
+      POSTGRES_PASSWORD: devpassword
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations/001_initial.sql:/docker-entrypoint-initdb.d/001_initial.sql
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+  api:
+    build: ./backend
+    ports:
+      - '8430:8430'
+    environment:
+      DATABASE_URL: postgresql://revelio:devpassword@postgres:5432/revelio
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+volumes:
+  postgres_data:
