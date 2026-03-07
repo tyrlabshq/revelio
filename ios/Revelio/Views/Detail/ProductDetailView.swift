@@ -143,7 +143,9 @@ struct ProductDetailView: View {
                 }
             }
             .sheet(isPresented: $showShareSheet) {
-                ShareSheet(items: [shareText])
+                ShareCardSheet(scan: scan, activePriority: userPriorities.first)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
             }
         }
     }
@@ -648,18 +650,6 @@ struct AlternativeCard: View {
         )
         .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
     }
-}
-
-// ─── Share Sheet ───────────────────────────────────────────────────────────────
-
-struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 // ─── Preview ───────────────────────────────────────────────────────────────────

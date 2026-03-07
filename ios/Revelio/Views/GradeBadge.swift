@@ -81,7 +81,7 @@ struct GradeBadge: View {
                 animatedScore = Double(score)
             }
         }
-        .onChange(of: score) { newScore in
+        .onChange(of: score) { _, newScore in
             ringProgress = CGFloat(newScore) / 100.0
             withAnimation(.easeOut(duration: 0.6)) {
                 animatedScore = Double(newScore)
