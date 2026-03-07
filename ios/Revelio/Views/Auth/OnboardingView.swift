@@ -2,7 +2,6 @@ import SwiftUI
 
 struct OnboardingView: View {
     @State private var currentSlide = 0
-    @State private var showPhoneEntry = false
 
     private let slides: [OnboardingSlide] = [
         OnboardingSlide(
@@ -10,21 +9,21 @@ struct OnboardingView: View {
             iconColor: Theme.accent,
             title: "Know what's in your food",
             subtitle: "Scan any barcode and get an instant ingredient analysis with science-backed safety grades.",
-            gradientColors: [Color(hex: "6c63ff").opacity(0.2), Color.clear]
+            glowColor: Theme.accent.opacity(0.12)
         ),
         OnboardingSlide(
             icon: "atom",
             iconColor: Theme.warning,
             title: "Understand every ingredient",
             subtitle: "We flag hidden nasties — preservatives, additives, allergens — explained in plain English.",
-            gradientColors: [Color(hex: "f59e0b").opacity(0.2), Color.clear]
+            glowColor: Theme.warning.opacity(0.12)
         ),
         OnboardingSlide(
             icon: "checkmark.seal.fill",
             iconColor: Theme.success,
             title: "Make healthier choices",
             subtitle: "Every product gets a letter grade. See the A-rated alternatives side by side.",
-            gradientColors: [Color(hex: "22c55e").opacity(0.2), Color.clear]
+            glowColor: Theme.success.opacity(0.12)
         ),
     ]
 
@@ -60,9 +59,8 @@ struct OnboardingView: View {
                 Button {
                     if currentSlide < slides.count - 1 {
                         withAnimation { currentSlide += 1 }
-                    } else {
-                        showPhoneEntry = true
                     }
+                    // On last slide, button does nothing - user proceeds to ContentView
                 } label: {
                     HStack {
                         Text(currentSlide < slides.count - 1 ? "Next" : "Get Started")
@@ -83,7 +81,7 @@ struct OnboardingView: View {
                 // Skip
                 if currentSlide < slides.count - 1 {
                     Button("Skip") {
-                        showPhoneEntry = true
+                        // No-op: user is already authenticated
                     }
                     .font(.subheadline)
                     .foregroundColor(Theme.textSecondary)
@@ -92,9 +90,6 @@ struct OnboardingView: View {
 
                 Spacer().frame(height: 48)
             }
-        }
-        .fullScreenCover(isPresented: $showPhoneEntry) {
-            PhoneEntryView()
         }
     }
 }
@@ -106,7 +101,7 @@ struct OnboardingSlide {
     let iconColor: Color
     let title: String
     let subtitle: String
-    let gradientColors: [Color]
+    let glowColor: Color
 }
 
 // ─── Slide View ───────────────────────────────────────────────────────────────
@@ -118,17 +113,10 @@ private struct SlideView: View {
         VStack(spacing: 32) {
             Spacer()
 
-            // Icon with gradient glow
+            // Icon with glow using solid color circle
             ZStack {
                 Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: slide.gradientColors,
-                            center: .center,
-                            startRadius: 20,
-                            endRadius: 120
-                        )
-                    )
+                    .fill(slide.glowColor)
                     .frame(width: 200, height: 200)
 
                 Image(systemName: slide.icon)
@@ -185,6 +173,7 @@ private struct ScannerMockup: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 16)
             .fill(Theme.surface)
+            .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 3)
             .overlay {
                 VStack(spacing: 8) {
                     HStack(spacing: 4) {
@@ -211,6 +200,7 @@ private struct ScienceCardMockup: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 16)
             .fill(Theme.surface)
+            .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 3)
             .overlay {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(ingredients, id: \.0) { name, label, color in
@@ -241,6 +231,7 @@ private struct GradeBadgeMockup: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 16)
             .fill(Theme.surface)
+            .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 3)
             .overlay {
                 HStack(spacing: 12) {
                     ForEach(grades, id: \.0) { name, grade, hex in

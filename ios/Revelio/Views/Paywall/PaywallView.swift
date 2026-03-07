@@ -149,7 +149,7 @@ struct PaywallView: View {
     private var planToggle: some View {
         ZStack {
             Capsule()
-                .fill(Theme.surface)
+                .fill(Theme.surfaceElevated)
                 .frame(height: 48)
 
             HStack(spacing: 0) {
@@ -216,7 +216,7 @@ struct PaywallView: View {
                     .foregroundColor(Theme.accent)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(Theme.accent.opacity(0.15))
+                    .background(Theme.accent.opacity(0.12))
                     .cornerRadius(8)
                     .padding(.top, 4)
             } else {
@@ -260,7 +260,8 @@ struct PaywallView: View {
             }
             .padding(.bottom, 8)
 
-            Divider().background(Theme.textDim.opacity(0.3))
+            Divider()
+                .background(Color.gray.opacity(0.12))
 
             // Scan limit row (special)
             featureRow(
@@ -290,7 +291,8 @@ struct PaywallView: View {
         }
         .padding(.vertical, 10)
         .overlay(alignment: .bottom) {
-            Divider().background(Theme.textDim.opacity(0.2))
+            Divider()
+                .background(Color.gray.opacity(0.12))
         }
     }
 
@@ -313,7 +315,8 @@ struct PaywallView: View {
         }
         .padding(.vertical, 10)
         .overlay(alignment: .bottom) {
-            Divider().background(Theme.textDim.opacity(0.2))
+            Divider()
+                .background(Color.gray.opacity(0.12))
         }
     }
 
@@ -354,14 +357,9 @@ struct PaywallView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(
-                LinearGradient(
-                    colors: [Theme.accent, Color(hex: "8b5cf6")],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
+            .background(Theme.accent)
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: Theme.accent.opacity(0.3), radius: 8, x: 0, y: 4)
         }
         .disabled(isPurchasing)
     }

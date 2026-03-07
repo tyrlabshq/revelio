@@ -1,16 +1,30 @@
 import SwiftUI
 
 struct Theme {
-    static let background = Color(hex: "0a0e1a")
-    static let surface = Color(hex: "111827")
-    static let surfaceElevated = Color(hex: "1f2937")
-    static let accent = Color(hex: "6c63ff")
-    static let success = Color(hex: "22c55e")
-    static let warning = Color(hex: "f59e0b")
-    static let danger = Color(hex: "ef4444")
-    static let textPrimary = Color(hex: "f1f5f9")
-    static let textSecondary = Color(hex: "94a3b8")
-    static let textDim = Color(hex: "475569")
+    // Backgrounds
+    static let background = Color(hex: "FAFAF8")       // warm off-white
+    static let surface = Color(hex: "FFFFFF")           // pure white cards
+    static let surfaceElevated = Color(hex: "F2F2EE")   // very light warm gray
+
+    // Brand
+    static let accent = Color(hex: "00B87C")            // fresh emerald green
+
+    // Text
+    static let textPrimary = Color(hex: "111827")       // near-black
+    static let textSecondary = Color(hex: "6B7280")     // medium gray
+    static let textDim = Color(hex: "9CA3AF")           // light gray
+
+    // Semantic
+    static let success = Color(hex: "22C55E")
+    static let warning = Color(hex: "F59E0B")
+    static let danger = Color(hex: "EF4444")
+
+    // Typography System
+    static let fontTitle = Font.system(size: 28, weight: .bold, design: .rounded)
+    static let fontHeadline = Font.system(size: 17, weight: .semibold, design: .default)
+    static let fontBody = Font.system(size: 15, weight: .regular, design: .default)
+    static let fontCaption = Font.system(size: 12, weight: .medium, design: .default)
+    static let fontLabel = Font.system(size: 10, weight: .semibold, design: .monospaced)
 
     static func gradeColor(_ grade: String) -> Color {
         switch grade {

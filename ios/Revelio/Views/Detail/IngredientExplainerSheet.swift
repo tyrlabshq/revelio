@@ -134,6 +134,7 @@ struct IngredientExplainerSheet: View {
                         .padding(20)
                         .background(Theme.surface)
                         .cornerRadius(16)
+                        .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 3)
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
                                 .stroke(Theme.accent.opacity(0.2), lineWidth: 1)
@@ -165,6 +166,7 @@ struct IngredientExplainerSheet: View {
                         .padding(20)
                         .background(Theme.surface)
                         .cornerRadius(16)
+                        .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 3)
 
                     case .failed(let msg):
                         VStack(spacing: 12) {
@@ -187,6 +189,7 @@ struct IngredientExplainerSheet: View {
                         .padding(20)
                         .background(Theme.surface)
                         .cornerRadius(16)
+                        .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 3)
                     }
 
                     Spacer(minLength: 20)

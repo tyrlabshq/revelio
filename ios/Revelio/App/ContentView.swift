@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab = 0
+    
     var body: some View {
         TabView(selection: $selectedTab) {
             ScanView()
@@ -21,5 +22,17 @@ struct ContentView: View {
                 .tag(4)
         }
         .tint(Theme.accent)
+        .background(Theme.background.ignoresSafeArea())
+        .overlay(alignment: .bottom) {
+            // Subtle top border for tab bar
+            Rectangle()
+                .fill(Color.gray.opacity(0.2))
+                .frame(height: 0.5)
+                .offset(y: -49) // Position just above tab bar
+        }
     }
+}
+
+#Preview {
+    ContentView()
 }

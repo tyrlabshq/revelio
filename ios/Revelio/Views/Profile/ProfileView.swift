@@ -12,7 +12,7 @@ struct ProfileView: View {
                     HStack(spacing: 12) {
                         ZStack {
                             Circle()
-                                .fill(Theme.accent.opacity(0.2))
+                                .fill(Theme.accent.opacity(0.15))
                                 .frame(width: 48, height: 48)
                             Image(systemName: "person.fill")
                                 .foregroundColor(Theme.accent)
@@ -21,7 +21,7 @@ struct ProfileView: View {
 
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 6) {
-                                Text(authViewModel.currentUser?.phone ?? "—")
+                                Text("Guest")
                                     .font(.headline)
                                     .foregroundColor(Theme.textPrimary)
 
@@ -36,13 +36,7 @@ struct ProfileView: View {
 
                         Spacer()
 
-                        Button {
-                            authViewModel.signOut()
-                        } label: {
-                            Text("Sign Out")
-                                .font(.caption)
-                                .foregroundColor(Theme.danger)
-                        }
+                        // Sign out button removed - auth is disabled
                     }
                     .padding(.vertical, 4)
                 }
@@ -106,13 +100,11 @@ struct ProfileView: View {
             .scrollContentBackground(.hidden)
             .background(Theme.background.ignoresSafeArea())
             .navigationTitle("Profile")
-            .onAppear {
-                Task { await authViewModel.refreshUser() }
-            }
             .sheet(isPresented: $showPaywall) {
                 NavigationStack {
                     PaywallView()
                 }
+                .environmentObject(authViewModel)
             }
         }
     }

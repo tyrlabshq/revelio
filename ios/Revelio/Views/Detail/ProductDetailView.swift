@@ -94,7 +94,7 @@ struct ProductDetailView: View {
                 ToolbarItem(placement: .confirmationAction) { ShareButton() }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") { dismiss() }
-                        .foregroundColor(Theme.textSecondary)
+                        .foregroundColor(Theme.accent)
                 }
             }
         }
@@ -108,7 +108,8 @@ private struct SectionLabel: View {
     init(_ text: String) { self.text = text }
     var body: some View {
         Text(text)
-            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+            .font(.system(size: 11, weight: .semibold))
+            .tracking(1.2)
             .foregroundColor(Theme.textDim)
     }
 }
@@ -122,54 +123,52 @@ struct ProductHeader: View {
     let hasPersonalization: Bool
 
     var body: some View {
-        VStack(spacing: 16) {
-
-            // Product image
-            AsyncImage(url: URL(string: scan.imageUrl ?? "")) { image in
-                image.resizable().aspectRatio(contentMode: .fit)
-            } placeholder: {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Theme.surfaceElevated)
-                    .overlay(
-                        Image(systemName: "photo")
-                            .foregroundColor(Theme.textDim)
-                            .font(.largeTitle)
-                    )
-            }
-            .frame(height: 140)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .padding(.horizontal, 80)
-
-            // Name, brand, category
-            VStack(spacing: 6) {
+        HStack(alignment: .top, spacing: 16) {
+            // Left: Product info
+            VStack(alignment: .leading, spacing: 8) {
+                // Category chip
+                HStack(spacing: 4) {
+                    Text(scan.category.icon)
+                    Text(scan.category.displayName.uppercased())
+                        .font(.system(size: 10, weight: .bold))
+                }
+                .foregroundColor(Theme.accent)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Theme.accent.opacity(0.12))
+                .cornerRadius(6)
+                
+                // Product name
                 Text(scan.productName)
-                    .font(.title2.bold())
+                    .font(.system(size: 20, weight: .bold))
                     .foregroundColor(Theme.textPrimary)
-                    .multilineTextAlignment(.center)
-
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                // Brand
                 Text(scan.brand)
-                    .font(.subheadline)
+                    .font(.system(size: 14))
                     .foregroundColor(Theme.textSecondary)
-
-                Text("\(scan.category.icon) \(scan.category.displayName.uppercased())")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
-                    .foregroundColor(Theme.textDim)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Theme.surfaceElevated)
-                    .cornerRadius(6)
+                
+                Spacer()
+                
+                // Personalized toggle if available
+                if hasPersonalization {
+                    PersonalizationToggle(usePersonalized: $usePersonalized)
+                }
             }
-
-            // Grade badge
+            
+            Spacer()
+            
+            // Right: Score badge
             GradeBadge(grade: scan.grade, score: displayScore, size: .large)
-
-            // Personalized vs base score toggle
-            if hasPersonalization {
-                PersonalizationToggle(usePersonalized: $usePersonalized)
-            }
         }
         .padding(20)
         .background(Theme.surface)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
     }
 }
 
@@ -195,7 +194,7 @@ private struct PersonalizationToggle: View {
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Theme.textDim.opacity(0.3), lineWidth: 1)
+                .stroke(Color.gray.opacity(0.12), lineWidth: 1)
         )
     }
 
@@ -376,6 +375,7 @@ struct FlagCard: View {
             Text(flag.reason)
                 .font(.subheadline)
                 .foregroundColor(Theme.textSecondary)
+                .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
 
             // Science citation
@@ -445,6 +445,7 @@ struct FlagCard: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color(hex: flag.severityColor).opacity(0.3), lineWidth: 1)
         )
+        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
         .animation(.spring(response: 0.35, dampingFraction: 0.75), value: showCitation)
     }
 }
@@ -517,6 +518,7 @@ struct CleanIngredientsSection: View {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
         .padding(.horizontal, 16)
     }
 }
@@ -530,19 +532,23 @@ struct AlternativesSection: View {
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .foregroundColor(Theme.textDim)
                 .padding(.horizontal, 20)
-
-            ForEach([mockAlt1, mockAlt2, mockAlt3]) { alt in
-                AlternativeCard(product: alt)
-                    .padding(.horizontal, 16)
+            
+            VStack(spacing: 12) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 32))
+                    .foregroundColor(Theme.textDim)
+                Text("Better alternatives coming soon")
+                    .font(.subheadline)
+                    .foregroundColor(Theme.textSecondary)
             }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 40)
+            .background(Theme.surface)
+            .cornerRadius(12)
+            .padding(.horizontal, 16)
         }
     }
 }
-
-// Mock data — placeholders until REV-07 fills real alternatives
-let mockAlt1 = AlternativeProduct(id: "1", name: "Primal Kitchen Mayo", brand: "Primal Kitchen", score: 88, grade: "A", imageUrl: nil, purchaseUrl: "https://amzn.to/3mock1", affiliateNetwork: "amazon", priceCents: 899)
-let mockAlt2 = AlternativeProduct(id: "2", name: "Sir Kensington's Mayo", brand: "Sir Kensington's", score: 79, grade: "B", imageUrl: nil, purchaseUrl: "https://amzn.to/3mock2", affiliateNetwork: "amazon", priceCents: 749)
-let mockAlt3 = AlternativeProduct(id: "3", name: "Chosen Foods Avocado Mayo", brand: "Chosen Foods", score: 85, grade: "A", imageUrl: nil, purchaseUrl: "https://amzn.to/3mock3", affiliateNetwork: "amazon", priceCents: 1099)
 
 struct AlternativeCard: View {
     let product: AlternativeProduct
@@ -592,6 +598,7 @@ struct AlternativeCard: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Theme.success.opacity(0.3), lineWidth: 1)
         )
+        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
     }
 }
 

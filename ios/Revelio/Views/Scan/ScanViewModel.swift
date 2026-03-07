@@ -39,22 +39,30 @@ class ScanViewModel: ObservableObject {
 
     private func fetchProduct(barcode: String) async {
         state = .loading
-        try? await Task.sleep(for: .seconds(1.2))
-
-        // Mock result for dev
-        let scan = ScanResult(
-            id: UUID().uuidString, barcode: barcode,
-            productName: "Hellmann's Real Mayonnaise", brand: "Hellmann's",
-            category: .food, imageUrl: nil,
-            ingredients: ["water", "canola oil", "eggs", "distilled white vinegar", "salt", "sugar", "lemon juice concentrate", "calcium disodium edta"],
-            flags: [
-                IngredientFlag(id: "1", ingredient: "canola oil", severity: 2, category: "SEED OIL", reason: "High in omega-6 fatty acids, oxidizes during high-heat processing", citationTitle: "Dietary Fats and Cardiovascular Disease", citationUrl: "https://doi.org/10.1161/CIR.0000000000000510", citationYear: 2017, priorities: ["seed_oils"]),
-                IngredientFlag(id: "2", ingredient: "calcium disodium edta", severity: 1, category: "PRESERVATIVE", reason: "Chelating agent; may deplete essential minerals", citationTitle: "FDA Food Additive Status List", citationUrl: "https://www.fda.gov/food/food-additives-petitions/food-additive-status-list", citationYear: 2023, priorities: ["artificial_additives"])
-            ],
-            baseScore: 65, personalizedScore: 65, grade: "B",
-            alternatives: nil, scannedAt: Date()
-        )
-        state = .result(scan)
+        guard let url = URL(string: "http://10.0.0.244:8430/scan/\(barcode)") else {
+            state = .error("Invalid barcode")
+            return
+        }
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            guard let http = response as? HTTPURLResponse else {
+                state = .error("No response from server")
+                return
+            }
+            if http.statusCode == 404 {
+                state = .error("Product not found in our database yet. Try another item!")
+                return
+            }
+            guard http.statusCode == 200 else {
+                state = .error("Server error (\(http.statusCode)). Try again.")
+                return
+            }
+            let scan = try JSONDecoder().decode(ScanResult.self, from: data)
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            state = .result(scan)
+        } catch {
+            state = .error("Couldn't analyze this product. Check your connection.")
+        }
     }
 
     func resetScan() { lastBarcode = ""; state = .scanning }

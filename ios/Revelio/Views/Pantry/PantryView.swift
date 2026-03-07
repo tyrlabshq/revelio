@@ -126,23 +126,8 @@ class PantryViewModel: ObservableObject {
     }
 
     static func mockMembers() -> [PantryMember] {
-        let now = Date()
-        let items1: [PantryItem] = [
-            PantryItem(id: "1", barcode: "0001", productName: "Cheerios", brand: "General Mills", score: 72, grade: "B", imageUrl: nil, quantity: 1, addedAt: now),
-            PantryItem(id: "2", barcode: "0002", productName: "Doritos Nacho", brand: "Frito-Lay", score: 28, grade: "F", imageUrl: nil, quantity: 1, addedAt: now.addingTimeInterval(-86400)),
-            PantryItem(id: "3", barcode: "0003", productName: "Tropicana OJ", brand: "Tropicana", score: 65, grade: "C", imageUrl: nil, quantity: 1, addedAt: now.addingTimeInterval(-172800)),
-            PantryItem(id: "4", barcode: "0004", productName: "Oreo Cookies", brand: "Nabisco", score: 22, grade: "F", imageUrl: nil, quantity: 1, addedAt: now.addingTimeInterval(-259200)),
-            PantryItem(id: "5", barcode: "0005", productName: "Oat Milk", brand: "Oatly", score: 88, grade: "A", imageUrl: nil, quantity: 1, addedAt: now.addingTimeInterval(-345600)),
-            PantryItem(id: "6", barcode: "0006", productName: "Greek Yogurt", brand: "Chobani", score: 85, grade: "A", imageUrl: nil, quantity: 1, addedAt: now.addingTimeInterval(-432000)),
-        ]
-        let items2: [PantryItem] = [
-            PantryItem(id: "7", barcode: "0007", productName: "Apple Juice", brand: "Mott's", score: 48, grade: "D", imageUrl: nil, quantity: 1, addedAt: now),
-            PantryItem(id: "8", barcode: "0008", productName: "String Cheese", brand: "Sargento", score: 78, grade: "B", imageUrl: nil, quantity: 1, addedAt: now.addingTimeInterval(-86400)),
-        ]
-        return [
-            PantryMember(id: "u1", name: "Ty", items: items1),
-            PantryMember(id: "u2", name: "Kid", items: items2),
-        ]
+        // Return empty for production - no fake data
+        return []
     }
 }
 
@@ -176,17 +161,18 @@ struct PantryView: View {
 
                         // Grid of pantry items
                         if vm.filteredItems.isEmpty {
-                            VStack(spacing: 12) {
-                                Image(systemName: "basket")
-                                    .font(.system(size: 48))
+                            VStack(spacing: 16) {
+                                Image(systemName: "house")
+                                    .font(.system(size: 56, weight: .light))
                                     .foregroundColor(Theme.textDim)
-                                Text("No items yet")
+                                Text("Your pantry is empty")
+                                    .font(.headline.weight(.semibold))
+                                    .foregroundColor(Theme.textPrimary)
+                                Text("Add products by scanning them")
+                                    .font(.subheadline)
                                     .foregroundColor(Theme.textSecondary)
-                                Text("Tap the camera to scan your pantry")
-                                    .font(.caption)
-                                    .foregroundColor(Theme.textDim)
                             }
-                            .padding(.top, 60)
+                            .padding(.top, 80)
                         } else {
                             LazyVGrid(columns: columns, spacing: 12) {
                                 ForEach(Array(vm.filteredItems.enumerated()), id: \.element.id) { index, item in
@@ -222,7 +208,7 @@ struct PantryView: View {
                                 .frame(width: 60, height: 60)
                                 .background(Theme.accent)
                                 .clipShape(Circle())
-                                .shadow(color: Theme.accent.opacity(0.5), radius: 12, x: 0, y: 4)
+                                .shadow(color: Theme.accent.opacity(0.4), radius: 12, x: 0, y: 4)
                         }
                         .padding(.trailing, 24)
                         .padding(.bottom, 32)
@@ -305,7 +291,8 @@ struct HouseholdScoreCard: View {
                 }
             }
 
-            Divider().background(Theme.surfaceElevated)
+            Divider()
+                .background(Color.gray.opacity(0.12))
 
             // Worst offenders
             if !vm.worstOffenders.isEmpty {
@@ -334,7 +321,8 @@ struct HouseholdScoreCard: View {
 
             // Quick wins
             if !vm.quickWins.isEmpty {
-                Divider().background(Theme.surfaceElevated)
+                Divider()
+                    .background(Color.gray.opacity(0.12))
                 VStack(alignment: .leading, spacing: 8) {
                     Label("Quick Wins", systemImage: "bolt.fill")
                         .font(.caption.weight(.semibold))
@@ -360,6 +348,7 @@ struct HouseholdScoreCard: View {
         .padding(16)
         .background(Theme.surface)
         .cornerRadius(16)
+        .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 3)
     }
 }
 
@@ -497,6 +486,7 @@ struct PantryItemCard: View {
         .padding(8)
         .background(Theme.surface)
         .cornerRadius(12)
+        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
     }
 }
 
@@ -524,27 +514,21 @@ struct PantryScannerSheet: View {
                         .padding(.horizontal, 32)
 
                     // In a real build, embed BarcodeScannerRepresentable here
-                    // For now, simulate an add with a mock item
-                    Button("Add Mock Item (Dev)") {
-                        let mock = PantryItem(
-                            id: UUID().uuidString,
-                            barcode: "9999",
-                            productName: "New Item",
-                            brand: "Unknown",
-                            score: 60,
-                            grade: "C",
-                            imageUrl: nil,
-                            quantity: 1,
-                            addedAt: Date()
+                    // For now, show a placeholder
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Theme.surfaceElevated)
+                        .frame(height: 200)
+                        .overlay(
+                            VStack(spacing: 12) {
+                                Image(systemName: "barcode.viewfinder")
+                                    .font(.system(size: 48))
+                                    .foregroundColor(Theme.textDim)
+                                Text("Scanner placeholder")
+                                    .font(.subheadline)
+                                    .foregroundColor(Theme.textSecondary)
+                            }
                         )
-                        onAdd(mock)
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(Theme.accent)
-                    .foregroundColor(.white)
-                    .font(.headline)
-                    .cornerRadius(12)
+                        .padding(.horizontal, 32)
                 }
                 .padding()
             }

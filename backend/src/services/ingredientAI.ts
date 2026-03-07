@@ -1,11 +1,15 @@
 import OpenAI from 'openai';
 import { createHash } from 'crypto';
 
-// ─── OpenAI Client ────────────────────────────────────────────────────────────
+// ─── OpenAI Client (lazy — only used when AI explainer route is called) ───────
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!openai) {
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'sk-placeholder' });
+  }
+  return openai;
+}
 
 // ─── In-Memory Cache ──────────────────────────────────────────────────────────
 
@@ -65,7 +69,7 @@ export async function explainIngredient(
 
   const userPrompt = `Explain why ${ingredientName} is flagged in ${productCategory} products. User priorities: ${prioritiesText}`;
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },

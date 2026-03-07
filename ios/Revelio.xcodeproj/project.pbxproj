@@ -32,6 +32,7 @@
 		A1B2C3D4E5F60002A1B2C3D4 /* AlternativeProductCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60001A1B2C3D4 /* AlternativeProductCard.swift */; };
 		B2C3D4E5F6070002B2C3D4E5 /* IngredientExplainerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6070001B2C3D4E5 /* IngredientExplainerSheet.swift */; };
 		A1B2C3D4E5F60004A1B2C3D4 /* AlternativesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60003A1B2C3D4 /* AlternativesViewModel.swift */; };
+		IFDB00000000000000000002 /* IngredientFlagDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = IFDB00000000000000000001 /* IngredientFlagDatabase.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +63,7 @@
 		A1B2C3D4E5F60001A1B2C3D4 /* AlternativeProductCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternativeProductCard.swift; sourceTree = "<group>"; };
 		B2C3D4E5F6070001B2C3D4E5 /* IngredientExplainerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientExplainerSheet.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60003A1B2C3D4 /* AlternativesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternativesViewModel.swift; sourceTree = "<group>"; };
+		IFDB00000000000000000001 /* IngredientFlagDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientFlagDatabase.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -100,6 +102,14 @@
 			path = Paywall;
 			sourceTree = "<group>";
 		};
+		SERVICES0000000000000000 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				IFDB00000000000000000001 /* IngredientFlagDatabase.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		25D6A362186CDAF081CCA770 /* Revelio */ = {
 			isa = PBXGroup;
 			children = (
@@ -109,6 +119,7 @@
 				0D75E1F3008A571DF22ACCA6 /* Theme */,
 				AAVM0000000000000000AAVM /* ViewModels */,
 				B63FB51B472B32E87802305D /* Views */,
+				SERVICES0000000000000000 /* Services */,
 			);
 			path = Revelio;
 			sourceTree = "<group>";
@@ -301,6 +312,7 @@
 				A1B2C3D4E5F60002A1B2C3D4 /* AlternativeProductCard.swift in Sources */,
 				B2C3D4E5F6070002B2C3D4E5 /* IngredientExplainerSheet.swift in Sources */,
 				A1B2C3D4E5F60004A1B2C3D4 /* AlternativesViewModel.swift in Sources */,
+				IFDB00000000000000000002 /* IngredientFlagDatabase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
