@@ -11,6 +11,11 @@ struct ProductDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var authViewModel: AuthViewModel
     @ObservedObject private var historyManager = HistoryManager.shared
+    @ObservedObject private var allergenManager = AllergenProfileManager.shared
+
+    private var allergenMatches: [AllergenMatch] {
+        allergenManager.matches(for: scan.ingredients)
+    }
 
     /// Priorities pulled from the current user profile (empty until loaded)
     private var userPriorities: [String] {
@@ -46,6 +51,11 @@ struct ProductDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
+
+                    // ── Allergen Warning (if any matches) ─────────────────────
+                    if !allergenMatches.isEmpty {
+                        AllergenWarningBanner(matches: allergenMatches)
+                    }
 
                     // ── Header ────────────────────────────────────────────────
                     ProductHeader(

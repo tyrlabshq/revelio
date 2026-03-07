@@ -34,6 +34,9 @@
 		A1B2C3D4E5F60004A1B2C3D4 /* AlternativesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60003A1B2C3D4 /* AlternativesViewModel.swift */; };
 		IFDB00000000000000000002 /* IngredientFlagDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = IFDB00000000000000000001 /* IngredientFlagDatabase.swift */; };
 		HIST00000000000000000002 /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = HIST00000000000000000001 /* HistoryManager.swift */; };
+		ALRGBF0000000000000000001 /* AllergenProfileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ALRGFR0000000000000000001 /* AllergenProfileManager.swift */; };
+		ALRGBF0000000000000000002 /* AllergenProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ALRGFR0000000000000000002 /* AllergenProfilesView.swift */; };
+		ALRGBF0000000000000000003 /* AllergenWarningBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = ALRGFR0000000000000000003 /* AllergenWarningBanner.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -66,6 +69,9 @@
 		A1B2C3D4E5F60003A1B2C3D4 /* AlternativesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternativesViewModel.swift; sourceTree = "<group>"; };
 		IFDB00000000000000000001 /* IngredientFlagDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientFlagDatabase.swift; sourceTree = "<group>"; };
 		HIST00000000000000000001 /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryManager.swift; sourceTree = "<group>"; };
+		ALRGFR0000000000000000001 /* AllergenProfileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergenProfileManager.swift; sourceTree = "<group>"; };
+		ALRGFR0000000000000000002 /* AllergenProfilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergenProfilesView.swift; sourceTree = "<group>"; };
+		ALRGFR0000000000000000003 /* AllergenWarningBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergenWarningBanner.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -109,8 +115,18 @@
 			children = (
 				IFDB00000000000000000001 /* IngredientFlagDatabase.swift */,
 				HIST00000000000000000001 /* HistoryManager.swift */,
+				ALRGFR0000000000000000001 /* AllergenProfileManager.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		ALRG0000000000000000VIEW /* Allergens */ = {
+			isa = PBXGroup;
+			children = (
+				ALRGFR0000000000000000002 /* AllergenProfilesView.swift */,
+				ALRGFR0000000000000000003 /* AllergenWarningBanner.swift */,
+			);
+			path = Allergens;
 			sourceTree = "<group>";
 		};
 		25D6A362186CDAF081CCA770 /* Revelio */ = {
@@ -183,6 +199,7 @@
 			isa = PBXGroup;
 			children = (
 				1FA4BC87E3E36723A1C52FC8 /* GradeBadge.swift */,
+				ALRG0000000000000000VIEW /* Allergens */,
 				BBAUTH000000000000000000 /* Auth */,
 				70C8BF2C47DBC7803FDFA26A /* Detail */,
 				F881042E86DE648515B9CD9E /* Explore */,
@@ -317,6 +334,9 @@
 				A1B2C3D4E5F60004A1B2C3D4 /* AlternativesViewModel.swift in Sources */,
 				IFDB00000000000000000002 /* IngredientFlagDatabase.swift in Sources */,
 				HIST00000000000000000002 /* HistoryManager.swift in Sources */,
+				ALRGBF0000000000000000001 /* AllergenProfileManager.swift in Sources */,
+				ALRGBF0000000000000000002 /* AllergenProfilesView.swift in Sources */,
+				ALRGBF0000000000000000003 /* AllergenWarningBanner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

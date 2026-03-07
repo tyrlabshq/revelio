@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showPaywall = false
+    @ObservedObject private var allergenManager = AllergenProfileManager.shared
 
     var body: some View {
         NavigationStack {
@@ -65,7 +66,20 @@ struct ProfileView: View {
 
                 Section("Goals") {
                     Label("My Priorities", systemImage: "target").foregroundColor(Theme.textPrimary)
-                    Label("Family Profiles", systemImage: "person.2").foregroundColor(Theme.textPrimary)
+                    NavigationLink {
+                        AllergenProfilesView()
+                    } label: {
+                        HStack {
+                            Label("Allergen Profiles", systemImage: "person.2")
+                                .foregroundColor(Theme.textPrimary)
+                            Spacer()
+                            if let active = allergenManager.activeProfile {
+                                Text(active.name)
+                                    .font(.caption)
+                                    .foregroundColor(Theme.textSecondary)
+                            }
+                        }
+                    }
                 }
 
                 if authViewModel.currentUser?.isPro != true {
