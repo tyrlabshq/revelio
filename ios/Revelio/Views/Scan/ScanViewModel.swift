@@ -68,6 +68,7 @@ class ScanViewModel: ObservableObject {
             }
             let scan = try JSONDecoder().decode(ScanResult.self, from: data)
             successFeedback.notificationOccurred(.success)
+            HistoryManager.shared.addScan(scan)
             state = .result(scan)
         } catch {
             errorFeedback.notificationOccurred(.error)
@@ -103,6 +104,7 @@ class ScanViewModel: ObservableObject {
             failedScanCount = 0
             showAutoManualEntry = false
             successFeedback.notificationOccurred(.success)
+            HistoryManager.shared.addScan(scan)
             state = .result(scan)
         } catch {
             recordFailure()

@@ -60,6 +60,53 @@ scanRouter.get('/:barcode', async (req, res) => {
   }
 });
 
+// ─── POST /scan/history — Record a scan ───────────────────────────────────────
+
+scanRouter.post('/history', async (req, res) => {
+  const { userId, barcode, productName, score, grade } = req.body as {
+    userId?: string;
+    barcode: string;
+    productName: string;
+    score: number;
+    grade: string;
+  };
+
+  if (!barcode) return res.status(400).json({ error: 'barcode is required' });
+
+  try {
+    await db.query(
+      `INSERT INTO scans (user_id, barcode, product_name, score, grade, scanned_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())`,
+      [userId || null, barcode, productName, score, grade]
+    );
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    console.error('History record error:', err);
+    res.status(500).json({ error: 'Failed to record scan' });
+  }
+});
+
+// ─── GET /scan/history — Get scan history for a user ──────────────────────────
+
+scanRouter.get('/history', async (req, res) => {
+  const { userId, limit = '50' } = req.query as { userId?: string; limit?: string };
+
+  if (!userId) return res.status(400).json({ error: 'userId is required' });
+
+  try {
+    const result = await db.query(
+      `SELECT id, barcode, product_name, score, grade, scanned_at
+       FROM scans WHERE user_id = $1
+       ORDER BY scanned_at DESC LIMIT $2`,
+      [userId, parseInt(limit, 10)]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('History fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch history' });
+  }
+});
+
 // ─── POST /scan/personalize ───────────────────────────────────────────────────
 
 scanRouter.post('/personalize', async (req, res) => {

@@ -7,8 +7,10 @@ struct ProductDetailView: View {
     @State private var showCitations = Set<String>()
     @State private var usePersonalized = true
     @State private var showCleanIngredients = false
+    @State private var showShareSheet = false
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var authViewModel: AuthViewModel
+    @ObservedObject private var historyManager = HistoryManager.shared
 
     /// Priorities pulled from the current user profile (empty until loaded)
     private var userPriorities: [String] {
@@ -22,6 +24,22 @@ struct ProductDetailView: View {
 
     private var hasPersonalization: Bool {
         scan.personalizedScore != scan.baseScore
+    }
+
+    private var shareText: String {
+        let flagSummary = scan.flags.isEmpty
+            ? "No major concerns found."
+            : scan.flags.prefix(3).map { "⚠️ \($0.ingredient.capitalized): \($0.reason)" }.joined(separator: "\n")
+        return """
+        🔍 Revelio Report: \(scan.productName)
+        Brand: \(scan.brand)
+        Grade: \(scan.grade) (\(scan.displayScore)/100)
+        Category: \(scan.category.displayName)
+
+        \(flagSummary)
+
+        Scanned with Revelio — know what's in your products.
+        """
     }
 
     var body: some View {
@@ -91,11 +109,31 @@ struct ProductDetailView: View {
             .background(Theme.background)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) { ShareButton() }
+                ToolbarItem(placement: .confirmationAction) {
+                    HStack(spacing: 16) {
+                        // Favorite toggle
+                        Button {
+                            historyManager.toggleFavorite(scan)
+                        } label: {
+                            Image(systemName: historyManager.isFavorite(scan.barcode) ? "heart.fill" : "heart")
+                                .foregroundColor(historyManager.isFavorite(scan.barcode) ? .pink : Theme.accent)
+                        }
+                        // Share button
+                        Button {
+                            showShareSheet = true
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(Theme.accent)
+                        }
+                    }
+                }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") { dismiss() }
                         .foregroundColor(Theme.accent)
                 }
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ShareSheet(items: [shareText])
             }
         }
     }
@@ -602,15 +640,16 @@ struct AlternativeCard: View {
     }
 }
 
-// ─── Share Button ──────────────────────────────────────────────────────────────
+// ─── Share Sheet ───────────────────────────────────────────────────────────────
 
-struct ShareButton: View {
-    var body: some View {
-        Button {} label: {
-            Image(systemName: "square.and.arrow.up")
-                .foregroundColor(Theme.accent)
-        }
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
     }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 // ─── Preview ───────────────────────────────────────────────────────────────────

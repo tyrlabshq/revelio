@@ -33,6 +33,7 @@
 		B2C3D4E5F6070002B2C3D4E5 /* IngredientExplainerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6070001B2C3D4E5 /* IngredientExplainerSheet.swift */; };
 		A1B2C3D4E5F60004A1B2C3D4 /* AlternativesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60003A1B2C3D4 /* AlternativesViewModel.swift */; };
 		IFDB00000000000000000002 /* IngredientFlagDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = IFDB00000000000000000001 /* IngredientFlagDatabase.swift */; };
+		HIST00000000000000000002 /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = HIST00000000000000000001 /* HistoryManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +65,7 @@
 		B2C3D4E5F6070001B2C3D4E5 /* IngredientExplainerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientExplainerSheet.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60003A1B2C3D4 /* AlternativesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternativesViewModel.swift; sourceTree = "<group>"; };
 		IFDB00000000000000000001 /* IngredientFlagDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientFlagDatabase.swift; sourceTree = "<group>"; };
+		HIST00000000000000000001 /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -106,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				IFDB00000000000000000001 /* IngredientFlagDatabase.swift */,
+				HIST00000000000000000001 /* HistoryManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -313,6 +316,7 @@
 				B2C3D4E5F6070002B2C3D4E5 /* IngredientExplainerSheet.swift in Sources */,
 				A1B2C3D4E5F60004A1B2C3D4 /* AlternativesViewModel.swift in Sources */,
 				IFDB00000000000000000002 /* IngredientFlagDatabase.swift in Sources */,
+				HIST00000000000000000002 /* HistoryManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
