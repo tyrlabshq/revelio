@@ -108,7 +108,18 @@ struct ProfileView: View {
                 }
 
                 Section("Creator Program") {
-                    Label("Become a Creator", systemImage: "megaphone").foregroundColor(Theme.textPrimary)
+                    NavigationLink {
+                        CreatorView(userId: authViewModel.currentUser?.id ?? "guest")
+                    } label: {
+                        HStack {
+                            Label("Creator Program", systemImage: "megaphone.fill")
+                                .foregroundColor(Theme.textPrimary)
+                            Spacer()
+                            Text("Earn 20%")
+                                .font(.caption)
+                                .foregroundColor(.purple)
+                        }
+                    }
                 }
             }
             .scrollContentBackground(.hidden)

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import { db } from '../db';
+import { processReferralCommission } from './referrals';
 
 export const webhookRouter = Router();
 
@@ -92,12 +93,30 @@ webhookRouter.post(
           [appUserId]
         );
         console.log(`[webhooks] Upgraded ${appUserId} to pro (${eventType})`);
+
+        // ── Referral commission: RENEWAL and INITIAL_PURCHASE earn 20% ──
+        if (eventType === 'RENEWAL' || eventType === 'INITIAL_PURCHASE' || eventType === 'TRIAL_CONVERTED') {
+          const priceCents: number = Math.round((event.price || 0) * 100);
+          const revCatEventId: string = event.id || `${appUserId}-${eventType}-${Date.now()}`;
+          if (priceCents > 0) {
+            await processReferralCommission(appUserId, priceCents, eventType, revCatEventId)
+              .catch(err => console.error('[webhooks] Referral commission error:', err.message));
+          }
+        }
       } else if (FREE_EVENTS.has(eventType)) {
         await db.query(
           `UPDATE user_profiles SET tier = 'free', updated_at = NOW() WHERE id = $1`,
           [appUserId]
         );
         console.log(`[webhooks] Downgraded ${appUserId} to free (${eventType})`);
+
+        // Mark attribution as inactive subscriber on cancellation/expiration
+        if (eventType === 'CANCELLATION' || eventType === 'EXPIRATION') {
+          await db.query(
+            `UPDATE referral_attributions SET is_active_subscriber = FALSE WHERE referred_user_id = $1`,
+            [appUserId]
+          ).catch(err => console.error('[webhooks] Attribution update error:', err.message));
+        }
       } else {
         console.log(`[webhooks] Unhandled event type: ${eventType}`);
       }
