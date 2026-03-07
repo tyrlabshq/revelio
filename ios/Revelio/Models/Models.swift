@@ -48,6 +48,19 @@ struct IngredientFlag: Identifiable, Codable {
     let citationUrl: String?
     let citationYear: Int?
     let priorities: [String]
+    // REV-08: EU E-number and multi-citation support
+    var eNumber: String? = nil
+    var citations: [String]? = nil
+
+    /// Severity label conforming to SAFE | CAUTION | AVOID spectrum
+    var severityRating: String {
+        switch severity {
+        case 0, 1: return "SAFE"
+        case 2: return "CAUTION"
+        case 3: return "AVOID"
+        default: return "SAFE"
+        }
+    }
 
     var severityColor: String {
         switch severity {
