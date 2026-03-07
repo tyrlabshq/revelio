@@ -64,16 +64,30 @@ struct ScanView: View {
                         if case .error(let msg) = viewModel.state {
                             VStack {
                                 Spacer()
-                                Text(msg)
-                                    .font(.subheadline)
-                                    .foregroundColor(Theme.danger)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 16)
-                                    .background(Theme.surface.opacity(0.95))
-                                    .cornerRadius(12)
-                                    .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 3)
-                                    .padding(.bottom, 60)
+                                VStack(spacing: 10) {
+                                    Text(msg)
+                                        .font(.subheadline)
+                                        .foregroundColor(Theme.danger)
+                                        .multilineTextAlignment(.center)
+                                    
+                                    // After 3 failures, show inline manual entry prompt
+                                    if viewModel.failedScanCount >= 3 {
+                                        Button {
+                                            showManualEntry = true
+                                        } label: {
+                                            Label("Having trouble? Enter manually", systemImage: "keyboard")
+                                                .font(.footnote.weight(.medium))
+                                                .foregroundColor(Theme.accent)
+                                        }
+                                        .padding(.top, 4)
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                                .background(Theme.surface.opacity(0.95))
+                                .cornerRadius(12)
+                                .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 3)
+                                .padding(.bottom, 60)
                             }
                         }
                     }
@@ -81,9 +95,23 @@ struct ScanView: View {
             }
         }
         .sheet(isPresented: $showManualEntry) {
-            ManualBarcodeView(onBarcode: viewModel.handleBarcode)
+            ManualBarcodeView(onBarcode: viewModel.handleBarcode, onSearch: { query in
+                Task { await viewModel.searchByName(query) }
+            })
+        }
+        .sheet(isPresented: $viewModel.showAutoManualEntry) {
+            ManualBarcodeView(
+                onBarcode: viewModel.handleBarcode,
+                onSearch: { query in
+                    Task { await viewModel.searchByName(query) }
+                },
+                autoFocused: true
+            )
         }
         .animation(.spring(response: 0.4), value: viewModel.stateTag)
+        .onDisappear {
+            viewModel.turnOffTorch()
+        }
     }
 }
 
