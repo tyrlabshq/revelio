@@ -3,7 +3,7 @@ import SwiftUI
 struct ProductDetailView: View {
     let scan: ScanResult
     @State private var showCitations = Set<String>()
-    @Environment(\\.dismiss) private var dismiss
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {

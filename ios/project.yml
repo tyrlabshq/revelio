@@ -1,0 +1,23 @@
+name: Revelio
+options:
+  bundleIdPrefix: com.revelio
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: "F945V6582K"
+targets:
+  Revelio:
+    type: application
+    platform: iOS
+    sources:
+      - Revelio
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.revelio.app
+        INFOPLIST_FILE: Revelio/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

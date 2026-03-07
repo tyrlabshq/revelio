@@ -1,0 +1,487 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00E93943CDDE91889226F936 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABBEDB2A106C588CF3B6A182 /* ProfileView.swift */; };
+		AA11223344556677889900AA /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11223344556677889900AB /* AuthViewModel.swift */; };
+		BB11223344556677889900BB /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB11223344556677889900BC /* OnboardingView.swift */; };
+		CC11223344556677889900CC /* PhoneEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC11223344556677889900CD /* PhoneEntryView.swift */; };
+		DD11223344556677889900DD /* OTPVerifyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD11223344556677889900DE /* OTPVerifyView.swift */; };
+		EE11223344556677889900EE /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE11223344556677889900EF /* PaywallView.swift */; };
+		FF11223344556677889900FF /* ProBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF11223344556677889900F0 /* ProBadge.swift */; };
+		4AB4D9E70C73547605573A4D /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D54751C8F03BFE2AD2403E1 /* Models.swift */; };
+		63E04FDCE93E1242634924DE /* PantryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA1975F323CA83EF03BC0805 /* PantryView.swift */; };
+		657021DBF1E6F053075B3DD8 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E6D47977C302E778C3D0109 /* AppState.swift */; };
+		6B52B3A931B617C25E3FFC5D /* ProductDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A6178161DDADCF9337C3596 /* ProductDetailView.swift */; };
+		8D0677FE8C8E347F65C17E99 /* ScanResultCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09646FD131E0D14CB67FFB55 /* ScanResultCard.swift */; };
+		9036B8C2866640BD07404556 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9BF37F2420E013DF868C88A /* ContentView.swift */; };
+		94CFBB76C6F7DE531C8D3276 /* RevelioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F02E5B1EE32B88164CB6821 /* RevelioApp.swift */; };
+		A7AEF2F1F7BB8A176548BF39 /* ManualBarcodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB1B3934E2444130F5A8BDC0 /* ManualBarcodeView.swift */; };
+		AC0030BBEF786A6C93E5497B /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46163D4F416023B064C16486 /* ExploreView.swift */; };
+		AF687004FC78274A2CF3FCBB /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8410D4F3FB3E0ECB7CA119F /* Theme.swift */; };
+		D2751BEA45B4BAA6962B35BD /* GradeBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA4BC87E3E36723A1C52FC8 /* GradeBadge.swift */; };
+		D662F6B526BD5F5D2793B709 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D3E63A651C8668122CE96D /* HistoryView.swift */; };
+		D883631D9253A58BA884EFB3 /* BarcodeScannerRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E536483B331979E9A1FF394 /* BarcodeScannerRepresentable.swift */; };
+		E61578A92E95DF562B6C1885 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F5F3C5B645B0928D66B9B01 /* ScanView.swift */; };
+		EDC4BBD98253559559C97C55 /* ScanViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE077B1A76C559779DE4F7F6 /* ScanViewModel.swift */; };
+		A1B2C3D4E5F60002A1B2C3D4 /* AlternativeProductCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60001A1B2C3D4 /* AlternativeProductCard.swift */; };
+		A1B2C3D4E5F60004A1B2C3D4 /* AlternativesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60003A1B2C3D4 /* AlternativesViewModel.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		09646FD131E0D14CB67FFB55 /* ScanResultCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanResultCard.swift; sourceTree = "<group>"; };
+		0D54751C8F03BFE2AD2403E1 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		0E536483B331979E9A1FF394 /* BarcodeScannerRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerRepresentable.swift; sourceTree = "<group>"; };
+		1FA4BC87E3E36723A1C52FC8 /* GradeBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradeBadge.swift; sourceTree = "<group>"; };
+		31D3E63A651C8668122CE96D /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		3A6178161DDADCF9337C3596 /* ProductDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductDetailView.swift; sourceTree = "<group>"; };
+		3E6D47977C302E778C3D0109 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		46163D4F416023B064C16486 /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
+		48F4E19AC05B93970D5D9C5F /* Revelio.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Revelio.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F5F3C5B645B0928D66B9B01 /* ScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanView.swift; sourceTree = "<group>"; };
+		8F02E5B1EE32B88164CB6821 /* RevelioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevelioApp.swift; sourceTree = "<group>"; };
+		A8410D4F3FB3E0ECB7CA119F /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		A841D181C8E7384BDF39797A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		ABBEDB2A106C588CF3B6A182 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		BE077B1A76C559779DE4F7F6 /* ScanViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanViewModel.swift; sourceTree = "<group>"; };
+		EB1B3934E2444130F5A8BDC0 /* ManualBarcodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualBarcodeView.swift; sourceTree = "<group>"; };
+		F9BF37F2420E013DF868C88A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		FA1975F323CA83EF03BC0805 /* PantryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PantryView.swift; sourceTree = "<group>"; };
+		AA11223344556677889900AB /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		BB11223344556677889900BC /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		CC11223344556677889900CD /* PhoneEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneEntryView.swift; sourceTree = "<group>"; };
+		DD11223344556677889900DE /* OTPVerifyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPVerifyView.swift; sourceTree = "<group>"; };
+		EE11223344556677889900EF /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		FF11223344556677889900F0 /* ProBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProBadge.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60001A1B2C3D4 /* AlternativeProductCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternativeProductCard.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60003A1B2C3D4 /* AlternativesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternativesViewModel.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0D75E1F3008A571DF22ACCA6 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				A8410D4F3FB3E0ECB7CA119F /* Theme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		AAVM0000000000000000AAVM /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				AA11223344556677889900AB /* AuthViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		BBAUTH000000000000000000 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				BB11223344556677889900BC /* OnboardingView.swift */,
+				CC11223344556677889900CD /* PhoneEntryView.swift */,
+				DD11223344556677889900DE /* OTPVerifyView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		CCPAYWALL0000000000000000 /* Paywall */ = {
+			isa = PBXGroup;
+			children = (
+				EE11223344556677889900EF /* PaywallView.swift */,
+				FF11223344556677889900F0 /* ProBadge.swift */,
+			);
+			path = Paywall;
+			sourceTree = "<group>";
+		};
+		25D6A362186CDAF081CCA770 /* Revelio */ = {
+			isa = PBXGroup;
+			children = (
+				A841D181C8E7384BDF39797A /* Info.plist */,
+				4BDE1D415FFD31692A397109 /* App */,
+				B0966436C3BABF8F0A771806 /* Models */,
+				0D75E1F3008A571DF22ACCA6 /* Theme */,
+				AAVM0000000000000000AAVM /* ViewModels */,
+				B63FB51B472B32E87802305D /* Views */,
+			);
+			path = Revelio;
+			sourceTree = "<group>";
+		};
+		4BDE1D415FFD31692A397109 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				3E6D47977C302E778C3D0109 /* AppState.swift */,
+				F9BF37F2420E013DF868C88A /* ContentView.swift */,
+				8F02E5B1EE32B88164CB6821 /* RevelioApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		59F0FFA7191AD6333EB75E50 /* Pantry */ = {
+			isa = PBXGroup;
+			children = (
+				FA1975F323CA83EF03BC0805 /* PantryView.swift */,
+			);
+			path = Pantry;
+			sourceTree = "<group>";
+		};
+		70C8BF2C47DBC7803FDFA26A /* Detail */ = {
+			isa = PBXGroup;
+			children = (
+				3A6178161DDADCF9337C3596 /* ProductDetailView.swift */,
+				A1B2C3D4E5F60001A1B2C3D4 /* AlternativeProductCard.swift */,
+			);
+			path = Detail;
+			sourceTree = "<group>";
+		};
+		80E09A6C71D5F8BF465DEF44 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				ABBEDB2A106C588CF3B6A182 /* ProfileView.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		8262E3E2F71876D684C7DD87 = {
+			isa = PBXGroup;
+			children = (
+				25D6A362186CDAF081CCA770 /* Revelio */,
+				D4318CB949DCBA160611FD33 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B0966436C3BABF8F0A771806 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				0D54751C8F03BFE2AD2403E1 /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		B63FB51B472B32E87802305D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				1FA4BC87E3E36723A1C52FC8 /* GradeBadge.swift */,
+				BBAUTH000000000000000000 /* Auth */,
+				70C8BF2C47DBC7803FDFA26A /* Detail */,
+				F881042E86DE648515B9CD9E /* Explore */,
+				B786BEACAE3B7BF4B28982DD /* History */,
+				59F0FFA7191AD6333EB75E50 /* Pantry */,
+				CCPAYWALL0000000000000000 /* Paywall */,
+				80E09A6C71D5F8BF465DEF44 /* Profile */,
+				FF8D526F09F86CC951559589 /* Scan */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B786BEACAE3B7BF4B28982DD /* History */ = {
+			isa = PBXGroup;
+			children = (
+				31D3E63A651C8668122CE96D /* HistoryView.swift */,
+			);
+			path = History;
+			sourceTree = "<group>";
+		};
+		D4318CB949DCBA160611FD33 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				48F4E19AC05B93970D5D9C5F /* Revelio.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F881042E86DE648515B9CD9E /* Explore */ = {
+			isa = PBXGroup;
+			children = (
+				46163D4F416023B064C16486 /* ExploreView.swift */,
+			);
+			path = Explore;
+			sourceTree = "<group>";
+		};
+		FF8D526F09F86CC951559589 /* Scan */ = {
+			isa = PBXGroup;
+			children = (
+				0E536483B331979E9A1FF394 /* BarcodeScannerRepresentable.swift */,
+				EB1B3934E2444130F5A8BDC0 /* ManualBarcodeView.swift */,
+				09646FD131E0D14CB67FFB55 /* ScanResultCard.swift */,
+				A1B2C3D4E5F60003A1B2C3D4 /* AlternativesViewModel.swift */,
+				5F5F3C5B645B0928D66B9B01 /* ScanView.swift */,
+				BE077B1A76C559779DE4F7F6 /* ScanViewModel.swift */,
+			);
+			path = Scan;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		427934C5C20A2D0072C3C14F /* Revelio */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4A1E74B4EC2E2E9E43C15489 /* Build configuration list for PBXNativeTarget "Revelio" */;
+			buildPhases = (
+				B4DF3DBE84A8B4858C8EC308 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Revelio;
+			packageProductDependencies = (
+			);
+			productName = Revelio;
+			productReference = 48F4E19AC05B93970D5D9C5F /* Revelio.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D95177A6E5C0B6453A259DFD /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					427934C5C20A2D0072C3C14F = {
+						DevelopmentTeam = F945V6582K;
+					};
+				};
+			};
+			buildConfigurationList = 7C1683C98A92A1CD9244995A /* Build configuration list for PBXProject "Revelio" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 8262E3E2F71876D684C7DD87;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				427934C5C20A2D0072C3C14F /* Revelio */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B4DF3DBE84A8B4858C8EC308 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA11223344556677889900AA /* AuthViewModel.swift in Sources */,
+				657021DBF1E6F053075B3DD8 /* AppState.swift in Sources */,
+				D883631D9253A58BA884EFB3 /* BarcodeScannerRepresentable.swift in Sources */,
+				9036B8C2866640BD07404556 /* ContentView.swift in Sources */,
+				AC0030BBEF786A6C93E5497B /* ExploreView.swift in Sources */,
+				D2751BEA45B4BAA6962B35BD /* GradeBadge.swift in Sources */,
+				D662F6B526BD5F5D2793B709 /* HistoryView.swift in Sources */,
+				A7AEF2F1F7BB8A176548BF39 /* ManualBarcodeView.swift in Sources */,
+				4AB4D9E70C73547605573A4D /* Models.swift in Sources */,
+				BB11223344556677889900BB /* OnboardingView.swift in Sources */,
+				DD11223344556677889900DD /* OTPVerifyView.swift in Sources */,
+				63E04FDCE93E1242634924DE /* PantryView.swift in Sources */,
+				EE11223344556677889900EE /* PaywallView.swift in Sources */,
+				CC11223344556677889900CC /* PhoneEntryView.swift in Sources */,
+				6B52B3A931B617C25E3FFC5D /* ProductDetailView.swift in Sources */,
+				00E93943CDDE91889226F936 /* ProfileView.swift in Sources */,
+				FF11223344556677889900FF /* ProBadge.swift in Sources */,
+				94CFBB76C6F7DE531C8D3276 /* RevelioApp.swift in Sources */,
+				8D0677FE8C8E347F65C17E99 /* ScanResultCard.swift in Sources */,
+				E61578A92E95DF562B6C1885 /* ScanView.swift in Sources */,
+				EDC4BBD98253559559C97C55 /* ScanViewModel.swift in Sources */,
+				AF687004FC78274A2CF3FCBB /* Theme.swift in Sources */,
+				A1B2C3D4E5F60002A1B2C3D4 /* AlternativeProductCard.swift in Sources */,
+				A1B2C3D4E5F60004A1B2C3D4 /* AlternativesViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		3C2FE9F026775A2BFE1B4AE4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = F945V6582K;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		50694648DD37320C61B527D7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = F945V6582K;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		6323E1BD58EC2377D4FDC830 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Revelio/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.revelio.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		89DA4369B0C3C7E9B8557354 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Revelio/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.revelio.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4A1E74B4EC2E2E9E43C15489 /* Build configuration list for PBXNativeTarget "Revelio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6323E1BD58EC2377D4FDC830 /* Debug */,
+				89DA4369B0C3C7E9B8557354 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7C1683C98A92A1CD9244995A /* Build configuration list for PBXProject "Revelio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				50694648DD37320C61B527D7 /* Debug */,
+				3C2FE9F026775A2BFE1B4AE4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D95177A6E5C0B6453A259DFD /* Project object */;
+}

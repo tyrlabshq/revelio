@@ -3,7 +3,7 @@ import SwiftUI
 struct ManualBarcodeView: View {
     let onBarcode: (String) -> Void
     @State private var code = ""
-    @Environment(\\.dismiss) private var dismiss
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
