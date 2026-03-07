@@ -30,6 +30,7 @@
 		E61578A92E95DF562B6C1885 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F5F3C5B645B0928D66B9B01 /* ScanView.swift */; };
 		EDC4BBD98253559559C97C55 /* ScanViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE077B1A76C559779DE4F7F6 /* ScanViewModel.swift */; };
 		A1B2C3D4E5F60002A1B2C3D4 /* AlternativeProductCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60001A1B2C3D4 /* AlternativeProductCard.swift */; };
+		B2C3D4E5F6070002B2C3D4E5 /* IngredientExplainerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6070001B2C3D4E5 /* IngredientExplainerSheet.swift */; };
 		A1B2C3D4E5F60004A1B2C3D4 /* AlternativesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60003A1B2C3D4 /* AlternativesViewModel.swift */; };
 /* End PBXBuildFile section */
 
@@ -59,6 +60,7 @@
 		EE11223344556677889900EF /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		FF11223344556677889900F0 /* ProBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProBadge.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60001A1B2C3D4 /* AlternativeProductCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternativeProductCard.swift; sourceTree = "<group>"; };
+		B2C3D4E5F6070001B2C3D4E5 /* IngredientExplainerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientExplainerSheet.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60003A1B2C3D4 /* AlternativesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternativesViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -134,6 +136,7 @@
 			children = (
 				3A6178161DDADCF9337C3596 /* ProductDetailView.swift */,
 				A1B2C3D4E5F60001A1B2C3D4 /* AlternativeProductCard.swift */,
+				B2C3D4E5F6070001B2C3D4E5 /* IngredientExplainerSheet.swift */,
 			);
 			path = Detail;
 			sourceTree = "<group>";
@@ -296,6 +299,7 @@
 				EDC4BBD98253559559C97C55 /* ScanViewModel.swift in Sources */,
 				AF687004FC78274A2CF3FCBB /* Theme.swift in Sources */,
 				A1B2C3D4E5F60002A1B2C3D4 /* AlternativeProductCard.swift in Sources */,
+				B2C3D4E5F6070002B2C3D4E5 /* IngredientExplainerSheet.swift in Sources */,
 				A1B2C3D4E5F60004A1B2C3D4 /* AlternativesViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

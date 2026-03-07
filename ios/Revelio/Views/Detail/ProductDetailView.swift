@@ -4,6 +4,7 @@ struct ProductDetailView: View {
     let scan: ScanResult
     @State private var showCitations = Set<String>()
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var authViewModel: AuthViewModel
 
     var body: some View {
         NavigationStack {
@@ -16,9 +17,17 @@ struct ProductDetailView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("FLAGGED INGREDIENTS").font(.system(size: 10, weight: .semibold, design: .monospaced)).foregroundColor(Theme.textDim).padding(.horizontal, 20).padding(.top, 24)
                             ForEach(scan.flags) { flag in
-                                FlagCard(flag: flag, showCitation: showCitations.contains(flag.id)) {
-                                    if showCitations.contains(flag.id) { showCitations.remove(flag.id) } else { showCitations.insert(flag.id) }
-                                }
+                                FlagCard(
+                                    flag: flag,
+                                    showCitation: showCitations.contains(flag.id),
+                                    onToggle: {
+                                        if showCitations.contains(flag.id) { showCitations.remove(flag.id) } else { showCitations.insert(flag.id) }
+                                    },
+                                    productCategory: scan.category.rawValue,
+                                    authToken: authViewModel.loadToken(),
+                                    isPro: authViewModel.currentUser?.isPro ?? false,
+                                    userPriorities: []
+                                )
                                 .padding(.horizontal, 16)
                             }
                         }
@@ -85,6 +94,14 @@ struct FlagCard: View {
     let flag: IngredientFlag
     let showCitation: Bool
     let onToggle: () -> Void
+    // AI Explainer context (optional — degrades gracefully if nil)
+    var productCategory: String = "general"
+    var authToken: String? = nil
+    var isPro: Bool = false
+    var userPriorities: [String] = []
+
+    @State private var showExplainer = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
@@ -112,6 +129,34 @@ struct FlagCard: View {
                     }
                     .padding(10).background(Theme.surfaceElevated).cornerRadius(8)
                     .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+
+            // Ask Revelio button (only shown when auth token is available)
+            if authToken != nil {
+                Button {
+                    showExplainer = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Text("🤖")
+                            .font(.caption)
+                        Text("Ask Revelio")
+                            .font(.caption.bold())
+                    }
+                    .foregroundColor(Theme.accent)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Theme.accent.opacity(0.1))
+                    .cornerRadius(8)
+                }
+                .sheet(isPresented: $showExplainer) {
+                    IngredientExplainerSheet(
+                        ingredientName: flag.ingredient,
+                        productCategory: productCategory,
+                        priorities: userPriorities,
+                        authToken: authToken ?? "",
+                        isPro: isPro
+                    )
                 }
             }
         }
