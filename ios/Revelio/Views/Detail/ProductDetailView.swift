@@ -1,41 +1,90 @@
 import SwiftUI
 
+// ─── Product Detail View ──────────────────────────────────────────────────────
+
 struct ProductDetailView: View {
     let scan: ScanResult
     @State private var showCitations = Set<String>()
+    @State private var usePersonalized = true
+    @State private var showCleanIngredients = false
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var authViewModel: AuthViewModel
+
+    /// Priorities pulled from the current user profile (empty until loaded)
+    private var userPriorities: [String] {
+        // AuthUser doesn't expose priorities yet — graceful fallback
+        return []
+    }
+
+    private var displayScore: Int {
+        usePersonalized ? scan.personalizedScore : scan.baseScore
+    }
+
+    private var hasPersonalization: Bool {
+        scan.personalizedScore != scan.baseScore
+    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    ProductHeader(scan: scan)
-                    ScoreBar(scan: scan).padding(.horizontal, 20).padding(.top, 20)
 
+                    // ── Header ────────────────────────────────────────────────
+                    ProductHeader(
+                        scan: scan,
+                        displayScore: displayScore,
+                        usePersonalized: $usePersonalized,
+                        hasPersonalization: hasPersonalization
+                    )
+
+                    // ── Score Breakdown Bar ───────────────────────────────────
+                    ScoreBar(scan: scan, usePersonalized: usePersonalized)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+
+                    // ── Flagged Ingredients ───────────────────────────────────
                     if !scan.flags.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("FLAGGED INGREDIENTS").font(.system(size: 10, weight: .semibold, design: .monospaced)).foregroundColor(Theme.textDim).padding(.horizontal, 20).padding(.top, 24)
+                            SectionLabel("FLAGGED INGREDIENTS")
+                                .padding(.horizontal, 20)
+                                .padding(.top, 24)
+
                             ForEach(scan.flags) { flag in
                                 FlagCard(
                                     flag: flag,
                                     showCitation: showCitations.contains(flag.id),
                                     onToggle: {
-                                        if showCitations.contains(flag.id) { showCitations.remove(flag.id) } else { showCitations.insert(flag.id) }
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                                            if showCitations.contains(flag.id) {
+                                                showCitations.remove(flag.id)
+                                            } else {
+                                                showCitations.insert(flag.id)
+                                            }
+                                        }
                                     },
                                     productCategory: scan.category.rawValue,
                                     authToken: authViewModel.loadToken(),
                                     isPro: authViewModel.currentUser?.isPro ?? false,
-                                    userPriorities: []
+                                    userPriorities: userPriorities
                                 )
                                 .padding(.horizontal, 16)
                             }
                         }
                     }
 
-                    if scan.baseScore < 70 {
-                        AlternativesSection().padding(.top, 16)
+                    // ── Clean Ingredients ─────────────────────────────────────
+                    CleanIngredientsSection(
+                        scan: scan,
+                        isExpanded: $showCleanIngredients
+                    )
+                    .padding(.top, 16)
+
+                    // ── Alternatives (score < 65) ─────────────────────────────
+                    if scan.baseScore < 65 {
+                        AlternativesSection()
+                            .padding(.top, 16)
                     }
+
                     Spacer(minLength: 40)
                 }
             }
@@ -43,58 +92,230 @@ struct ProductDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { ShareButton() }
-                ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() }.foregroundColor(Theme.textSecondary) }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                        .foregroundColor(Theme.textSecondary)
+                }
             }
         }
     }
 }
+
+// ─── Section Label ─────────────────────────────────────────────────────────────
+
+private struct SectionLabel: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+    var body: some View {
+        Text(text)
+            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+            .foregroundColor(Theme.textDim)
+    }
+}
+
+// ─── Product Header ────────────────────────────────────────────────────────────
 
 struct ProductHeader: View {
     let scan: ScanResult
+    let displayScore: Int
+    @Binding var usePersonalized: Bool
+    let hasPersonalization: Bool
+
     var body: some View {
         VStack(spacing: 16) {
-            AsyncImage(url: URL(string: scan.imageUrl ?? "")) { image in image.resizable().aspectRatio(contentMode: .fit) } placeholder: {
-                RoundedRectangle(cornerRadius: 12).fill(Theme.surfaceElevated).overlay(Image(systemName: "photo").foregroundColor(Theme.textDim).font(.largeTitle))
-            }
-            .frame(height: 140).clipShape(RoundedRectangle(cornerRadius: 12)).padding(.horizontal, 80)
 
-            VStack(spacing: 6) {
-                Text(scan.productName).font(.title2.bold()).foregroundColor(Theme.textPrimary).multilineTextAlignment(.center)
-                Text(scan.brand).font(.subheadline).foregroundColor(Theme.textSecondary)
-                Text("\(scan.category.icon) \(scan.category.displayName.uppercased())").font(.system(size: 10, weight: .bold, design: .monospaced)).foregroundColor(Theme.textDim).padding(.horizontal, 10).padding(.vertical, 4).background(Theme.surfaceElevated).cornerRadius(6)
+            // Product image
+            AsyncImage(url: URL(string: scan.imageUrl ?? "")) { image in
+                image.resizable().aspectRatio(contentMode: .fit)
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Theme.surfaceElevated)
+                    .overlay(
+                        Image(systemName: "photo")
+                            .foregroundColor(Theme.textDim)
+                            .font(.largeTitle)
+                    )
             }
-            GradeBadge(grade: scan.grade, score: scan.displayScore, size: .large)
+            .frame(height: 140)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 80)
+
+            // Name, brand, category
+            VStack(spacing: 6) {
+                Text(scan.productName)
+                    .font(.title2.bold())
+                    .foregroundColor(Theme.textPrimary)
+                    .multilineTextAlignment(.center)
+
+                Text(scan.brand)
+                    .font(.subheadline)
+                    .foregroundColor(Theme.textSecondary)
+
+                Text("\(scan.category.icon) \(scan.category.displayName.uppercased())")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundColor(Theme.textDim)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Theme.surfaceElevated)
+                    .cornerRadius(6)
+            }
+
+            // Grade badge
+            GradeBadge(grade: scan.grade, score: displayScore, size: .large)
+
+            // Personalized vs base score toggle
+            if hasPersonalization {
+                PersonalizationToggle(usePersonalized: $usePersonalized)
+            }
         }
-        .padding(20).background(Theme.surface)
+        .padding(20)
+        .background(Theme.surface)
     }
 }
+
+// ─── Personalization Toggle ────────────────────────────────────────────────────
+
+private struct PersonalizationToggle: View {
+    @Binding var usePersonalized: Bool
+
+    var body: some View {
+        HStack(spacing: 0) {
+            toggleButton("Base", selected: !usePersonalized) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    usePersonalized = false
+                }
+            }
+            toggleButton("For You ✦", selected: usePersonalized) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    usePersonalized = true
+                }
+            }
+        }
+        .background(Theme.surfaceElevated)
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Theme.textDim.opacity(0.3), lineWidth: 1)
+        )
+    }
+
+    private func toggleButton(_ label: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(selected ? .white : Theme.textSecondary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 7)
+                .background(selected ? Theme.accent : Color.clear)
+                .cornerRadius(7)
+        }
+    }
+}
+
+// ─── Score Breakdown Bar ───────────────────────────────────────────────────────
 
 struct ScoreBar: View {
     let scan: ScanResult
+    let usePersonalized: Bool
+
+    private var score: Int { usePersonalized ? scan.personalizedScore : scan.baseScore }
+
+    /// Unique flag categories with counts
+    private var flagCategories: [(category: String, count: Int)] {
+        var counts: [String: Int] = [:]
+        for flag in scan.flags { counts[flag.category, default: 0] += 1 }
+        return counts.map { ($0.key, $0.value) }.sorted { $0.count > $1.count }
+    }
+
+    private var flagCount: Int { scan.flags.count }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("SCORE BREAKDOWN").font(.system(size: 10, weight: .semibold, design: .monospaced)).foregroundColor(Theme.textDim)
+            Text("SCORE BREAKDOWN")
+                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .foregroundColor(Theme.textDim)
+
             GeometryReader { geo in
                 HStack(spacing: 2) {
-                    RoundedRectangle(cornerRadius: 4).fill(Theme.success).frame(width: geo.size.width * Double(scan.baseScore) / 100)
-                    RoundedRectangle(cornerRadius: 4).fill(Theme.danger).frame(width: geo.size.width * Double(100 - scan.baseScore) / 100)
+                    // Green (clean) portion
+                    if score > 0 {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Theme.success)
+                            .frame(width: max(geo.size.width * CGFloat(score) / 100, 4))
+                    }
+
+                    // Red segments per flag category
+                    if flagCount > 0 && score < 100 {
+                        let flagWidth = geo.size.width * CGFloat(100 - score) / 100
+                        HStack(spacing: 2) {
+                            ForEach(flagCategories, id: \.category) { item in
+                                let segWidth = flagWidth * CGFloat(item.count) / CGFloat(flagCount)
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .fill(segmentColor(for: item.category))
+                                        .frame(width: max(segWidth - 2, 4))
+                                }
+                            }
+                        }
+                        .frame(width: flagWidth)
+                    } else if score < 100 {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Theme.danger)
+                            .frame(width: geo.size.width * CGFloat(100 - score) / 100)
+                    }
                 }
             }
-            .frame(height: 12).background(Theme.surfaceElevated).cornerRadius(6)
-            HStack {
-                Label("\(scan.baseScore)% clean", systemImage: "checkmark.circle.fill").foregroundColor(Theme.success).font(.caption)
+            .frame(height: 12)
+            .background(Theme.surfaceElevated)
+            .cornerRadius(6)
+
+            // Legend
+            HStack(spacing: 0) {
+                Label("\(score)% clean", systemImage: "checkmark.circle.fill")
+                    .foregroundColor(Theme.success)
+                    .font(.caption)
                 Spacer()
-                Label("\(scan.flags.count) flag\(scan.flags.count == 1 ? "" : "s")", systemImage: "exclamationmark.triangle.fill").foregroundColor(Theme.danger).font(.caption)
+
+                // Per-category flag labels
+                if flagCategories.count <= 2 {
+                    ForEach(flagCategories, id: \.category) { item in
+                        HStack(spacing: 3) {
+                            Circle()
+                                .fill(segmentColor(for: item.category))
+                                .frame(width: 6, height: 6)
+                            Text(item.category)
+                                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                                .foregroundColor(Theme.textSecondary)
+                        }
+                        .padding(.leading, 8)
+                    }
+                } else {
+                    Label("\(flagCount) flag\(flagCount == 1 ? "" : "s")", systemImage: "exclamationmark.triangle.fill")
+                        .foregroundColor(Theme.danger)
+                        .font(.caption)
+                }
             }
         }
     }
+
+    private func segmentColor(for category: String) -> Color {
+        // Vary the red shade by category for visual distinction
+        let cat = category.uppercased()
+        if cat.contains("DYE") || cat.contains("COLOUR") { return Color(hex: "fb7185") }
+        if cat.contains("PRESERV") { return Color(hex: "f97316") }
+        if cat.contains("SEED OIL") || cat.contains("OIL") { return Color(hex: "ef4444") }
+        if cat.contains("SWEETENER") || cat.contains("SUGAR") { return Color(hex: "fb923c") }
+        if cat.contains("PESTICIDE") || cat.contains("HERBICIDE") { return Color(hex: "dc2626") }
+        return Theme.danger
+    }
 }
+
+// ─── Flag Card ─────────────────────────────────────────────────────────────────
 
 struct FlagCard: View {
     let flag: IngredientFlag
     let showCitation: Bool
     let onToggle: () -> Void
-    // AI Explainer context (optional — degrades gracefully if nil)
     var productCategory: String = "general"
     var authToken: String? = nil
     var isPro: Bool = false
@@ -102,46 +323,103 @@ struct FlagCard: View {
 
     @State private var showExplainer = false
 
+    private var affectsGoals: Bool {
+        guard !userPriorities.isEmpty, !flag.priorities.isEmpty else { return false }
+        let userSet = Set(userPriorities.map { $0.lowercased() })
+        return flag.priorities.contains { userSet.contains($0.lowercased()) }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                Circle().fill(Color(hex: flag.severityColor)).frame(width: 10, height: 10)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(flag.ingredient.capitalized).font(.system(size: 15, weight: .semibold)).foregroundColor(Theme.textPrimary)
-                    Text(flag.category).font(.system(size: 10, weight: .bold, design: .monospaced)).foregroundColor(Color(hex: flag.severityColor))
-                }
-                Spacer()
-                Text(flag.severityLabel).font(.system(size: 9, weight: .bold, design: .monospaced)).foregroundColor(Color(hex: flag.severityColor))
-                    .padding(.horizontal, 8).padding(.vertical, 4).background(Color(hex: flag.severityColor).opacity(0.15)).cornerRadius(4)
-            }
-            Text(flag.reason).font(.subheadline).foregroundColor(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
 
+            // Top row: severity dot + name + severity label
+            HStack(spacing: 10) {
+                Circle()
+                    .fill(Color(hex: flag.severityColor))
+                    .frame(width: 10, height: 10)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(flag.ingredient.capitalized)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(Theme.textPrimary)
+
+                        // "Affects your goals" badge
+                        if affectsGoals {
+                            Text("Affects your goals")
+                                .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                .foregroundColor(Theme.accent)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 3)
+                                .background(Theme.accent.opacity(0.12))
+                                .cornerRadius(4)
+                        }
+                    }
+
+                    Text(flag.category)
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .foregroundColor(Color(hex: flag.severityColor))
+                }
+
+                Spacer()
+
+                Text(flag.severityLabel)
+                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                    .foregroundColor(Color(hex: flag.severityColor))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color(hex: flag.severityColor).opacity(0.15))
+                    .cornerRadius(4)
+            }
+
+            // Reason
+            Text(flag.reason)
+                .font(.subheadline)
+                .foregroundColor(Theme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            // Science citation
             if let title = flag.citationTitle, let url = flag.citationUrl {
                 Button(action: onToggle) {
-                    HStack { Image(systemName: showCitation ? "chevron.up" : "chevron.down").font(.caption); Text("See the science").font(.caption.bold()) }
-                        .foregroundColor(Theme.accent)
+                    HStack(spacing: 4) {
+                        Image(systemName: showCitation ? "chevron.up" : "chevron.down")
+                            .font(.caption)
+                        Text("See the science")
+                            .font(.caption.bold())
+                    }
+                    .foregroundColor(Theme.accent)
                 }
+
                 if showCitation {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(title).font(.caption).italic().foregroundColor(Theme.textSecondary)
-                        if let year = flag.citationYear { Text("Published \(year)").font(.caption2).foregroundColor(Theme.textDim) }
-                        Link("Read study →", destination: URL(string: url)!).font(.caption.bold()).foregroundColor(Theme.accent)
+                        Text(title)
+                            .font(.caption)
+                            .italic()
+                            .foregroundColor(Theme.textSecondary)
+                        if let year = flag.citationYear {
+                            Text("Published \(year)")
+                                .font(.caption2)
+                                .foregroundColor(Theme.textDim)
+                        }
+                        Link("Read study →", destination: URL(string: url)!)
+                            .font(.caption.bold())
+                            .foregroundColor(Theme.accent)
                     }
-                    .padding(10).background(Theme.surfaceElevated).cornerRadius(8)
+                    .padding(10)
+                    .background(Theme.surfaceElevated)
+                    .cornerRadius(8)
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
 
-            // Ask Revelio button (only shown when auth token is available)
+            // Ask Revelio AI button
             if authToken != nil {
                 Button {
                     showExplainer = true
                 } label: {
                     HStack(spacing: 6) {
-                        Text("🤖")
-                            .font(.caption)
-                        Text("Ask Revelio")
-                            .font(.caption.bold())
+                        Text("🤖").font(.caption)
+                        Text("Ask Revelio").font(.caption.bold())
                     }
                     .foregroundColor(Theme.accent)
                     .padding(.horizontal, 10)
@@ -160,48 +438,222 @@ struct FlagCard: View {
                 }
             }
         }
-        .padding(14).background(Theme.surface).cornerRadius(12)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: flag.severityColor).opacity(0.3), lineWidth: 1))
-        .animation(.easeInOut(duration: 0.2), value: showCitation)
+        .padding(14)
+        .background(Theme.surface)
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color(hex: flag.severityColor).opacity(0.3), lineWidth: 1)
+        )
+        .animation(.spring(response: 0.35, dampingFraction: 0.75), value: showCitation)
     }
 }
+
+// ─── Clean Ingredients Section ─────────────────────────────────────────────────
+
+struct CleanIngredientsSection: View {
+    let scan: ScanResult
+    @Binding var isExpanded: Bool
+
+    private var flaggedNames: Set<String> {
+        Set(scan.flags.map { $0.ingredient.lowercased() })
+    }
+
+    private var cleanIngredients: [String] {
+        scan.ingredients.filter { !flaggedNames.contains($0.lowercased()) }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header row — tappable toggle
+            Button {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack {
+                    Text("CLEAN INGREDIENTS")
+                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        .foregroundColor(Theme.textDim)
+
+                    Spacer()
+
+                    HStack(spacing: 4) {
+                        Text("\(cleanIngredients.count)")
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .foregroundColor(Theme.success)
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(Theme.textDim)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(Theme.surface)
+            }
+            .buttonStyle(.plain)
+
+            // Expanded ingredient list
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 0) {
+                    if cleanIngredients.isEmpty {
+                        Text("No additional clean ingredients.")
+                            .font(.caption)
+                            .foregroundColor(Theme.textDim)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                    } else {
+                        Text(cleanIngredients.joined(separator: ", "))
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.textSecondary)
+                            .lineSpacing(4)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 4)
+                            .padding(.bottom, 14)
+                    }
+                }
+                .background(Theme.surface)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 16)
+    }
+}
+
+// ─── Alternatives Section ──────────────────────────────────────────────────────
 
 struct AlternativesSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("CLEANER OPTIONS").font(.system(size: 10, weight: .semibold, design: .monospaced)).foregroundColor(Theme.textDim).padding(.horizontal, 20)
-            ForEach([mockAlt1, mockAlt2]) { alt in AlternativeCard(product: alt).padding(.horizontal, 16) }
+            Text("CLEANER OPTIONS")
+                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .foregroundColor(Theme.textDim)
+                .padding(.horizontal, 20)
+
+            ForEach([mockAlt1, mockAlt2, mockAlt3]) { alt in
+                AlternativeCard(product: alt)
+                    .padding(.horizontal, 16)
+            }
         }
     }
 }
 
+// Mock data — placeholders until REV-07 fills real alternatives
 let mockAlt1 = AlternativeProduct(id: "1", name: "Primal Kitchen Mayo", brand: "Primal Kitchen", score: 88, grade: "A", imageUrl: nil, purchaseUrl: "https://amzn.to/3mock1", affiliateNetwork: "amazon", priceCents: 899)
 let mockAlt2 = AlternativeProduct(id: "2", name: "Sir Kensington's Mayo", brand: "Sir Kensington's", score: 79, grade: "B", imageUrl: nil, purchaseUrl: "https://amzn.to/3mock2", affiliateNetwork: "amazon", priceCents: 749)
+let mockAlt3 = AlternativeProduct(id: "3", name: "Chosen Foods Avocado Mayo", brand: "Chosen Foods", score: 85, grade: "A", imageUrl: nil, purchaseUrl: "https://amzn.to/3mock3", affiliateNetwork: "amazon", priceCents: 1099)
 
 struct AlternativeCard: View {
     let product: AlternativeProduct
+
     var body: some View {
         HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 8).fill(Theme.surfaceElevated).frame(width: 52, height: 52).overlay(Image(systemName: "photo").foregroundColor(Theme.textDim))
+            // Product image placeholder
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Theme.surfaceElevated)
+                .frame(width: 52, height: 52)
+                .overlay(
+                    Image(systemName: "photo")
+                        .foregroundColor(Theme.textDim)
+                )
+
             VStack(alignment: .leading, spacing: 3) {
-                Text(product.name).font(.system(size: 14, weight: .semibold)).foregroundColor(Theme.textPrimary)
-                Text(product.brand).font(.caption).foregroundColor(Theme.textSecondary)
-                if let price = product.priceDisplay { Text(price).font(.caption).foregroundColor(Theme.textDim) }
+                Text(product.name)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Theme.textPrimary)
+                Text(product.brand)
+                    .font(.caption)
+                    .foregroundColor(Theme.textSecondary)
+                if let price = product.priceDisplay {
+                    Text(price)
+                        .font(.caption)
+                        .foregroundColor(Theme.textDim)
+                }
             }
+
             Spacer()
+
             VStack(spacing: 6) {
                 GradeBadge(grade: product.grade, score: product.score)
-                Link("Buy", destination: URL(string: product.purchaseUrl)!).font(.system(size: 10, weight: .bold)).foregroundColor(.white)
-                    .padding(.horizontal, 10).padding(.vertical, 4).background(Theme.success).cornerRadius(6)
+                Link("Buy", destination: URL(string: product.purchaseUrl)!)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Theme.success)
+                    .cornerRadius(6)
             }
         }
-        .padding(14).background(Theme.surface).cornerRadius(12)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.success.opacity(0.3), lineWidth: 1))
+        .padding(14)
+        .background(Theme.surface)
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Theme.success.opacity(0.3), lineWidth: 1)
+        )
     }
 }
 
+// ─── Share Button ──────────────────────────────────────────────────────────────
+
 struct ShareButton: View {
     var body: some View {
-        Button {} label: { Image(systemName: "square.and.arrow.up").foregroundColor(Theme.accent) }
+        Button {} label: {
+            Image(systemName: "square.and.arrow.up")
+                .foregroundColor(Theme.accent)
+        }
     }
 }
+
+// ─── Preview ───────────────────────────────────────────────────────────────────
+
+#if DEBUG
+private let previewScan = ScanResult(
+    id: "preview-1",
+    barcode: "0123456789",
+    productName: "Classic Mayonnaise",
+    brand: "Hellmann's",
+    category: .food,
+    imageUrl: nil,
+    ingredients: [
+        "soybean oil", "water", "whole eggs", "egg yolks",
+        "vinegar", "salt", "sugar", "lemon juice",
+        "calcium disodium edta", "natural flavors"
+    ],
+    flags: [
+        IngredientFlag(
+            id: "f1",
+            ingredient: "soybean oil",
+            severity: 3,
+            category: "SEED OIL",
+            reason: "High in omega-6 linoleic acid, linked to systemic inflammation at modern intake levels.",
+            citationTitle: "Dietary linoleic acid elevates endogenous 2-AG and anandamide",
+            citationUrl: "https://pubmed.ncbi.nlm.nih.gov/example",
+            citationYear: 2020,
+            priorities: ["anti-inflammatory", "heart health"]
+        ),
+        IngredientFlag(
+            id: "f2",
+            ingredient: "calcium disodium edta",
+            severity: 1,
+            category: "PRESERVATIVE",
+            reason: "Synthetic chelating agent; generally regarded as safe at low levels but not a clean-label ingredient.",
+            citationTitle: nil,
+            citationUrl: nil,
+            citationYear: nil,
+            priorities: []
+        )
+    ],
+    baseScore: 54,
+    personalizedScore: 48,
+    grade: "D",
+    alternatives: nil,
+    scannedAt: Date()
+)
+
+#Preview {
+    ProductDetailView(scan: previewScan)
+        .environmentObject(AuthViewModel())
+}
+#endif
