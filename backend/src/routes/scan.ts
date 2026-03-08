@@ -63,21 +63,25 @@ scanRouter.get('/:barcode', async (req, res) => {
 // ─── POST /scan/history — Record a scan ───────────────────────────────────────
 
 scanRouter.post('/history', async (req, res) => {
-  const { userId, barcode, productName, score, grade } = req.body as {
+  const { userId, barcode, productName, brand, category, imageUrl, score, grade, flags } = req.body as {
     userId?: string;
     barcode: string;
     productName: string;
+    brand?: string;
+    category?: string;
+    imageUrl?: string;
     score: number;
     grade: string;
+    flags?: unknown[];
   };
 
   if (!barcode) return res.status(400).json({ error: 'barcode is required' });
 
   try {
     await db.query(
-      `INSERT INTO scans (user_id, barcode, product_name, score, grade, scanned_at)
-       VALUES ($1, $2, $3, $4, $5, NOW())`,
-      [userId || null, barcode, productName, score, grade]
+      `INSERT INTO scans (user_id, barcode, product_name, brand, category, image_url, score, grade, flags, scanned_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
+      [userId || null, barcode, productName, brand || null, category || 'food', imageUrl || null, score, grade, JSON.stringify(flags ?? [])]
     );
     res.status(201).json({ ok: true });
   } catch (err) {

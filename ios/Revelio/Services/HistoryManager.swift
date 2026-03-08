@@ -35,6 +35,11 @@ class HistoryManager: ObservableObject {
         save()
     }
 
+    func removeScan(_ scan: ScanResult) {
+        history.removeAll { $0.id == scan.id }
+        save()
+    }
+
     // MARK: - Favorites
 
     func isFavorite(_ barcode: String) -> Bool {

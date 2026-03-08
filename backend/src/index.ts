@@ -10,6 +10,7 @@ import { profileRouter } from './routes/profiles';
 import { authRouter } from './routes/auth';
 import { webhookRouter } from './routes/webhooks';
 import { referralsRouter } from './routes/referrals';
+import { scansRouter } from './routes/scans';
 import { ensureAlternativesTable } from './db';
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use('/alternatives', alternativesRouter);
 app.use('/pantry', pantryRouter);
 app.use('/profiles', profileRouter);
 app.use('/referrals', referralsRouter);
+app.use('/scans', scansRouter);
 
 // Bootstrap DB tables then start
 ensureAlternativesTable()
