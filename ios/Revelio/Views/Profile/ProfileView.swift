@@ -64,8 +64,23 @@ struct ProfileView: View {
                     }
                 }
 
-                Section("Goals") {
-                    Label("My Priorities", systemImage: "target").foregroundColor(Theme.textPrimary)
+                Section("Goals & Personalization") {
+                    NavigationLink {
+                        PersonalizationView()
+                            .environmentObject(authViewModel)
+                    } label: {
+                        HStack {
+                            Label("My Goals & Priorities", systemImage: "target")
+                                .foregroundColor(Theme.textPrimary)
+                            Spacer()
+                            let goalCount = PersonalizationStore.shared.state.goals.count
+                            if goalCount > 0 {
+                                Text("\(goalCount) active")
+                                    .font(.caption)
+                                    .foregroundColor(Theme.accent)
+                            }
+                        }
+                    }
                     NavigationLink {
                         AllergenProfilesView()
                     } label: {
