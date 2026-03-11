@@ -9,7 +9,7 @@ final class AlternativesViewModel: ObservableObject {
 
     private let baseURL: String
 
-    init(baseURL: String = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://localhost:8430") {
+    init(baseURL: String = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://api.revelio.app") {
         self.baseURL = baseURL
     }
 

@@ -241,7 +241,7 @@ struct HistoryView: View {
             return
         }
 
-        let apiBase = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://localhost:8430"
+        let apiBase = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://api.revelio.app"
         var components = URLComponents(string: "\(apiBase)/scans")!
         var items: [URLQueryItem] = [
             .init(name: "userId", value: userId),
@@ -283,7 +283,7 @@ struct HistoryView: View {
     func fetchInsights() async {
         guard let userId = authViewModel.currentUser?.id else { return }
         insightsLoading = true
-        let apiBase2 = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://localhost:8430"
+        let apiBase2 = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://api.revelio.app"
         var components = URLComponents(string: "\(apiBase2)/scans/insights")!
         components.queryItems = [.init(name: "userId", value: userId)]
         guard let url = components.url else { insightsLoading = false; return }
@@ -300,7 +300,7 @@ struct HistoryView: View {
         remoteScans.removeAll { $0.id == scan.id }
         // Remote delete
         guard let userId = authViewModel.currentUser?.id else { return }
-        let apiBase = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://localhost:8430"
+        let apiBase = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://api.revelio.app"
         guard let url = URL(string: "\(apiBase)/scans/\(scan.id)?userId=\(userId)") else { return }
         var req = URLRequest(url: url)
         req.httpMethod = "DELETE"

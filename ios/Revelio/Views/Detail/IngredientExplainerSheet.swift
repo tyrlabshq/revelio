@@ -2,7 +2,7 @@ import SwiftUI
 
 // ─── API Service ───────────────────────────────────────────────────────────────
 
-private let API_BASE = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://localhost:8430"
+private let API_BASE = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://api.revelio.app"
 
 struct ExplainerResponse: Decodable {
     let explanation: String
