@@ -46,7 +46,8 @@ class ScanViewModel: ObservableObject {
         guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         state = .loading
         let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-        guard let url = URL(string: "http://10.0.0.244:8430/search?q=\(encoded)") else {
+        let searchBase = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://api.revelio.app"
+        guard let url = URL(string: "\(searchBase)/search?q=\(encoded)") else {
             state = .error("Invalid search query")
             return
         }
@@ -69,6 +70,7 @@ class ScanViewModel: ObservableObject {
             let scan = try JSONDecoder().decode(ScanResult.self, from: data)
             successFeedback.notificationOccurred(.success)
             HistoryManager.shared.addScan(scan)
+            PantryManager.shared.addItem(from: scan)
             state = .result(scan)
         } catch {
             errorFeedback.notificationOccurred(.error)
@@ -78,7 +80,8 @@ class ScanViewModel: ObservableObject {
 
     private func fetchProduct(barcode: String) async {
         state = .loading
-        guard let url = URL(string: "http://10.0.0.244:8430/scan/\(barcode)") else {
+        let scanBase = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://api.revelio.app"
+        guard let url = URL(string: "\(scanBase)/scan/\(barcode)") else {
             recordFailure()
             state = .error("Invalid barcode")
             return
@@ -105,6 +108,7 @@ class ScanViewModel: ObservableObject {
             showAutoManualEntry = false
             successFeedback.notificationOccurred(.success)
             HistoryManager.shared.addScan(scan)
+            PantryManager.shared.addItem(from: scan)
             state = .result(scan)
         } catch {
             recordFailure()
