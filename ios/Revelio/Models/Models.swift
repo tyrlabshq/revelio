@@ -117,4 +117,38 @@ struct PantryItem: Identifiable, Codable {
     let imageUrl: String?
     let quantity: Int
     let addedAt: Date
+    let ingredients: [String]
+    let flaggedIngredients: [String]
+
+    // Custom decoder for backward compatibility with pre-existing stored data
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        barcode = try c.decode(String.self, forKey: .barcode)
+        productName = try c.decode(String.self, forKey: .productName)
+        brand = try c.decode(String.self, forKey: .brand)
+        score = try c.decode(Int.self, forKey: .score)
+        grade = try c.decode(String.self, forKey: .grade)
+        imageUrl = try? c.decode(String.self, forKey: .imageUrl)
+        quantity = try c.decode(Int.self, forKey: .quantity)
+        addedAt = try c.decode(Date.self, forKey: .addedAt)
+        ingredients = (try? c.decode([String].self, forKey: .ingredients)) ?? []
+        flaggedIngredients = (try? c.decode([String].self, forKey: .flaggedIngredients)) ?? []
+    }
+
+    init(id: String, barcode: String, productName: String, brand: String,
+         score: Int, grade: String, imageUrl: String?, quantity: Int, addedAt: Date,
+         ingredients: [String] = [], flaggedIngredients: [String] = []) {
+        self.id = id
+        self.barcode = barcode
+        self.productName = productName
+        self.brand = brand
+        self.score = score
+        self.grade = grade
+        self.imageUrl = imageUrl
+        self.quantity = quantity
+        self.addedAt = addedAt
+        self.ingredients = ingredients
+        self.flaggedIngredients = flaggedIngredients
+    }
 }

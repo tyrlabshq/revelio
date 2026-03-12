@@ -1,74 +1,44 @@
 import SwiftUI
 
-// MARK: - Models
+// MARK: - Filter
 
-struct PantryMember: Identifiable {
-    let id: String
-    let name: String
-    var items: [PantryItem]
-}
+enum PantryGradeFilter: String, CaseIterable {
+    case all     = "All"
+    case good    = "A–B"
+    case bad     = "C–F"
+    case flagged = "Flagged"
 
-extension PantryItem {
-    var category: ProductCategory {
-        // Infer from grade/name for mock; real data comes from backend
-        return .food
+    var label: String { rawValue }
+
+    func matches(_ item: PantryItem) -> Bool {
+        switch self {
+        case .all:     return true
+        case .good:    return item.grade == "A" || item.grade == "B"
+        case .bad:     return ["C", "D", "F"].contains(item.grade)
+        case .flagged: return !item.flaggedIngredients.isEmpty
+        }
     }
 }
 
-// MARK: - Sort & Filter
+// MARK: - Main View
 
-enum PantrySort: String, CaseIterable {
-    case grade = "Worst First"
-    case category = "Category"
-    case date = "Date Added"
-}
+struct PantryView: View {
+    @ObservedObject private var pantryManager = PantryManager.shared
+    @State private var activeFilter: PantryGradeFilter = .all
+    @State private var showScanner = false
 
-enum PantryFilter: String, CaseIterable {
-    case all = "All"
-    case fdOnly = "F & D"
-    case food = "Food"
-    case cosmetics = "Cosmetics"
-}
+    // MARK: Computed
 
-// MARK: - ViewModel
-
-@MainActor
-class PantryViewModel: ObservableObject {
-    @Published var members: [PantryMember] = PantryViewModel.mockMembers()
-    @Published var selectedMemberIndex: Int = 0
-    @Published var sort: PantrySort = .grade
-    @Published var filter: PantryFilter = .all
-    @Published var showScanner = false
-    @Published var isLoading = false
-
-    var currentMember: PantryMember { members[selectedMemberIndex] }
-
-    var filteredItems: [PantryItem] {
-        var items = currentMember.items
-        switch filter {
-        case .all: break
-        case .fdOnly: items = items.filter { $0.grade == "F" || $0.grade == "D" }
-        case .food: items = items.filter { $0.category == .food }
-        case .cosmetics: items = items.filter { $0.category == .cosmetics }
-        }
-        switch sort {
-        case .grade:
-            let order = ["F","D","C","B","A"]
-            items = items.sorted { (order.firstIndex(of: $0.grade) ?? 5) < (order.firstIndex(of: $1.grade) ?? 5) }
-        case .category:
-            items = items.sorted { $0.category.rawValue < $1.category.rawValue }
-        case .date:
-            items = items.sorted { $0.addedAt > $1.addedAt }
-        }
-        return items
+    private var filteredItems: [PantryItem] {
+        pantryManager.items.filter { activeFilter.matches($0) }
     }
 
-    var householdScore: Int {
-        let items = currentMember.items
-        guard !items.isEmpty else { return 0 }
+    private var householdScore: Int {
+        let all = pantryManager.items
+        guard !all.isEmpty else { return 0 }
         var totalWeight = 0.0
         var weightedSum = 0.0
-        for item in items {
+        for item in all {
             let w: Double = item.grade == "F" ? 3 : item.grade == "D" ? 2 : 1
             weightedSum += Double(item.score) * w
             totalWeight += w
@@ -76,9 +46,8 @@ class PantryViewModel: ObservableObject {
         return Int(weightedSum / totalWeight)
     }
 
-    var householdGrade: String {
-        let s = householdScore
-        switch s {
+    private var householdGrade: String {
+        switch householdScore {
         case 85...: return "A"
         case 70..<85: return "B"
         case 55..<70: return "C"
@@ -87,456 +56,382 @@ class PantryViewModel: ObservableObject {
         }
     }
 
-    var cleanPercent: Double {
-        let items = currentMember.items
-        guard !items.isEmpty else { return 0 }
-        return Double(items.filter { $0.grade == "A" || $0.grade == "B" }.count) / Double(items.count)
+    private var cleanPercent: Double {
+        let all = pantryManager.items
+        guard !all.isEmpty else { return 0 }
+        return Double(all.filter { $0.grade == "A" || $0.grade == "B" }.count) / Double(all.count)
     }
 
-    var concerningPercent: Double {
-        let items = currentMember.items
-        guard !items.isEmpty else { return 0 }
-        return Double(items.filter { $0.grade == "C" }.count) / Double(items.count)
+    private var badPercent: Double {
+        let all = pantryManager.items
+        guard !all.isEmpty else { return 0 }
+        return Double(all.filter { ["C", "D", "F"].contains($0.grade) }.count) / Double(all.count)
     }
 
-    var avoidPercent: Double {
-        let items = currentMember.items
-        guard !items.isEmpty else { return 0 }
-        return Double(items.filter { $0.grade == "D" || $0.grade == "F" }.count) / Double(items.count)
-    }
-
-    var worstOffenders: [PantryItem] {
-        let order = ["F","D","C","B","A"]
-        return Array(currentMember.items
-            .sorted { (order.firstIndex(of: $0.grade) ?? 5) < (order.firstIndex(of: $1.grade) ?? 5) }
-            .prefix(3))
-    }
-
-    var quickWins: [PantryItem] {
-        currentMember.items.filter { $0.score < 50 }.prefix(3).map { $0 }
-    }
-
-    func removeItem(at offsets: IndexSet) {
-        let ids = offsets.map { filteredItems[$0].id }
-        members[selectedMemberIndex].items.removeAll { ids.contains($0.id) }
-    }
-
-    func addItem(_ item: PantryItem) {
-        members[selectedMemberIndex].items.append(item)
-    }
-
-    static func mockMembers() -> [PantryMember] {
-        // Return empty for production - no fake data
-        return []
-    }
-}
-
-// MARK: - Main View
-
-struct PantryView: View {
-    @StateObject private var vm = PantryViewModel()
-
-    private let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+    // MARK: Body
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Theme.background.ignoresSafeArea()
-                ScrollView {
-                    VStack(spacing: 0) {
-                        // Family member tabs
-                        FamilyTabBar(members: vm.members, selected: $vm.selectedMemberIndex)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 8)
 
-                        // Household score header
-                        HouseholdScoreCard(vm: vm)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
-
-                        // Sort/Filter bar
-                        SortFilterBar(sort: $vm.sort, filter: $vm.filter)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
-
-                        // Grid of pantry items
-                        if vm.filteredItems.isEmpty {
-                            VStack(spacing: 16) {
-                                Image(systemName: "house")
-                                    .font(.system(size: 56, weight: .light))
-                                    .foregroundColor(Theme.textDim)
-                                Text("Your pantry is empty")
-                                    .font(.headline.weight(.semibold))
-                                    .foregroundColor(Theme.textPrimary)
-                                Text("Add products by scanning them")
-                                    .font(.subheadline)
-                                    .foregroundColor(Theme.textSecondary)
-                            }
-                            .padding(.top, 80)
-                        } else {
-                            LazyVGrid(columns: columns, spacing: 12) {
-                                ForEach(Array(vm.filteredItems.enumerated()), id: \.element.id) { index, item in
-                                    PantryItemCard(item: item)
-                                        .contextMenu {
-                                            Button(role: .destructive) {
-                                                vm.members[vm.selectedMemberIndex].items.removeAll { $0.id == item.id }
-                                            } label: {
-                                                Label("Remove", systemImage: "trash")
-                                            }
-                                        }
-                                }
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
-                        }
-
-                        Spacer().frame(height: 100)
+                VStack(spacing: 0) {
+                    // Compact score bar (only when items exist)
+                    if !pantryManager.items.isEmpty {
+                        PantryScoreBar(
+                            score: householdScore,
+                            grade: householdGrade,
+                            cleanPercent: cleanPercent,
+                            badPercent: badPercent,
+                            itemCount: pantryManager.items.count
+                        )
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .padding(.bottom, 8)
                     }
-                }
 
-                // FAB camera button
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        Button {
-                            vm.showScanner = true
-                        } label: {
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 22, weight: .semibold))
-                                .foregroundColor(.white)
-                                .frame(width: 60, height: 60)
-                                .background(Theme.accent)
-                                .clipShape(Circle())
-                                .shadow(color: Theme.accent.opacity(0.4), radius: 12, x: 0, y: 4)
-                        }
-                        .padding(.trailing, 24)
-                        .padding(.bottom, 32)
+                    // Filter bar
+                    PantryFilterBar(active: $activeFilter)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+
+                    Divider()
+                        .background(Color.gray.opacity(0.15))
+
+                    // Content
+                    if pantryManager.items.isEmpty {
+                        PantryEmptyState(showScanner: $showScanner)
+                    } else if filteredItems.isEmpty {
+                        PantryFilterEmptyState(filter: activeFilter)
+                    } else {
+                        pantryList
                     }
                 }
             }
             .navigationTitle("Pantry")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showScanner = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(Theme.accent)
+                            .font(.system(size: 22))
+                    }
+                }
+            }
         }
-        .sheet(isPresented: $vm.showScanner) {
-            PantryScannerSheet(onAdd: { item in
-                vm.addItem(item)
-                vm.showScanner = false
-            })
+        .sheet(isPresented: $showScanner) {
+            PantryManualScanSheet()
         }
+    }
+
+    // MARK: - List
+
+    private var pantryList: some View {
+        List {
+            ForEach(filteredItems) { item in
+                PantryRow(item: item)
+                    .listRowBackground(Theme.surface)
+                    .listRowSeparatorTint(Color.gray.opacity(0.12))
+                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+            }
+            .onDelete { offsets in
+                pantryManager.removeItems(at: offsets, from: filteredItems)
+            }
+        }
+        .listStyle(.plain)
+        .background(Theme.background)
+        .scrollContentBackground(.hidden)
     }
 }
 
-// MARK: - Family Tab Bar
+// MARK: - Filter Bar
 
-struct FamilyTabBar: View {
-    let members: [PantryMember]
-    @Binding var selected: Int
+struct PantryFilterBar: View {
+    @Binding var active: PantryGradeFilter
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(members.indices, id: \.self) { i in
+                ForEach(PantryGradeFilter.allCases, id: \.self) { filter in
                     Button {
-                        selected = i
+                        withAnimation(.easeInOut(duration: 0.18)) { active = filter }
                     } label: {
-                        Text(members[i].name)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundColor(selected == i ? .white : Theme.textSecondary)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(selected == i ? Theme.accent : Theme.surfaceElevated)
+                        Text(filter.label)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(active == filter ? .white : Theme.textSecondary)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 7)
+                            .background(
+                                active == filter
+                                    ? filterActiveColor(filter)
+                                    : Theme.surfaceElevated
+                            )
                             .cornerRadius(20)
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
     }
-}
 
-// MARK: - Household Score Card
-
-struct HouseholdScoreCard: View {
-    @ObservedObject var vm: PantryViewModel
-
-    var body: some View {
-        VStack(spacing: 16) {
-            // Score + ring
-            HStack(alignment: .center, spacing: 24) {
-                ZStack {
-                    CircularScoreRing(
-                        score: vm.householdScore,
-                        cleanPct: vm.cleanPercent,
-                        concerningPct: vm.concerningPercent,
-                        avoidPct: vm.avoidPercent
-                    )
-                    VStack(spacing: 2) {
-                        Text("\(vm.householdScore)")
-                            .font(.system(size: 32, weight: .black, design: .rounded))
-                            .foregroundColor(Theme.textPrimary)
-                        Text(vm.householdGrade)
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(Theme.gradeColor(vm.householdGrade))
-                    }
-                }
-                .frame(width: 120, height: 120)
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Household Score")
-                        .font(.headline)
-                        .foregroundColor(Theme.textPrimary)
-                    RingLegendRow(color: Theme.success, label: "Clean", pct: vm.cleanPercent)
-                    RingLegendRow(color: Theme.warning, label: "Concerning", pct: vm.concerningPercent)
-                    RingLegendRow(color: Theme.danger, label: "Avoid", pct: vm.avoidPercent)
-                }
-            }
-
-            Divider()
-                .background(Color.gray.opacity(0.12))
-
-            // Worst offenders
-            if !vm.worstOffenders.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("Worst Offenders", systemImage: "exclamationmark.triangle.fill")
-                        .font(.caption.weight(.semibold))
-                        .foregroundColor(Theme.danger)
-                    ForEach(vm.worstOffenders) { item in
-                        HStack {
-                            Text(item.grade)
-                                .font(.caption.weight(.black))
-                                .foregroundColor(Theme.gradeColor(item.grade))
-                                .frame(width: 20)
-                            Text(item.productName)
-                                .font(.caption)
-                                .foregroundColor(Theme.textSecondary)
-                                .lineLimit(1)
-                            Spacer()
-                            Text("\(item.score)")
-                                .font(.caption.weight(.semibold))
-                                .foregroundColor(Theme.textDim)
-                        }
-                    }
-                }
-            }
-
-            // Quick wins
-            if !vm.quickWins.isEmpty {
-                Divider()
-                    .background(Color.gray.opacity(0.12))
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("Quick Wins", systemImage: "bolt.fill")
-                        .font(.caption.weight(.semibold))
-                        .foregroundColor(Theme.warning)
-                    ForEach(vm.quickWins) { item in
-                        HStack {
-                            Image(systemName: "arrow.up.circle.fill")
-                                .foregroundColor(Theme.success)
-                                .font(.caption)
-                            Text(item.productName)
-                                .font(.caption)
-                                .foregroundColor(Theme.textSecondary)
-                                .lineLimit(1)
-                            Spacer()
-                            Text("Swap it →")
-                                .font(.caption2.weight(.semibold))
-                                .foregroundColor(Theme.accent)
-                        }
-                    }
-                }
-            }
-        }
-        .padding(16)
-        .background(Theme.surface)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 3)
-    }
-}
-
-struct RingLegendRow: View {
-    let color: Color
-    let label: String
-    let pct: Double
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Circle().fill(color).frame(width: 8, height: 8)
-            Text(label)
-                .font(.caption)
-                .foregroundColor(Theme.textSecondary)
-            Spacer()
-            Text("\(Int(pct * 100))%")
-                .font(.caption.weight(.semibold))
-                .foregroundColor(Theme.textDim)
+    private func filterActiveColor(_ filter: PantryGradeFilter) -> Color {
+        switch filter {
+        case .all:     return Theme.accent
+        case .good:    return Theme.success
+        case .bad:     return Theme.danger
+        case .flagged: return Theme.warning
         }
     }
 }
 
-struct CircularScoreRing: View {
+// MARK: - Score Bar
+
+struct PantryScoreBar: View {
     let score: Int
-    let cleanPct: Double
-    let concerningPct: Double
-    let avoidPct: Double
+    let grade: String
+    let cleanPercent: Double
+    let badPercent: Double
+    let itemCount: Int
 
     var body: some View {
-        ZStack {
-            // Background track
-            Circle()
-                .stroke(Theme.surfaceElevated, lineWidth: 10)
+        HStack(spacing: 16) {
+            // Circular grade badge
+            ZStack {
+                Circle()
+                    .stroke(Theme.surfaceElevated, lineWidth: 5)
+                Circle()
+                    .trim(from: 0, to: CGFloat(score) / 100)
+                    .stroke(
+                        Theme.gradeColor(grade),
+                        style: StrokeStyle(lineWidth: 5, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+                VStack(spacing: 0) {
+                    Text("\(score)")
+                        .font(.system(size: 16, weight: .black, design: .rounded))
+                        .foregroundColor(Theme.textPrimary)
+                    Text(grade)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(Theme.gradeColor(grade))
+                }
+            }
+            .frame(width: 52, height: 52)
 
-            // Clean arc
-            Circle()
-                .trim(from: 0, to: cleanPct)
-                .stroke(Theme.success, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                .rotationEffect(.degrees(-90))
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Pantry Score")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(Theme.textPrimary)
+                HStack(spacing: 12) {
+                    scoreStatLabel(color: Theme.success, label: "Clean", pct: cleanPercent)
+                    scoreStatLabel(color: Theme.danger, label: "Avoid", pct: badPercent)
+                }
+            }
 
-            // Concerning arc
-            Circle()
-                .trim(from: cleanPct, to: cleanPct + concerningPct)
-                .stroke(Theme.warning, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                .rotationEffect(.degrees(-90))
+            Spacer()
 
-            // Avoid arc
-            Circle()
-                .trim(from: cleanPct + concerningPct, to: cleanPct + concerningPct + avoidPct)
-                .stroke(Theme.danger, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                .rotationEffect(.degrees(-90))
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(itemCount)")
+                    .font(.system(size: 22, weight: .black, design: .rounded))
+                    .foregroundColor(Theme.textPrimary)
+                Text("items")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(Theme.textSecondary)
+            }
         }
+        .padding(14)
+        .background(Theme.surface)
+        .cornerRadius(14)
+        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
-}
 
-// MARK: - Sort / Filter Bar
-
-struct SortFilterBar: View {
-    @Binding var sort: PantrySort
-    @Binding var filter: PantryFilter
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Menu {
-                ForEach(PantrySort.allCases, id: \.self) { s in
-                    Button(s.rawValue) { sort = s }
-                }
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.up.arrow.down")
-                        .font(.caption)
-                    Text(sort.rawValue)
-                        .font(.caption.weight(.semibold))
-                }
+    private func scoreStatLabel(color: Color, label: String, pct: Double) -> some View {
+        HStack(spacing: 4) {
+            Circle().fill(color).frame(width: 7, height: 7)
+            Text("\(Int(pct * 100))% \(label)")
+                .font(.system(size: 11, weight: .medium))
                 .foregroundColor(Theme.textSecondary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .background(Theme.surfaceElevated)
-                .cornerRadius(8)
-            }
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(PantryFilter.allCases, id: \.self) { f in
-                        Button(f.rawValue) { filter = f }
-                            .font(.caption.weight(.semibold))
-                            .foregroundColor(filter == f ? .white : Theme.textSecondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 7)
-                            .background(filter == f ? Theme.accent : Theme.surfaceElevated)
-                            .cornerRadius(8)
-                    }
-                }
-            }
         }
     }
 }
 
-// MARK: - Pantry Item Card
+// MARK: - Pantry Row
 
-struct PantryItemCard: View {
+struct PantryRow: View {
     let item: PantryItem
 
     var body: some View {
-        VStack(spacing: 8) {
-            ZStack(alignment: .topTrailing) {
-                RoundedRectangle(cornerRadius: 10)
+        HStack(spacing: 12) {
+            // Product image
+            AsyncImage(url: URL(string: item.imageUrl ?? "")) { image in
+                image.resizable().aspectRatio(contentMode: .fit)
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 8)
                     .fill(Theme.surfaceElevated)
-                    .frame(height: 80)
                     .overlay(
                         Image(systemName: "photo")
                             .foregroundColor(Theme.textDim)
+                            .font(.caption)
                     )
+            }
+            .frame(width: 52, height: 52)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                Text(item.grade)
-                    .font(.system(size: 10, weight: .black))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 2)
-                    .background(Theme.gradeColor(item.grade))
-                    .cornerRadius(4)
-                    .padding(4)
+            // Info column
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.productName)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Theme.textPrimary)
+                    .lineLimit(1)
+
+                if !item.brand.isEmpty {
+                    Text(item.brand)
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                        .lineLimit(1)
+                }
+
+                HStack(spacing: 8) {
+                    if !item.flaggedIngredients.isEmpty {
+                        Label("\(item.flaggedIngredients.count) flagged", systemImage: "exclamationmark.triangle.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(Theme.warning)
+                    }
+                    (Text(item.addedAt, style: .relative)
+                        .font(.system(size: 10))
+                        .foregroundColor(Theme.textDim)
+                    + Text(" ago")
+                        .font(.system(size: 10))
+                        .foregroundColor(Theme.textDim))
+                }
             }
 
-            Text(item.productName)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(Theme.textPrimary)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
+            Spacer()
 
-            Text("\(item.score)")
-                .font(.system(size: 11, weight: .bold))
-                .foregroundColor(Theme.gradeColor(item.grade))
+            // Animated grade badge
+            GradeBadge(grade: item.grade, score: item.score, size: .small)
         }
-        .padding(8)
-        .background(Theme.surface)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+        .padding(.vertical, 4)
     }
 }
 
-// MARK: - Scanner Sheet (Pantry Mode)
+// MARK: - Empty States
 
-struct PantryScannerSheet: View {
-    let onAdd: (PantryItem) -> Void
+struct PantryEmptyState: View {
+    @Binding var showScanner: Bool
+
+    var body: some View {
+        VStack {
+            Spacer()
+            VStack(spacing: 20) {
+                Image(systemName: "refrigerator")
+                    .font(.system(size: 64, weight: .ultraLight))
+                    .foregroundColor(Theme.textDim)
+                    .symbolRenderingMode(.hierarchical)
+
+                VStack(spacing: 8) {
+                    Text("Your pantry is empty")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(Theme.textPrimary)
+                    Text("Scan products to track what's in your kitchen and see how healthy your pantry really is.")
+                        .font(.subheadline)
+                        .foregroundColor(Theme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                }
+
+                Button {
+                    showScanner = true
+                } label: {
+                    Label("Scan your first product", systemImage: "barcode.viewfinder")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 14)
+                        .background(Theme.accent)
+                        .cornerRadius(14)
+                        .shadow(color: Theme.accent.opacity(0.35), radius: 8, x: 0, y: 4)
+                }
+            }
+            Spacer()
+        }
+    }
+}
+
+struct PantryFilterEmptyState: View {
+    let filter: PantryGradeFilter
+
+    var body: some View {
+        VStack {
+            VStack(spacing: 16) {
+                Image(systemName: filterIcon)
+                    .font(.system(size: 48, weight: .light))
+                    .foregroundColor(Theme.textDim)
+                    .padding(.top, 60)
+                Text(filterMessage)
+                    .font(.subheadline)
+                    .foregroundColor(Theme.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+            Spacer()
+        }
+    }
+
+    private var filterIcon: String {
+        switch filter {
+        case .all:     return "tray"
+        case .good:    return "checkmark.seal"
+        case .bad:     return "xmark.seal"
+        case .flagged: return "exclamationmark.triangle"
+        }
+    }
+
+    private var filterMessage: String {
+        switch filter {
+        case .all:     return "No items in your pantry yet."
+        case .good:    return "No A or B grade products yet. Scan some healthier picks!"
+        case .bad:     return "Great — no C, D, or F products. Your pantry is clean."
+        case .flagged: return "No products with flagged ingredients. Nice work."
+        }
+    }
+}
+
+// MARK: - Scan Sheet (redirect to Scan tab info)
+
+struct PantryManualScanSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Theme.background.ignoresSafeArea()
-                VStack(spacing: 20) {
+                VStack(spacing: 24) {
+                    Spacer()
                     Image(systemName: "barcode.viewfinder")
-                        .font(.system(size: 64))
+                        .font(.system(size: 72, weight: .ultraLight))
                         .foregroundColor(Theme.accent)
-                    Text("Pantry Mode")
-                        .font(.title2.weight(.bold))
-                        .foregroundColor(Theme.textPrimary)
-                    Text("Scanned items will be added to your pantry")
-                        .font(.subheadline)
-                        .foregroundColor(Theme.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
 
-                    // In a real build, embed BarcodeScannerRepresentable here
-                    // For now, show a placeholder
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Theme.surfaceElevated)
-                        .frame(height: 200)
-                        .overlay(
-                            VStack(spacing: 12) {
-                                Image(systemName: "barcode.viewfinder")
-                                    .font(.system(size: 48))
-                                    .foregroundColor(Theme.textDim)
-                                Text("Scanner placeholder")
-                                    .font(.subheadline)
-                                    .foregroundColor(Theme.textSecondary)
-                            }
-                        )
-                        .padding(.horizontal, 32)
+                    VStack(spacing: 8) {
+                        Text("Scan to Add")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(Theme.textPrimary)
+                        Text("Use the Scan tab to scan a product — it will automatically appear in your Pantry.")
+                            .font(.subheadline)
+                            .foregroundColor(Theme.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                    }
+                    Spacer()
                 }
-                .padding()
             }
-            .navigationTitle("Scan for Pantry")
+            .navigationTitle("Add to Pantry")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Done") { dismiss() }
                         .foregroundColor(Theme.textSecondary)
                 }
             }

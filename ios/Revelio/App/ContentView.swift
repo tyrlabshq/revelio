@@ -11,15 +11,21 @@ struct ContentView: View {
             HistoryView()
                 .tabItem { Label("History", systemImage: "clock") }
                 .tag(1)
-            PantryView()
-                .tabItem { Label("Pantry", systemImage: "house") }
+            NutritionTrendsView()
+                .tabItem { Label("Trends", systemImage: "chart.bar.fill") }
                 .tag(2)
+            PantryView()
+                .tabItem { Label("Pantry", systemImage: "refrigerator") }
+                .tag(3)
             ExploreView()
                 .tabItem { Label("Explore", systemImage: "magnifyingglass") }
-                .tag(3)
+                .tag(4)
             ProfileView()
                 .tabItem { Label("Profile", systemImage: "person") }
-                .tag(4)
+                .tag(5)
+            SettingsView()
+                .tabItem { Label("Settings", systemImage: "gear") }
+                .tag(6)
         }
         .tint(Theme.accent)
         .background(Theme.background.ignoresSafeArea())

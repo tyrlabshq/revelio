@@ -3,9 +3,9 @@ import StoreKit
 
 // ─── Product IDs ──────────────────────────────────────────────────────────────
 
-private enum RevCatProduct {
+private enum ProductID {
     static let monthly = "com.revelio.pro.monthly"
-    static let yearly = "com.revelio.pro.yearly"
+    static let yearly  = "com.revelio.pro.yearly"
 }
 
 // ─── Paywall View ─────────────────────────────────────────────────────────────
@@ -371,11 +371,11 @@ struct PaywallView: View {
         errorMessage = nil
         defer { isPurchasing = false }
 
-        let productId = selectedPlan == .annual ? RevCatProduct.yearly : RevCatProduct.monthly
+        let productId = selectedPlan == .annual ? ProductID.yearly : ProductID.monthly
 
         #if DEBUG
-        let mockEnabled = ProcessInfo.processInfo.environment["REVENUECAT_API_KEY"] == nil
-        if mockEnabled {
+        // Use STOREKIT_MOCK=1 to bypass real StoreKit in simulator testing
+        if ProcessInfo.processInfo.environment["STOREKIT_MOCK"] == "1" {
             print("[PaywallView/mock] Mock purchase for \(productId)")
             try? await Task.sleep(nanoseconds: 1_000_000_000)
             purchaseSuccess = true
@@ -391,7 +391,14 @@ struct PaywallView: View {
             }
             let result = try await product.purchase()
             switch result {
-            case .success:
+            case .success(let verification):
+                // Verify the transaction — never trust unverified purchases
+                guard case .verified(let transaction) = verification else {
+                    errorMessage = "Purchase could not be verified. Contact support if you were charged."
+                    return
+                }
+                // Finish the transaction to remove it from the payment queue
+                await transaction.finish()
                 purchaseSuccess = true
                 await authViewModel.refreshUser()
             case .userCancelled:

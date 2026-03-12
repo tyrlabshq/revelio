@@ -21,3 +21,15 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.revelio.app
         INFOPLIST_FILE: Revelio/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  RevelioUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - RevelioUITests
+    dependencies:
+      - target: Revelio
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.revelio.uitests
+        TEST_TARGET_NAME: Revelio
+        GENERATE_INFOPLIST_FILE: YES

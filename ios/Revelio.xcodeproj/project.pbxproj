@@ -8,22 +8,22 @@
 
 /* Begin PBXBuildFile section */
 		00E93943CDDE91889226F936 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABBEDB2A106C588CF3B6A182 /* ProfileView.swift */; };
-		A1B2C3D4E5F60001A1B2C3D4 /* PersonalizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60002A1B2C3D4 /* PersonalizationView.swift */; };
-		A1B2C3D4E5F60003A1B2C3D4 /* PersonalizationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60004A1B2C3D4 /* PersonalizationModels.swift */; };
 		0AFEFFDCE17C3C7C70376D98 /* IngredientFlagDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1762D8BE9FD96565A5A44FFE /* IngredientFlagDatabase.swift */; };
 		0CD843B20F9D7A38AC792200 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4E28C0E8BD49B94B8F932717 /* PrivacyInfo.xcprivacy */; };
 		0E7B765E46E58BA8DB098D18 /* AlternativesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95B466613FEF84DB9F6604D /* AlternativesViewModel.swift */; };
 		0EBE36579CBB3A8175089334 /* IngredientExplainerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D04ED65224810FAA53A6EB /* IngredientExplainerSheet.swift */; };
 		1DAD70B57DAC60555FD6329B /* AllergenProfileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12C39B7E971CE266E060E93D /* AllergenProfileManager.swift */; };
 		254E1A36E3D2C28538AC350D /* AlternativeProductCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EA8279A37485859A96C130 /* AlternativeProductCard.swift */; };
+		2975B8D96F94D562EB4AA936 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 867AFA9F40AF6B012B98DA4E /* SettingsView.swift */; };
 		2ACE2E3DD0D8098699DD62E2 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0591013D594B0B8CDC815AC8 /* AuthViewModel.swift */; };
 		4AB4D9E70C73547605573A4D /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D54751C8F03BFE2AD2403E1 /* Models.swift */; };
+		536A29B27D0F29B5A9FED6F2 /* CreatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE168C09470A53C81FE1D295 /* CreatorView.swift */; };
 		5A4AAA686AEB05F1E2CBA183 /* ShareCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CDA34692B2E861A430DF733 /* ShareCardView.swift */; };
+		613173DD7D11ED9587CF047B /* RevelioUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBFEFAD374F432DCE58DB10C /* RevelioUITests.swift */; };
 		63E04FDCE93E1242634924DE /* PantryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA1975F323CA83EF03BC0805 /* PantryView.swift */; };
 		657021DBF1E6F053075B3DD8 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E6D47977C302E778C3D0109 /* AppState.swift */; };
 		6B52B3A931B617C25E3FFC5D /* ProductDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A6178161DDADCF9337C3596 /* ProductDetailView.swift */; };
 		71E594F5FD74DC81D9B1494D /* OTPVerifyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F82BDC12AE2D0D68D1FE26 /* OTPVerifyView.swift */; };
-		884B4A9CA941269239F3B594 /* CreatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EB8479FBD205F62DEAD59AF /* CreatorView.swift */; };
 		8988E81A30AB1DB880A36947 /* ProBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ABC2E0D0B62A2685E6D48EC /* ProBadge.swift */; };
 		8D0677FE8C8E347F65C17E99 /* ScanResultCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09646FD131E0D14CB67FFB55 /* ScanResultCard.swift */; };
 		8DF1BBB7150C89E71541EEF7 /* PhoneEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75934CED8EFC460EF9169B2C /* PhoneEntryView.swift */; };
@@ -33,20 +33,36 @@
 		A10DCF6268778E3AC0BB7224 /* AllergenWarningBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 124A795988AE0C9CF2D5F371 /* AllergenWarningBanner.swift */; };
 		A7AEF2F1F7BB8A176548BF39 /* ManualBarcodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB1B3934E2444130F5A8BDC0 /* ManualBarcodeView.swift */; };
 		AC0030BBEF786A6C93E5497B /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46163D4F416023B064C16486 /* ExploreView.swift */; };
+		AC18F9BF91AC5B2AAB57894A /* PersonalizationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F122146BA37105CC860FCC /* PersonalizationModels.swift */; };
 		AF687004FC78274A2CF3FCBB /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8410D4F3FB3E0ECB7CA119F /* Theme.swift */; };
 		B4CFAB2C5D3239BC83A77D1A /* ShareCardGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89E4DE772F2DE996C34708FE /* ShareCardGenerator.swift */; };
 		BA0C5B790C69DEB7ED66D765 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C53E412FDF9D712E947C1BBA /* OnboardingView.swift */; };
 		D2751BEA45B4BAA6962B35BD /* GradeBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA4BC87E3E36723A1C52FC8 /* GradeBadge.swift */; };
 		D662F6B526BD5F5D2793B709 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D3E63A651C8668122CE96D /* HistoryView.swift */; };
 		D883631D9253A58BA884EFB3 /* BarcodeScannerRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E536483B331979E9A1FF394 /* BarcodeScannerRepresentable.swift */; };
+		E077B929F2114E0A0AEFEFD7 /* NutritionTrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0F949D2966B34A54116C10 /* NutritionTrendsView.swift */; };
+		E08947CDC4407A7393FEFECC /* PersonalizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0646DACF5C19ACD428607E12 /* PersonalizationView.swift */; };
 		E4C8BC5EC1D62C4C6695D5A3 /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13F4AC058C6F8F0327CE7C73 /* HistoryManager.swift */; };
 		E61578A92E95DF562B6C1885 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F5F3C5B645B0928D66B9B01 /* ScanView.swift */; };
 		E838DFA687404D499DB3B43D /* AllergenProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4963AF1C91E58C961065A2F6 /* AllergenProfilesView.swift */; };
+		EBA478AF6E0BC28031574CEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 882220A5CBCDF8F2A55A882F /* Assets.xcassets */; };
 		EDC4BBD98253559559C97C55 /* ScanViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE077B1A76C559779DE4F7F6 /* ScanViewModel.swift */; };
+		F7773B6C5FD2D228D4532567 /* PantryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF68DAFBC2721F4F6366E040 /* PantryManager.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BBF380C7C99D83CE80CA7667 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D95177A6E5C0B6453A259DFD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 427934C5C20A2D0072C3C14F;
+			remoteInfo = Revelio;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		0591013D594B0B8CDC815AC8 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		0646DACF5C19ACD428607E12 /* PersonalizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizationView.swift; sourceTree = "<group>"; };
 		09646FD131E0D14CB67FFB55 /* ScanResultCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanResultCard.swift; sourceTree = "<group>"; };
 		0D54751C8F03BFE2AD2403E1 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		0E536483B331979E9A1FF394 /* BarcodeScannerRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerRepresentable.swift; sourceTree = "<group>"; };
@@ -62,12 +78,15 @@
 		48F4E19AC05B93970D5D9C5F /* Revelio.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Revelio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4963AF1C91E58C961065A2F6 /* AllergenProfilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergenProfilesView.swift; sourceTree = "<group>"; };
 		4E28C0E8BD49B94B8F932717 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		4EB8479FBD205F62DEAD59AF /* CreatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CreatorView.swift; path = Revelio/Views/Creator/CreatorView.swift; sourceTree = SOURCE_ROOT; };
 		5ABC2E0D0B62A2685E6D48EC /* ProBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProBadge.swift; sourceTree = "<group>"; };
 		5F5F3C5B645B0928D66B9B01 /* ScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanView.swift; sourceTree = "<group>"; };
+		61F122146BA37105CC860FCC /* PersonalizationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizationModels.swift; sourceTree = "<group>"; };
+		656A298145B1C28BE7187096 /* RevelioUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = RevelioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6CDA34692B2E861A430DF733 /* ShareCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCardView.swift; sourceTree = "<group>"; };
 		71BFBA3571540275384A43BC /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		75934CED8EFC460EF9169B2C /* PhoneEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneEntryView.swift; sourceTree = "<group>"; };
+		867AFA9F40AF6B012B98DA4E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		882220A5CBCDF8F2A55A882F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		89E4DE772F2DE996C34708FE /* ShareCardGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCardGenerator.swift; sourceTree = "<group>"; };
 		8F02E5B1EE32B88164CB6821 /* RevelioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevelioApp.swift; sourceTree = "<group>"; };
 		98EA8279A37485859A96C130 /* AlternativeProductCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternativeProductCard.swift; sourceTree = "<group>"; };
@@ -75,13 +94,15 @@
 		A841D181C8E7384BDF39797A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A9F82BDC12AE2D0D68D1FE26 /* OTPVerifyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPVerifyView.swift; sourceTree = "<group>"; };
 		ABBEDB2A106C588CF3B6A182 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60002A1B2C3D4 /* PersonalizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizationView.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60004A1B2C3D4 /* PersonalizationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizationModels.swift; sourceTree = "<group>"; };
 		B7D04ED65224810FAA53A6EB /* IngredientExplainerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientExplainerSheet.swift; sourceTree = "<group>"; };
+		BC0F949D2966B34A54116C10 /* NutritionTrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionTrendsView.swift; sourceTree = "<group>"; };
 		BE077B1A76C559779DE4F7F6 /* ScanViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanViewModel.swift; sourceTree = "<group>"; };
 		C53E412FDF9D712E947C1BBA /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		C95B466613FEF84DB9F6604D /* AlternativesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternativesViewModel.swift; sourceTree = "<group>"; };
+		CBFEFAD374F432DCE58DB10C /* RevelioUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevelioUITests.swift; sourceTree = "<group>"; };
+		DE168C09470A53C81FE1D295 /* CreatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatorView.swift; sourceTree = "<group>"; };
 		EB1B3934E2444130F5A8BDC0 /* ManualBarcodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualBarcodeView.swift; sourceTree = "<group>"; };
+		EF68DAFBC2721F4F6366E040 /* PantryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PantryManager.swift; sourceTree = "<group>"; };
 		F9BF37F2420E013DF868C88A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		FA1975F323CA83EF03BC0805 /* PantryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PantryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -111,6 +132,7 @@
 				4E28C0E8BD49B94B8F932717 /* PrivacyInfo.xcprivacy */,
 				4BDE1D415FFD31692A397109 /* App */,
 				B0966436C3BABF8F0A771806 /* Models */,
+				90D588C153D0A39FADFB0262 /* Revelio */,
 				E62846AC3E61BE8EB84B3203 /* Services */,
 				0D75E1F3008A571DF22ACCA6 /* Theme */,
 				879ECF32C415582CE8353515 /* ViewModels */,
@@ -129,6 +151,14 @@
 			path = Auth;
 			sourceTree = "<group>";
 		};
+		3CF541B57339D16358196328 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				867AFA9F40AF6B012B98DA4E /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
 		413EF217B0CD2E177D211B58 /* Share */ = {
 			isa = PBXGroup;
 			children = (
@@ -136,6 +166,14 @@
 				6CDA34692B2E861A430DF733 /* ShareCardView.swift */,
 			);
 			path = Share;
+			sourceTree = "<group>";
+		};
+		45ECE21BDAFA3FF271B7C7A0 /* Creator */ = {
+			isa = PBXGroup;
+			children = (
+				DE168C09470A53C81FE1D295 /* CreatorView.swift */,
+			);
+			path = Creator;
 			sourceTree = "<group>";
 		};
 		4BDE1D415FFD31692A397109 /* App */ = {
@@ -156,6 +194,14 @@
 			path = Pantry;
 			sourceTree = "<group>";
 		};
+		63A6C9DF4125C4D220D6D068 /* RevelioUITests */ = {
+			isa = PBXGroup;
+			children = (
+				CBFEFAD374F432DCE58DB10C /* RevelioUITests.swift */,
+			);
+			path = RevelioUITests;
+			sourceTree = "<group>";
+		};
 		70C8BF2C47DBC7803FDFA26A /* Detail */ = {
 			isa = PBXGroup;
 			children = (
@@ -169,8 +215,8 @@
 		80E09A6C71D5F8BF465DEF44 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				0646DACF5C19ACD428607E12 /* PersonalizationView.swift */,
 				ABBEDB2A106C588CF3B6A182 /* ProfileView.swift */,
-				A1B2C3D4E5F60002A1B2C3D4 /* PersonalizationView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -179,8 +225,8 @@
 			isa = PBXGroup;
 			children = (
 				25D6A362186CDAF081CCA770 /* Revelio */,
+				63A6C9DF4125C4D220D6D068 /* RevelioUITests */,
 				D4318CB949DCBA160611FD33 /* Products */,
-				4EB8479FBD205F62DEAD59AF /* CreatorView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -192,6 +238,14 @@
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
+		90D588C153D0A39FADFB0262 /* Revelio */ = {
+			isa = PBXGroup;
+			children = (
+				882220A5CBCDF8F2A55A882F /* Assets.xcassets */,
+			);
+			path = Revelio;
+			sourceTree = "<group>";
+		};
 		975C77B0CC976B35C7B7BDD0 /* Allergens */ = {
 			isa = PBXGroup;
 			children = (
@@ -201,11 +255,19 @@
 			path = Allergens;
 			sourceTree = "<group>";
 		};
+		A56B71597965B5AB4FC51901 /* Trends */ = {
+			isa = PBXGroup;
+			children = (
+				BC0F949D2966B34A54116C10 /* NutritionTrendsView.swift */,
+			);
+			path = Trends;
+			sourceTree = "<group>";
+		};
 		B0966436C3BABF8F0A771806 /* Models */ = {
 			isa = PBXGroup;
 			children = (
 				0D54751C8F03BFE2AD2403E1 /* Models.swift */,
-				A1B2C3D4E5F60004A1B2C3D4 /* PersonalizationModels.swift */,
+				61F122146BA37105CC860FCC /* PersonalizationModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -216,6 +278,7 @@
 				1FA4BC87E3E36723A1C52FC8 /* GradeBadge.swift */,
 				975C77B0CC976B35C7B7BDD0 /* Allergens */,
 				27A07CD1FE8B0253885039B7 /* Auth */,
+				45ECE21BDAFA3FF271B7C7A0 /* Creator */,
 				70C8BF2C47DBC7803FDFA26A /* Detail */,
 				F881042E86DE648515B9CD9E /* Explore */,
 				B786BEACAE3B7BF4B28982DD /* History */,
@@ -223,7 +286,9 @@
 				25B3E458350E8E98E6382E91 /* Paywall */,
 				80E09A6C71D5F8BF465DEF44 /* Profile */,
 				FF8D526F09F86CC951559589 /* Scan */,
+				3CF541B57339D16358196328 /* Settings */,
 				413EF217B0CD2E177D211B58 /* Share */,
+				A56B71597965B5AB4FC51901 /* Trends */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -240,6 +305,7 @@
 			isa = PBXGroup;
 			children = (
 				48F4E19AC05B93970D5D9C5F /* Revelio.app */,
+				656A298145B1C28BE7187096 /* RevelioUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -250,6 +316,7 @@
 				12C39B7E971CE266E060E93D /* AllergenProfileManager.swift */,
 				13F4AC058C6F8F0327CE7C73 /* HistoryManager.swift */,
 				1762D8BE9FD96565A5A44FFE /* IngredientFlagDatabase.swift */,
+				EF68DAFBC2721F4F6366E040 /* PantryManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -278,6 +345,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0D0360546DC56DC42B142E41 /* RevelioUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56642E9A5218160E5D9EC0B4 /* Build configuration list for PBXNativeTarget "RevelioUITests" */;
+			buildPhases = (
+				2A8335DC6BD27EFFC231A4A2 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E162A31EDDB271DFA62CA19B /* PBXTargetDependency */,
+			);
+			name = RevelioUITests;
+			packageProductDependencies = (
+			);
+			productName = RevelioUITests;
+			productReference = 656A298145B1C28BE7187096 /* RevelioUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		427934C5C20A2D0072C3C14F /* Revelio */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 4A1E74B4EC2E2E9E43C15489 /* Build configuration list for PBXNativeTarget "Revelio" */;
@@ -305,6 +390,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
+					0D0360546DC56DC42B142E41 = {
+						DevelopmentTeam = F945V6582K;
+						TestTargetID = 427934C5C20A2D0072C3C14F;
+					};
 					427934C5C20A2D0072C3C14F = {
 						DevelopmentTeam = F945V6582K;
 					};
@@ -325,6 +414,7 @@
 			projectRoot = "";
 			targets = (
 				427934C5C20A2D0072C3C14F /* Revelio */,
+				0D0360546DC56DC42B142E41 /* RevelioUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -334,6 +424,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EBA478AF6E0BC28031574CEB /* Assets.xcassets in Resources */,
 				0CD843B20F9D7A38AC792200 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -341,6 +432,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2A8335DC6BD27EFFC231A4A2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				613173DD7D11ED9587CF047B /* RevelioUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B4DF3DBE84A8B4858C8EC308 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -354,6 +453,7 @@
 				2ACE2E3DD0D8098699DD62E2 /* AuthViewModel.swift in Sources */,
 				D883631D9253A58BA884EFB3 /* BarcodeScannerRepresentable.swift in Sources */,
 				9036B8C2866640BD07404556 /* ContentView.swift in Sources */,
+				536A29B27D0F29B5A9FED6F2 /* CreatorView.swift in Sources */,
 				AC0030BBEF786A6C93E5497B /* ExploreView.swift in Sources */,
 				D2751BEA45B4BAA6962B35BD /* GradeBadge.swift in Sources */,
 				E4C8BC5EC1D62C4C6695D5A3 /* HistoryManager.swift in Sources */,
@@ -362,28 +462,38 @@
 				0AFEFFDCE17C3C7C70376D98 /* IngredientFlagDatabase.swift in Sources */,
 				A7AEF2F1F7BB8A176548BF39 /* ManualBarcodeView.swift in Sources */,
 				4AB4D9E70C73547605573A4D /* Models.swift in Sources */,
+				E077B929F2114E0A0AEFEFD7 /* NutritionTrendsView.swift in Sources */,
 				71E594F5FD74DC81D9B1494D /* OTPVerifyView.swift in Sources */,
 				BA0C5B790C69DEB7ED66D765 /* OnboardingView.swift in Sources */,
+				F7773B6C5FD2D228D4532567 /* PantryManager.swift in Sources */,
 				63E04FDCE93E1242634924DE /* PantryView.swift in Sources */,
 				93B3552BDB2BF42F3D928CE1 /* PaywallView.swift in Sources */,
+				AC18F9BF91AC5B2AAB57894A /* PersonalizationModels.swift in Sources */,
+				E08947CDC4407A7393FEFECC /* PersonalizationView.swift in Sources */,
 				8DF1BBB7150C89E71541EEF7 /* PhoneEntryView.swift in Sources */,
 				8988E81A30AB1DB880A36947 /* ProBadge.swift in Sources */,
 				6B52B3A931B617C25E3FFC5D /* ProductDetailView.swift in Sources */,
 				00E93943CDDE91889226F936 /* ProfileView.swift in Sources */,
-				A1B2C3D4E5F60001A1B2C3D4 /* PersonalizationView.swift in Sources */,
-				A1B2C3D4E5F60003A1B2C3D4 /* PersonalizationModels.swift in Sources */,
 				94CFBB76C6F7DE531C8D3276 /* RevelioApp.swift in Sources */,
 				8D0677FE8C8E347F65C17E99 /* ScanResultCard.swift in Sources */,
 				E61578A92E95DF562B6C1885 /* ScanView.swift in Sources */,
 				EDC4BBD98253559559C97C55 /* ScanViewModel.swift in Sources */,
+				2975B8D96F94D562EB4AA936 /* SettingsView.swift in Sources */,
 				B4CFAB2C5D3239BC83A77D1A /* ShareCardGenerator.swift in Sources */,
 				5A4AAA686AEB05F1E2CBA183 /* ShareCardView.swift in Sources */,
 				AF687004FC78274A2CF3FCBB /* Theme.swift in Sources */,
-				884B4A9CA941269239F3B594 /* CreatorView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E162A31EDDB271DFA62CA19B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 427934C5C20A2D0072C3C14F /* Revelio */;
+			targetProxy = BBF380C7C99D83CE80CA7667 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		3C2FE9F026775A2BFE1B4AE4 /* Release */ = {
@@ -527,6 +637,40 @@
 			};
 			name = Debug;
 		};
+		6C78AEF3E3EE5FD1DA62E9F2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.revelio.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Revelio;
+			};
+			name = Release;
+		};
+		7AB1489D11D5EFAE40DF549B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.revelio.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Revelio;
+			};
+			name = Debug;
+		};
 		89DA4369B0C3C7E9B8557354 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -551,6 +695,15 @@
 			buildConfigurations = (
 				6323E1BD58EC2377D4FDC830 /* Debug */,
 				89DA4369B0C3C7E9B8557354 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		56642E9A5218160E5D9EC0B4 /* Build configuration list for PBXNativeTarget "RevelioUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7AB1489D11D5EFAE40DF549B /* Debug */,
+				6C78AEF3E3EE5FD1DA62E9F2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

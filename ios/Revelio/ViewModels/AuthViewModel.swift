@@ -1,4 +1,5 @@
 import Foundation
+import StoreKit
 import SwiftUI
 
 // ─── User Model ───────────────────────────────────────────────────────────────
@@ -30,6 +31,8 @@ class AuthViewModel: ObservableObject {
             dailyScansUsed: 0,
             dailyScansLimit: 10
         )
+        // Check existing entitlements on launch
+        Task { await refreshUser() }
     }
 
     func loadToken() -> String? {
@@ -41,7 +44,20 @@ class AuthViewModel: ObservableObject {
         // No-op: auth is disabled
     }
 
+    private static let proProductIDs: Set<String> = [
+        "com.revelio.pro.monthly",
+        "com.revelio.pro.yearly"
+    ]
+
     func refreshUser() async {
-        // No-op: stub implementation
+        var foundPro = false
+        for await result in Transaction.currentEntitlements {
+            guard case .verified(let transaction) = result else { continue }
+            if Self.proProductIDs.contains(transaction.productID) {
+                foundPro = true
+                break
+            }
+        }
+        currentUser?.tier = foundPro ? "pro" : "free"
     }
 }
