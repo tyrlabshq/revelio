@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: revelio-postgres
+    environment:
+      POSTGRES_USER: revelio
+      POSTGRES_PASSWORD: revelio_password
+      POSTGRES_DB: revelio
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U revelio"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: revelio-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: revelio-api
+    environment:
+      PORT: 8430
+      DATABASE_URL: postgresql://revelio:revelio_password@postgres:5432/revelio
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-revelio_jwt_secret_change_in_production}
+    ports:
+      - "8430:8430"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

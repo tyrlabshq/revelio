@@ -12,7 +12,39 @@ class PantryManager: ObservableObject {
     private let storageKey = "pantry_items_v1"
 
     private init() {
-        load()
+        if CommandLine.arguments.contains("UI_TESTING") {
+            loadSampleData()
+        } else {
+            load()
+        }
+    }
+
+    // MARK: - Sample Data for Screenshots
+
+    private func loadSampleData() {
+        let twoDaysAgo = Date().addingTimeInterval(-2 * 86400)
+        items = [
+            PantryItem(id: "p1", barcode: "007017700576", productName: "Greek Yogurt Plain",
+                       brand: "Chobani", score: 92, grade: "A", imageUrl: nil, quantity: 2,
+                       addedAt: twoDaysAgo, ingredients: ["Cultured Nonfat Milk", "Live Cultures"],
+                       flaggedIngredients: []),
+            PantryItem(id: "p2", barcode: "004119600048", productName: "Extra Virgin Olive Oil",
+                       brand: "California Olive Ranch", score: 95, grade: "A", imageUrl: nil, quantity: 1,
+                       addedAt: twoDaysAgo, ingredients: ["Extra Virgin Olive Oil"],
+                       flaggedIngredients: []),
+            PantryItem(id: "p3", barcode: "003800017977", productName: "Cheez-It Original",
+                       brand: "Sunshine Snacks", score: 55, grade: "C", imageUrl: nil, quantity: 1,
+                       addedAt: twoDaysAgo, ingredients: ["Enriched Flour", "Soybean Oil", "TBHQ"],
+                       flaggedIngredients: ["TBHQ", "Soybean Oil"]),
+            PantryItem(id: "p4", barcode: "008523904948", productName: "Almond Breeze Unsweetened",
+                       brand: "Blue Diamond", score: 78, grade: "B", imageUrl: nil, quantity: 1,
+                       addedAt: twoDaysAgo, ingredients: ["Filtered Water", "Almonds", "Calcium Carbonate"],
+                       flaggedIngredients: []),
+            PantryItem(id: "p5", barcode: "001700008950", productName: "Tide Pods Laundry",
+                       brand: "Tide", score: 35, grade: "D", imageUrl: nil, quantity: 1,
+                       addedAt: twoDaysAgo, ingredients: ["Nonionic Surfactants", "Fragrances"],
+                       flaggedIngredients: ["Fragrances", "Optical Brighteners"]),
+        ]
     }
 
     // MARK: - Public API

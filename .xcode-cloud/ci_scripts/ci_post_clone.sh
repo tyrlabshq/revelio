@@ -30,24 +30,23 @@ echo "CI_PRODUCT_PLATFORM: $CI_PRODUCT_PLATFORM"
 # mint bootstrap
 
 # ─────────────────────────────────────────
-# 3. Inject secrets from Xcode Cloud env vars
-#    (set these in App Store Connect → Xcode Cloud → Workflow → Environment Variables)
+# 3. Secrets / runtime configuration
 # ─────────────────────────────────────────
 
-# These vars are set in App Store Connect as secrets — never hardcode values here.
-# The app reads these at build time via xcconfig or at runtime via Info.plist injection.
-
-# Export API base URL for build (injected into xcconfig)
-if [ -n "$REVELIO_API_BASE_URL" ]; then
-    echo "REVELIO_API_BASE_URL=$REVELIO_API_BASE_URL" >> ios/Revelio/Config.xcconfig
-    echo "✅ Injected REVELIO_API_BASE_URL"
-fi
-
-# RevenueCat API key (injected into xcconfig for build-time embedding)
-if [ -n "$REVENUECAT_API_KEY" ]; then
-    echo "REVENUECAT_API_KEY=$REVENUECAT_API_KEY" >> ios/Revelio/Config.xcconfig
-    echo "✅ Injected REVENUECAT_API_KEY"
-fi
+# NOTE: ios/Revelio/Config.xcconfig is NOT referenced in project.pbxproj,
+# so xcconfig injection has no effect on the build.
+#
+# The app resolves API_BASE_URL at runtime via:
+#   ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://api.revelio.app"
+#
+# Xcode Cloud injects environment variables (set in App Store Connect →
+# Xcode Cloud → Workflow → Environment Variables) directly into the process
+# environment, so no xcconfig wiring is needed — the fallback URL covers
+# production and the env var overrides it when set (e.g. staging workflows).
+#
+# RevenueCat is not integrated; the app uses native StoreKit directly.
+# No REVENUECAT_API_KEY injection is required.
+echo "ℹ️  API_BASE_URL fallback: https://api.revelio.app (override via Xcode Cloud env var)"
 
 # ─────────────────────────────────────────
 # 4. SPM package resolution (Xcode Cloud

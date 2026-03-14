@@ -18,7 +18,19 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8430;
 
-app.use(cors());
+// CORS configuration - allow iOS app and web frontend
+const corsOrigins = process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000', 'https://revelio.app', 'https://www.revelio.app'];
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (corsOrigins.includes(origin) || origin.startsWith('capacitor://') || origin.startsWith('ionic://') || origin.includes('revelio')) {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 app.get('/health', (_, res) => res.json({ ok: true, service: 'revelio-api', version: '1.0.0' }));
