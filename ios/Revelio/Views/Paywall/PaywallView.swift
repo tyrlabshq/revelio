@@ -154,7 +154,7 @@ struct PaywallView: View {
 
             HStack(spacing: 0) {
                 planButton("Monthly", plan: .monthly)
-                planButton("Annual", plan: .annual, badge: "Save 42%")
+                planButton("Annual", plan: .annual, badge: "Save 25%")
             }
             .padding(4)
         }
@@ -197,7 +197,7 @@ struct PaywallView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(Theme.textPrimary)
                         .padding(.top, 6)
-                    Text("34")
+                    Text("35")
                         .font(.system(size: 48, weight: .bold))
                         .foregroundColor(Theme.textPrimary)
                     Text(".99")
@@ -206,7 +206,7 @@ struct PaywallView: View {
                         .foregroundColor(Theme.textSecondary)
                         .padding(.top, 10)
                 }
-                Text("per year • ~$2.92/month")
+                Text("per year • ~$3.00/month")
                     .font(.subheadline)
                     .foregroundColor(Theme.textSecondary)
 
@@ -226,7 +226,7 @@ struct PaywallView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(Theme.textPrimary)
                         .padding(.top, 6)
-                    Text("4")
+                    Text("3")
                         .font(.system(size: 48, weight: .bold))
                         .foregroundColor(Theme.textPrimary)
                     Text(".99")
@@ -344,7 +344,7 @@ struct PaywallView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
                     if selectedPlan == .annual {
-                        Text("7 days free, then $34.99/yr")
+                        Text("7 days free, then $35.99/yr")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.8))
                     }
