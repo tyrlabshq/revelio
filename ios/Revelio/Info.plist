@@ -17,14 +17,17 @@
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>UILaunchScreen</key>
-    <dict/>
+    <dict>
+        <key>UIColorName</key>
+        <string>LaunchScreenBackground</string>
+    </dict>
     <key>NSCameraUsageDescription</key>
-    <string>Revelio needs camera access to scan product barcodes</string>
+    <string>Revelio uses your camera to scan product barcodes for ingredient analysis.</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Revelio saves your scan scorecards to your Camera Roll so you can share them.</string>
     <key>UIRequiredDeviceCapabilities</key>
     <array>
-        <string>armv7</string>
+        <string>arm64</string>
     </array>
     <key>UISupportedInterfaceOrientations</key>
     <array>
@@ -41,5 +44,7 @@
             </array>
         </dict>
     </array>
+    <key>MinimumOSVersion</key>
+    <string>17.0</string>
 </dict>
 </plist>
