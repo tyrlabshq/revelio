@@ -15,6 +15,16 @@ import { ensureAlternativesTable } from './db';
 
 dotenv.config();
 
+// ─── Production startup guard ─────────────────────────────────────────────────
+const DEV_SECRET = 'dev-secret-change-in-prod';
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === DEV_SECRET) {
+    console.error('FATAL: JWT_SECRET must be set in production. Exiting.');
+    process.exit(1);
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 const app = express();
 const PORT = process.env.PORT || 8430;
 
