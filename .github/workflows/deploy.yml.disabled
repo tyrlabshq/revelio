@@ -1,3 +1,12 @@
+# DISABLED: This workflow is disabled because FLY_API_TOKEN is not set as a GitHub secret.
+#
+# To re-enable Fly.io deployment:
+# 1. Run: fly auth login    (requires a browser — must be done by Ty)
+# 2. Get token: fly auth token
+# 3. Add to GitHub: repo Settings → Secrets → Actions → New secret → Name: FLY_API_TOKEN
+# 4. Rename this file back: mv .github/workflows/deploy.yml.disabled .github/workflows/deploy.yml
+# 5. Commit and push.
+#
 name: Deploy to Fly.io
 
 on:

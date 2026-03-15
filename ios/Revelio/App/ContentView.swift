@@ -2,7 +2,25 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab = 0
-    
+    @EnvironmentObject private var authViewModel: AuthViewModel
+
+    var body: some View {
+        Group {
+            if authViewModel.isAuthenticated {
+                MainTabView(selectedTab: $selectedTab)
+            } else {
+                OnboardingView()
+            }
+        }
+    }
+}
+
+// ─── Main Tab View ────────────────────────────────────────────────────────────
+
+private struct MainTabView: View {
+    @Binding var selectedTab: Int
+    @EnvironmentObject private var authViewModel: AuthViewModel
+
     var body: some View {
         TabView(selection: $selectedTab) {
             ScanView()
@@ -41,4 +59,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environmentObject(AuthViewModel())
 }

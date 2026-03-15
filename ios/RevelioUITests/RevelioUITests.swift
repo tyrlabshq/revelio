@@ -190,3 +190,107 @@ final class RevelioUITests: XCTestCase {
         }
     }
 }
+
+// MARK: - App Store Screenshot Tests
+
+extension RevelioUITests {
+    
+    func captureAppStoreShot(name: String) {
+        sleep(2)
+        let screenshot = XCUIScreen.main.screenshot()
+        let attachment = XCTAttachment(screenshot: screenshot)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        let tmpDir = FileManager.default.temporaryDirectory
+        let url = tmpDir.appendingPathComponent("\(name).png")
+        try? screenshot.pngRepresentation.write(to: url)
+    }
+    
+    func testAppStoreScreenshots() throws {
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 5))
+        
+        // === Screen 1: Hero Scan ===
+        captureAppStoreShot(name: "appstore-01-hero-scan")
+        
+        // === Navigate to History ===
+        let histTab = tabBar.buttons["History"]
+        if histTab.exists { histTab.tap() } else { tabBar.buttons.element(boundBy: 1).tap() }
+        sleep(2)
+        
+        // === Screen 2: Good Grade Result (tap Greek Yogurt - A grade) ===
+        let cells = app.tables.cells
+        if cells.count > 0 {
+            cells.element(boundBy: 0).tap()
+            sleep(3)
+            captureAppStoreShot(name: "appstore-02-grade-result")
+            
+            // Try to scroll to see more detail
+            app.swipeUp()
+            sleep(1)
+            captureAppStoreShot(name: "appstore-02b-grade-detail")
+            
+            // Back button
+            let navBacks = app.navigationBars.buttons
+            if navBacks.count > 0 { navBacks.element(boundBy: 0).tap() }
+            sleep(1)
+        }
+        
+        // === Screen 3: Ingredient Breakdown (Cheez-It with flags) ===
+        if cells.count > 1 {
+            cells.element(boundBy: 1).tap()
+            sleep(3)
+            captureAppStoreShot(name: "appstore-03-with-flags")
+            
+            // Scroll down to show ingredient flags
+            app.swipeUp()
+            sleep(1)
+            captureAppStoreShot(name: "appstore-03-ingredient-breakdown")
+            
+            let navBacks = app.navigationBars.buttons
+            if navBacks.count > 0 { navBacks.element(boundBy: 0).tap() }
+            sleep(1)
+        }
+        
+        // === Screen 6: Pantry Tracker ===
+        let pantryTab = tabBar.buttons["Pantry"]
+        if pantryTab.exists { pantryTab.tap() } else { tabBar.buttons.element(boundBy: 3).tap() }
+        sleep(2)
+        captureAppStoreShot(name: "appstore-06-pantry-tracker")
+        
+        // === Screens 4 & 5: Profile/Goals/Allergens ===
+        let moreTab = tabBar.buttons["More"]
+        if moreTab.exists {
+            moreTab.tap()
+            sleep(2)
+            captureAppStoreShot(name: "appstore-more-menu")
+            
+            // Try Profile
+            let profileBtn = app.tables.cells.staticTexts["Profile"]
+            if profileBtn.exists {
+                profileBtn.tap()
+                sleep(2)
+                captureAppStoreShot(name: "appstore-04-profile")
+                
+                // Look for goals or allergen
+                let allergenRow = app.staticTexts["Allergen Profiles"]
+                if allergenRow.exists {
+                    allergenRow.tap()
+                    sleep(2)
+                    captureAppStoreShot(name: "appstore-05-allergen-profiles")
+                    let navBacks = app.navigationBars.buttons
+                    if navBacks.count > 0 { navBacks.element(boundBy: 0).tap() }
+                    sleep(1)
+                }
+                
+                let goalsRow = app.staticTexts["My Goals & Priorities"]
+                if goalsRow.exists {
+                    goalsRow.tap()
+                    sleep(2)
+                    captureAppStoreShot(name: "appstore-04b-goals")
+                }
+            }
+        }
+    }
+}

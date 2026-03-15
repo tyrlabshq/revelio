@@ -107,12 +107,6 @@ struct ProductDetailView: View {
                     )
                     .padding(.top, 16)
 
-                    // ── Alternatives (score < 65) ─────────────────────────────
-                    if scan.baseScore < 65 {
-                        AlternativesSection()
-                            .padding(.top, 16)
-                    }
-
                     Spacer(minLength: 40)
                 }
             }
@@ -570,85 +564,6 @@ struct CleanIngredientsSection: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
         .padding(.horizontal, 16)
-    }
-}
-
-// ─── Alternatives Section ──────────────────────────────────────────────────────
-
-struct AlternativesSection: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("CLEANER OPTIONS")
-                .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                .foregroundColor(Theme.textDim)
-                .padding(.horizontal, 20)
-            
-            VStack(spacing: 12) {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 32))
-                    .foregroundColor(Theme.textDim)
-                Text("Better alternatives coming soon")
-                    .font(.subheadline)
-                    .foregroundColor(Theme.textSecondary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 40)
-            .background(Theme.surface)
-            .cornerRadius(12)
-            .padding(.horizontal, 16)
-        }
-    }
-}
-
-struct AlternativeCard: View {
-    let product: AlternativeProduct
-
-    var body: some View {
-        HStack(spacing: 14) {
-            // Product image placeholder
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Theme.surfaceElevated)
-                .frame(width: 52, height: 52)
-                .overlay(
-                    Image(systemName: "photo")
-                        .foregroundColor(Theme.textDim)
-                )
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(product.name)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Theme.textPrimary)
-                Text(product.brand)
-                    .font(.caption)
-                    .foregroundColor(Theme.textSecondary)
-                if let price = product.priceDisplay {
-                    Text(price)
-                        .font(.caption)
-                        .foregroundColor(Theme.textDim)
-                }
-            }
-
-            Spacer()
-
-            VStack(spacing: 6) {
-                GradeBadge(grade: product.grade, score: product.score)
-                Link("Buy", destination: URL(string: product.purchaseUrl)!)
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Theme.success)
-                    .cornerRadius(6)
-            }
-        }
-        .padding(14)
-        .background(Theme.surface)
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Theme.success.opacity(0.3), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
     }
 }
 

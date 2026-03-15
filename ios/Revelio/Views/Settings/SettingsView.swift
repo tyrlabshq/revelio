@@ -89,9 +89,7 @@ struct SettingsView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
-                        Text(authViewModel.currentUser?.phone.isEmpty == false
-                            ? authViewModel.currentUser!.phone
-                            : "Guest")
+                        Text(authViewModel.currentUser?.name ?? authViewModel.currentUser?.email ?? authViewModel.currentUser?.phone ?? "Guest")
                             .font(.headline)
                             .foregroundColor(Theme.textPrimary)
 

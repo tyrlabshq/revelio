@@ -1,7 +1,9 @@
 import SwiftUI
+import AuthenticationServices
 
 struct OnboardingView: View {
     @State private var currentSlide = 0
+    @EnvironmentObject private var authViewModel: AuthViewModel
 
     private let slides: [OnboardingSlide] = [
         OnboardingSlide(
@@ -55,41 +57,88 @@ struct OnboardingView: View {
 
                 Spacer().frame(height: 48)
 
-                // CTA Button
-                Button {
-                    if currentSlide < slides.count - 1 {
-                        withAnimation { currentSlide += 1 }
-                    }
-                    // On last slide, button does nothing - user proceeds to ContentView
-                } label: {
-                    HStack {
-                        Text(currentSlide < slides.count - 1 ? "Next" : "Get Started")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                        if currentSlide == slides.count - 1 {
-                            Image(systemName: "arrow.right")
-                        }
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Theme.accent)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                }
-                .padding(.horizontal, 32)
-
-                // Skip
+                // Show auth buttons on last slide, navigation on others
                 if currentSlide < slides.count - 1 {
+                    // Navigation buttons for first slides
+                    Button {
+                        withAnimation { currentSlide += 1 }
+                    } label: {
+                        HStack {
+                            Text("Next")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Theme.accent)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                    .padding(.horizontal, 32)
+
                     Button("Skip") {
-                        // No-op: user is already authenticated
+                        withAnimation { currentSlide = slides.count - 1 }
                     }
                     .font(.subheadline)
                     .foregroundColor(Theme.textSecondary)
                     .padding(.top, 16)
+                } else {
+                    // Sign In with Apple button
+                    SignInWithAppleButton(
+                        .signIn,
+                        onRequest: { request in
+                            request.requestedScopes = [.fullName, .email]
+                        },
+                        onCompletion: { result in
+                            authViewModel.handleAppleSignIn(result: result)
+                        }
+                    )
+                    .signInWithAppleButtonStyle(.white)
+                    .frame(height: 50)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .padding(.horizontal, 32)
+                    
+                    // Guest mode fallback
+                    Button {
+                        authViewModel.continueAsGuest()
+                    } label: {
+                        Text("Continue as Guest")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(Theme.textSecondary)
+                            .padding(.vertical, 12)
+                    }
+                    .padding(.top, 8)
+                    
+                    // Privacy note
+                    Text("By signing in, you agree to our Terms of Service and Privacy Policy.")
+                        .font(.caption2)
+                        .foregroundColor(Theme.textDim)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                        .padding(.top, 16)
                 }
 
                 Spacer().frame(height: 48)
             }
+        }
+        .overlay {
+            if authViewModel.isLoading {
+                ZStack {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(.white)
+                }
+            }
+        }
+        .alert("Sign In Error", isPresented: .constant(authViewModel.errorMessage != nil)) {
+            Button("OK") {
+                authViewModel.errorMessage = nil
+            }
+        } message: {
+            Text(authViewModel.errorMessage ?? "")
         }
     }
 }
@@ -256,4 +305,9 @@ private struct GradeBadgeMockup: View {
                 .padding(16)
             }
     }
+}
+
+#Preview {
+    OnboardingView()
+        .environmentObject(AuthViewModel())
 }

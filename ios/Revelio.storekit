@@ -1,0 +1,132 @@
+{
+  "identifier" : "1c9d4dfd-b10d-4b78-9448-7ef5e03e4da4",
+  "nonConsumableProducts" : [
+
+  ],
+  "nonRenewingSubscriptionProducts" : [
+
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_interrupted" : false,
+    "_interruptedErrorNumber" : 0,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Send Diagnostic Report"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "bd823764-42c3-4c00-828e-300406c6ba66",
+      "localizations" : [
+        {
+          "customAppName" : "",
+          "customAppNameEnabled" : false,
+          "description" : "Unlock unlimited scans, full flag explanations, science citations, personalized scoring, pantry tracking, and pro alternatives.",
+          "displayName" : "Revelio Pro",
+          "id" : "5b4f56a7-feb4-4a50-b0cf-28490ff76650",
+          "locale" : "en_US"
+        }
+      ],
+      "name" : "com.revelio.pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "3.99",
+          "familySharable" : false,
+          "groupNumber" : 1,
+          "internalID" : "b49fac20-124b-4854-b9e6-11946d8e1841",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Full ingredient transparency, unlimited scans, and personalized health scoring — month to month.",
+              "displayName" : "Revelio Pro Monthly",
+              "id" : "77329948-4438-404a-8ff1-c822581dbbf0",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.revelio.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Pro Monthly",
+          "subscriptionGroupID" : "bd823764-42c3-4c00-828e-300406c6ba66",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "35.99",
+          "familySharable" : false,
+          "groupNumber" : 2,
+          "internalID" : "fa569e14-fbb7-47d9-9ed8-f0a169d100ba",
+          "introductoryOffer" : {
+            "duration" : "P7D",
+            "id" : "1a2b3c4d-5e6f-7890-abcd-ef1234567890",
+            "offerMode" : "freeTrial",
+            "offerType" : 1
+          },
+          "localizations" : [
+            {
+              "description" : "Full ingredient transparency, unlimited scans, and personalized health scoring — best value. Includes 7-day free trial. Saves 25% vs monthly.",
+              "displayName" : "Revelio Pro Yearly",
+              "id" : "a1b2c3d4-e5f6-7890-1234-abcdef567890",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.revelio.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Pro Yearly",
+          "subscriptionGroupID" : "bd823764-42c3-4c00-828e-300406c6ba66",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
