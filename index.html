@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revelio — Know What's In Your Food</title>
+  <meta name="description" content="Scan any food label. Get NOVA 1-4 processing score, AI ingredient explanations, and privacy-first food intelligence. No account required." />
+  <meta property="og:title" content="Revelio — Know What's In Your Food" />
+  <meta property="og:description" content="NOVA scoring. AI ingredient explanations. No account, no tracking. Private beta — iOS only." />
+  <meta property="og:type" content="website" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --border: #2a2a2a;
+      --text: #f0f0f0;
+      --muted: #888;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.12);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+    }
+
+    .container {
+      max-width: 560px;
+      width: 100%;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 99px;
+      border: 1px solid rgba(74, 222, 128, 0.25);
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 6vw, 42px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 20px;
+    }
+
+    h1 span { color: var(--accent); }
+
+    .subtitle {
+      font-size: 17px;
+      color: var(--muted);
+      margin-bottom: 40px;
+      max-width: 480px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    .features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .features li {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .features li .icon {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      margin-top: 2px;
+    }
+
+    .features li .copy strong {
+      display: block;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .features li .copy span {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .nova-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 40px;
+    }
+
+    .nova-block p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .nova-scale {
+      display: flex;
+      gap: 8px;
+    }
+
+    .nova-scale .level {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .nova-scale .n1 { background: rgba(74,222,128,0.15); color: #4ade80; }
+    .nova-scale .n2 { background: rgba(250,204,21,0.12); color: #facc15; }
+    .nova-scale .n3 { background: rgba(251,146,60,0.12); color: #fb923c; }
+    .nova-scale .n4 { background: rgba(239,68,68,0.12); color: #ef4444; }
+
+    .nova-scale .level small {
+      display: block;
+      font-weight: 400;
+      font-size: 10px;
+      opacity: 0.75;
+      margin-top: 2px;
+    }
+
+    .cta-block {
+      text-align: center;
+    }
+
+    .cta-block p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #0e0e0e;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 14px 32px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .btn:hover { opacity: 0.85; }
+
+    .fine-print {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+
+    footer {
+      margin-top: 60px;
+      font-size: 12px;
+      color: #444;
+      text-align: center;
+    }
+
+    footer a { color: #444; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="badge">Waitlist · iOS</div>
+
+    <h1>Scan a label.<br>Know the <span>real story</span>.</h1>
+
+    <p class="subtitle">
+      Revelio tells you not just what's in your food — but how processed it is,
+      what each ingredient actually does, and whether it belongs in your cart.
+    </p>
+
+    <ul class="features">
+      <li>
+        <div class="icon">🔬</div>
+        <div class="copy">
+          <strong>NOVA 1–4 Classification</strong>
+          <span>Every product scored using the research-backed NOVA framework. No guessing, no opinion — just the science.</span>
+        </div>
+      </li>
+      <li>
+        <div class="icon">🤖</div>
+        <div class="copy">
+          <strong>AI Ingredient Explanations</strong>
+          <span>Tap any ingredient for a plain-English breakdown. Carrageenan, maltodextrin, guar gum — you'll finally know what they are.</span>
+        </div>
+      </li>
+      <li>
+        <div class="icon">🔒</div>
+        <div class="copy">
+          <strong>No Account. No Tracking.</strong>
+          <span>Your scans stay on your device. We don't want your email. We don't build a profile. That's the whole point.</span>
+        </div>
+      </li>
+    </ul>
+
+    <div class="nova-block">
+      <p>The NOVA scale — how Revelio classifies food:</p>
+      <div class="nova-scale">
+        <div class="level n1">1<small>Unprocessed</small></div>
+        <div class="level n2">2<small>Culinary</small></div>
+        <div class="level n3">3<small>Processed</small></div>
+        <div class="level n4">4<small>Ultra-processed</small></div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="cta-block">
+      <p>Beta launching soon on iOS. Join the waitlist and we'll reach out when a spot opens up.</p>
+      <a href="mailto:tj.clawdbot@gmail.com?subject=Revelio%20Waitlist&body=Hey%2C%20I%27d%20love%20to%20join%20the%20Revelio%20beta!%20Here%27s%20a%20bit%20about%20me%3A%0A%0A(optional%3A%20how%20you%20heard%20about%20us%2C%20why%20you%27re%20interested)" class="btn">Join the Waitlist</a>
+      <p class="fine-print">No account required. iOS only. We'll send a TestFlight link when you're in.</p>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 Tyr Labs &middot; <a href="https://tyrlabshq.github.io">tyrlabshq.github.io</a>
+  </footer>
+</body>
+</html>
