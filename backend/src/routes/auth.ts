@@ -23,11 +23,9 @@ const JWT_SECRET: string = (() => {
   return secret;
 })();
 
-// Short-lived access token; rotate via refresh token below. The 15m
-// shortening is a follow-up commit — this commit introduces the rotation
-// machinery without changing the access-token lifetime yet.
-const JWT_EXPIRY = '30d';
-const ACCESS_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
+// Short-lived access token; rotate via refresh token below.
+const JWT_EXPIRY = '15m';
+const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
 const REFRESH_EXPIRY_DAYS = 30;
 const REFRESH_EXPIRY_MS = REFRESH_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 
