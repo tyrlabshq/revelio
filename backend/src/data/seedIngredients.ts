@@ -242,6 +242,250 @@ const ADDITIONAL_FLAGS: SeedFlag[] = [
     citation_year: 2010,
     priorities: ['artificial_additives'],
   },
+
+  // ─── COSMETICS DEPTH (EWG Skin Deep) ─────────────────────────────────────────
+  // Track 3.5: curated from EWG Skin Deep + FDA/EU regulatory lists.
+  // Every entry targets a beauty/personal-care SKU concern that Yuka's
+  // cosmetics grader catches. Severity follows EWG's 1-10 hazard scale
+  // compressed into Revelio's 0-3: EWG 1-2 → 1, 3-6 → 2, 7-10 → 3.
+
+  // Parabens (beyond methyl/propyl/butyl already seeded)
+  {
+    ingredient_name: 'ethylparaben',
+    severity: 2,
+    category: 'PRESERVATIVE',
+    reason: 'Estrogenic paraben; detected in breast tissue',
+    citation_title: 'EWG Skin Deep — Ethylparaben',
+    citation_url: 'https://www.ewg.org/skindeep/ingredients/702339-ethylparaben/',
+    citation_year: 2022,
+    priorities: ['paraben_free', 'endocrine_disruptors'],
+  },
+  {
+    ingredient_name: 'isobutylparaben',
+    severity: 3,
+    category: 'PRESERVATIVE',
+    reason: 'Banned in EU cosmetics 2015; endocrine disruptor',
+    citation_title: 'EU Regulation 1004/2014 — Paraben Ban',
+    citation_url: 'https://eur-lex.europa.eu/eli/reg/2014/1004/oj',
+    citation_year: 2014,
+    priorities: ['paraben_free', 'endocrine_disruptors'],
+  },
+  {
+    ingredient_name: 'isopropylparaben',
+    severity: 3,
+    category: 'PRESERVATIVE',
+    reason: 'Banned in EU cosmetics 2015; endocrine disruptor',
+    citation_title: 'EU Regulation 1004/2014 — Paraben Ban',
+    citation_url: 'https://eur-lex.europa.eu/eli/reg/2014/1004/oj',
+    citation_year: 2014,
+    priorities: ['paraben_free', 'endocrine_disruptors'],
+  },
+
+  // Phthalates (specific esters — beyond the generic "phthalates" entry)
+  {
+    ingredient_name: 'dibutyl phthalate',
+    severity: 3,
+    category: 'PLASTICIZER',
+    reason: 'Reproductive toxin; banned in EU cosmetics',
+    citation_title: 'EWG Skin Deep — Dibutyl Phthalate (DBP)',
+    citation_url: 'https://www.ewg.org/skindeep/ingredients/702317-dibutyl-phthalate/',
+    citation_year: 2022,
+    priorities: ['endocrine_disruptors'],
+  },
+  {
+    ingredient_name: 'diethyl phthalate',
+    severity: 2,
+    category: 'PLASTICIZER',
+    reason: 'Solvent in fragrance; endocrine disruptor',
+    citation_title: 'CDC NHANES — Phthalate Biomonitoring',
+    citation_url: 'https://www.cdc.gov/biomonitoring/Phthalates_FactSheet.html',
+    citation_year: 2022,
+    priorities: ['endocrine_disruptors', 'fragrance_free'],
+  },
+  {
+    ingredient_name: 'dehp',
+    severity: 3,
+    category: 'PLASTICIZER',
+    reason: 'Di(2-ethylhexyl) phthalate — reproductive carcinogen',
+    citation_title: 'IARC Monographs Vol 101 — DEHP',
+    citation_url: 'https://monographs.iarc.who.int/list-of-classifications',
+    citation_year: 2013,
+    priorities: ['endocrine_disruptors'],
+  },
+
+  // Formaldehyde releasers (beyond dmdm hydantoin / quaternium-15)
+  {
+    ingredient_name: 'imidazolidinyl urea',
+    severity: 2,
+    category: 'PRESERVATIVE',
+    reason: 'Formaldehyde releaser; contact allergen',
+    citation_title: 'Contact Dermatitis — Formaldehyde Releasers',
+    citation_url: 'https://doi.org/10.1111/cod.12419',
+    citation_year: 2015,
+    priorities: ['artificial_additives'],
+  },
+  {
+    ingredient_name: 'diazolidinyl urea',
+    severity: 2,
+    category: 'PRESERVATIVE',
+    reason: 'Formaldehyde releaser; contact allergen',
+    citation_title: 'Contact Dermatitis — Formaldehyde Releasers',
+    citation_url: 'https://doi.org/10.1111/cod.12419',
+    citation_year: 2015,
+    priorities: ['artificial_additives'],
+  },
+  {
+    ingredient_name: 'bronopol',
+    severity: 2,
+    category: 'PRESERVATIVE',
+    reason: '2-bromo-2-nitropropane-1,3-diol — formaldehyde releaser',
+    citation_title: 'EWG Skin Deep — Bronopol',
+    citation_url: 'https://www.ewg.org/skindeep/ingredients/700687-bronopol/',
+    citation_year: 2022,
+    priorities: ['artificial_additives'],
+  },
+
+  // Synthetic fragrance ingredients
+  {
+    ingredient_name: 'synthetic fragrance',
+    severity: 2,
+    category: 'FRAGRANCE',
+    reason: 'Undisclosed mix of up to 3,000 chemicals; allergens',
+    citation_title: 'EWG — Not So Sexy: The Hidden Chemicals in Perfume',
+    citation_url: 'https://www.ewg.org/research/not-so-sexy',
+    citation_year: 2010,
+    priorities: ['fragrance_free', 'endocrine_disruptors'],
+  },
+  {
+    ingredient_name: 'butylphenyl methylpropional',
+    severity: 3,
+    category: 'FRAGRANCE',
+    reason: 'Lilial — banned in EU 2022 as reproductive toxin',
+    citation_title: 'EU CLP Regulation — Lilial Reclassification',
+    citation_url: 'https://echa.europa.eu/substance-information/-/substanceinfo/100.002.741',
+    citation_year: 2022,
+    priorities: ['fragrance_free', 'endocrine_disruptors'],
+  },
+  {
+    ingredient_name: 'galaxolide',
+    severity: 2,
+    category: 'FRAGRANCE',
+    reason: 'Synthetic musk; bioaccumulative',
+    citation_title: 'Environ Sci Technol — Synthetic Musk Biomonitoring',
+    citation_url: 'https://doi.org/10.1021/es070977g',
+    citation_year: 2008,
+    priorities: ['fragrance_free', 'endocrine_disruptors'],
+  },
+
+  // UV filters (beyond oxybenzone/octinoxate/benzophenone/homosalate)
+  {
+    ingredient_name: 'octocrylene',
+    severity: 2,
+    category: 'UV FILTER',
+    reason: 'Degrades to benzophenone; endocrine activity',
+    citation_title: 'Chem Res Toxicol — Octocrylene Degradation',
+    citation_url: 'https://doi.org/10.1021/acs.chemrestox.0c00461',
+    citation_year: 2021,
+    priorities: ['endocrine_disruptors'],
+  },
+  {
+    ingredient_name: 'avobenzone',
+    severity: 1,
+    category: 'UV FILTER',
+    reason: 'Photo-unstable; degradation products of concern',
+    citation_title: 'EWG Skin Deep — Avobenzone',
+    citation_url: 'https://www.ewg.org/skindeep/ingredients/700612-avobenzone/',
+    citation_year: 2022,
+    priorities: ['endocrine_disruptors'],
+  },
+
+  // Coal tar dyes (explicit CI codes — OFF/OBF often uses these)
+  {
+    ingredient_name: 'p-aminophenol',
+    severity: 2,
+    category: 'DYE',
+    reason: 'Coal tar hair dye; methemoglobinemia risk',
+    citation_title: 'EWG Skin Deep — p-Aminophenol',
+    citation_url: 'https://www.ewg.org/skindeep/ingredients/704081-p-aminophenol/',
+    citation_year: 2022,
+    priorities: ['artificial_additives'],
+  },
+  {
+    ingredient_name: 'ci 15985',
+    severity: 2,
+    category: 'DYE',
+    reason: 'FD&C Yellow 6 coal tar dye',
+    citation_title: 'FDA Color Additive Status List',
+    citation_url: 'https://www.fda.gov/industry/color-additive-inventories',
+    citation_year: 2023,
+    priorities: ['artificial_additives'],
+  },
+
+  // PFAS — found in waterproof cosmetics
+  {
+    ingredient_name: 'ptfe',
+    severity: 2,
+    category: 'PFAS',
+    reason: 'Polytetrafluoroethylene — PFAS family; bioaccumulates',
+    citation_title: 'Environ Sci Technol Lett — PFAS in Cosmetics',
+    citation_url: 'https://doi.org/10.1021/acs.estlett.1c00240',
+    citation_year: 2021,
+    priorities: ['endocrine_disruptors'],
+  },
+  {
+    ingredient_name: 'perfluorohexane',
+    severity: 3,
+    category: 'PFAS',
+    reason: 'PFAS; persistent environmental pollutant',
+    citation_title: 'EWG — PFAS in Personal Care Products',
+    citation_url: 'https://www.ewg.org/research/pfas-cosmetics',
+    citation_year: 2021,
+    priorities: ['endocrine_disruptors'],
+  },
+  {
+    ingredient_name: 'perfluorodecalin',
+    severity: 2,
+    category: 'PFAS',
+    reason: 'PFAS used in cosmetic emulsions; persistent',
+    citation_title: 'EWG Skin Deep — Perfluorodecalin',
+    citation_url: 'https://www.ewg.org/skindeep/ingredients/704285-perfluorodecalin/',
+    citation_year: 2022,
+    priorities: ['endocrine_disruptors'],
+  },
+
+  // Siloxanes
+  {
+    ingredient_name: 'cyclopentasiloxane',
+    severity: 2,
+    category: 'SILICONE',
+    reason: 'D5 siloxane — EU restricted 2020; bioaccumulative',
+    citation_title: 'ECHA D5 Restriction',
+    citation_url: 'https://echa.europa.eu/substances-restricted-under-reach',
+    citation_year: 2020,
+    priorities: ['endocrine_disruptors'],
+  },
+  {
+    ingredient_name: 'cyclotetrasiloxane',
+    severity: 2,
+    category: 'SILICONE',
+    reason: 'D4 siloxane — EU restricted; reproductive toxin',
+    citation_title: 'ECHA D4 Restriction',
+    citation_url: 'https://echa.europa.eu/substances-restricted-under-reach',
+    citation_year: 2018,
+    priorities: ['endocrine_disruptors'],
+  },
+
+  // Ethanolamines (beyond DEA already seeded)
+  {
+    ingredient_name: 'triethanolamine',
+    severity: 2,
+    category: 'SURFACTANT',
+    reason: 'TEA — nitrosamine precursor',
+    citation_title: 'EWG Skin Deep — Triethanolamine',
+    citation_url: 'https://www.ewg.org/skindeep/ingredients/706681-triethanolamine/',
+    citation_year: 2022,
+    priorities: ['artificial_additives', 'endocrine_disruptors'],
+  },
 ];
 
 // ─── Seed helper ──────────────────────────────────────────────────────────────
