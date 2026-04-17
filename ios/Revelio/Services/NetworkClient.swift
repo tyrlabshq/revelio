@@ -408,7 +408,7 @@ private struct RefreshResponse: Decodable {
 private struct AnyEncodable: Encodable {
     private let _encode: (Encoder) throws -> Void
     init(_ value: Encodable) {
-        self._encode = value.encode
+        self._encode = { encoder in try value.encode(to: encoder) }
     }
     func encode(to encoder: Encoder) throws {
         try _encode(encoder)
