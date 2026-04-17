@@ -27,6 +27,25 @@ struct AppleCredential {
     let fullName: PersonNameComponents?
 }
 
+// ─── Keychain Keys ────────────────────────────────────────────────────────────
+//
+// Access/refresh tokens and the cached user record live in the Keychain
+// (kSecClassGenericPassword, AfterFirstUnlockThisDeviceOnly, non-iCloud).
+// The KeychainStore scaffold handles the low-level SecItem plumbing; we just
+// define the namespaced keys here.
+
+enum AuthKeychainKey {
+    static let accessToken = "revelio.auth.accessToken"
+    static let refreshToken = "revelio.auth.refreshToken"
+    static let userJSON = "revelio.auth.userJSON"
+}
+
+/// Legacy UserDefaults keys — only used for one-shot migration on launch.
+private enum LegacyDefaultsKey {
+    static let authToken = "auth_token"
+    static let savedUser = "saved_user"
+}
+
 // ─── AuthViewModel ────────────────────────────────────────────────────────────
 
 @MainActor
@@ -40,30 +59,54 @@ class AuthViewModel: ObservableObject {
         "com.revelio.pro.monthly",
         "com.revelio.pro.yearly"
     ]
-    
+
     private let apiBaseURL = "https://api.revelio.app"
 
     init() {
-        // Check for existing user session
+        // One-shot migration: if a token still lives in UserDefaults from a
+        // pre-Keychain build, move it to the Keychain and purge the plaintext
+        // copies. Runs before we try to restore the session.
+        Self.migrateLegacyUserDefaultsIfNeeded()
+
         if let savedUser = loadSavedUser() {
             self.currentUser = savedUser
             self.isAuthenticated = true
         } else {
-            // Start as guest - no stub user
             self.currentUser = nil
             self.isAuthenticated = false
         }
-        
+
         // Check existing entitlements on launch
         Task { await refreshUser() }
     }
 
+    // MARK: - Legacy migration
+
+    /// Migrates any auth_token / saved_user values from UserDefaults into the
+    /// Keychain, then removes the UserDefaults copies. Idempotent.
+    private static func migrateLegacyUserDefaultsIfNeeded() {
+        let defaults = UserDefaults.standard
+
+        if let legacyToken = defaults.string(forKey: LegacyDefaultsKey.authToken),
+           !legacyToken.isEmpty {
+            if let data = legacyToken.data(using: .utf8) {
+                KeychainStore.save(data, for: AuthKeychainKey.accessToken)
+            }
+            defaults.removeObject(forKey: LegacyDefaultsKey.authToken)
+        }
+
+        if let legacyUser = defaults.data(forKey: LegacyDefaultsKey.savedUser) {
+            KeychainStore.save(legacyUser, for: AuthKeychainKey.userJSON)
+            defaults.removeObject(forKey: LegacyDefaultsKey.savedUser)
+        }
+    }
+
     // MARK: - Sign In with Apple
-    
+
     func handleAppleSignIn(result: Result<ASAuthorization, Error>) {
         isLoading = true
         errorMessage = nil
-        
+
         switch result {
         case .success(let authorization):
             Task {
@@ -84,14 +127,14 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
-    
+
     private func processAppleAuthorization(_ authorization: ASAuthorization) async {
         guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
             isLoading = false
             errorMessage = "Invalid credentials"
             return
         }
-        
+
         guard let identityTokenData = appleIDCredential.identityToken,
               let identityToken = String(data: identityTokenData, encoding: .utf8),
               let authorizationCodeData = appleIDCredential.authorizationCode,
@@ -100,7 +143,7 @@ class AuthViewModel: ObservableObject {
             errorMessage = "Failed to get authentication tokens"
             return
         }
-        
+
         let credential = AppleCredential(
             userId: appleIDCredential.user,
             identityToken: identityToken,
@@ -108,21 +151,21 @@ class AuthViewModel: ObservableObject {
             email: appleIDCredential.email,
             fullName: appleIDCredential.fullName
         )
-        
+
         await authenticateWithBackend(credential: credential)
     }
-    
+
     private func authenticateWithBackend(credential: AppleCredential) async {
         guard let url = URL(string: "\(apiBaseURL)/auth/apple") else {
             isLoading = false
             errorMessage = "Invalid API URL"
             return
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         let body: [String: Any] = [
             "appleUserId": credential.userId,
             "identityToken": credential.identityToken,
@@ -130,21 +173,21 @@ class AuthViewModel: ObservableObject {
             "email": credential.email as Any,
             "fullName": credential.fullName?.givenName as Any
         ]
-        
+
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            
+
             let (data, response) = try await URLSession.shared.data(for: request)
-            
+
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw AuthError.invalidResponse
             }
-            
+
             if httpResponse.statusCode == 200 {
                 // Parse user from response
                 let decoder = JSONDecoder()
                 let user = try decoder.decode(AuthUser.self, from: data)
-                
+
                 await MainActor.run {
                     self.currentUser = user
                     self.isAuthenticated = true
@@ -161,9 +204,9 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
-    
+
     // MARK: - Guest Mode
-    
+
     func continueAsGuest() {
         let guestUser = AuthUser(
             id: "guest-\(UUID().uuidString)",
@@ -175,38 +218,59 @@ class AuthViewModel: ObservableObject {
             dailyScansLimit: 10,
             authProvider: "guest"
         )
-        
+
         currentUser = guestUser
         isAuthenticated = true
         saveUser(guestUser)
     }
-    
+
     // MARK: - Session Management
-    
+
+    /// Access token retrieval — reads from Keychain only (no more UserDefaults).
     func loadToken() -> String? {
-        // Return auth token if available
-        return UserDefaults.standard.string(forKey: "auth_token")
+        guard let data = KeychainStore.load(AuthKeychainKey.accessToken) else { return nil }
+        return String(data: data, encoding: .utf8)
     }
-    
+
+    /// Refresh token retrieval. Nil if we've never stored one (e.g. legacy
+    /// sessions migrated from pre-refresh-token builds).
+    func loadRefreshToken() -> String? {
+        guard let data = KeychainStore.load(AuthKeychainKey.refreshToken) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    /// Store a fresh access/refresh token pair (e.g. after verify-otp or refresh).
+    func storeTokens(access: String, refresh: String?) {
+        if let data = access.data(using: .utf8) {
+            KeychainStore.save(data, for: AuthKeychainKey.accessToken)
+        }
+        if let refresh, let data = refresh.data(using: .utf8) {
+            KeychainStore.save(data, for: AuthKeychainKey.refreshToken)
+        }
+    }
+
     func signOut() {
-        // Clear user session
         currentUser = nil
         isAuthenticated = false
-        UserDefaults.standard.removeObject(forKey: "saved_user")
-        UserDefaults.standard.removeObject(forKey: "auth_token")
-        
+        KeychainStore.delete(AuthKeychainKey.accessToken)
+        KeychainStore.delete(AuthKeychainKey.refreshToken)
+        KeychainStore.delete(AuthKeychainKey.userJSON)
+
+        // Belt and suspenders: make sure nothing is still sitting in legacy defaults.
+        UserDefaults.standard.removeObject(forKey: LegacyDefaultsKey.authToken)
+        UserDefaults.standard.removeObject(forKey: LegacyDefaultsKey.savedUser)
+
         // Note: Apple Sign In doesn't have a server-side sign out
         // The user remains signed in with Apple until they revoke access in Settings
     }
-    
+
     private func saveUser(_ user: AuthUser) {
-        if let encoded = try? JSONEncoder().encode(user) {
-            UserDefaults.standard.set(encoded, forKey: "saved_user")
-        }
+        guard let encoded = try? JSONEncoder().encode(user) else { return }
+        KeychainStore.save(encoded, for: AuthKeychainKey.userJSON)
     }
-    
+
     private func loadSavedUser() -> AuthUser? {
-        guard let data = UserDefaults.standard.data(forKey: "saved_user"),
+        guard let data = KeychainStore.load(AuthKeychainKey.userJSON),
               let user = try? JSONDecoder().decode(AuthUser.self, from: data) else {
             return nil
         }
@@ -222,7 +286,7 @@ class AuthViewModel: ObservableObject {
                 break
             }
         }
-        
+
         await MainActor.run {
             self.currentUser?.tier = foundPro ? "pro" : "free"
         }
