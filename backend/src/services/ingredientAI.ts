@@ -6,7 +6,11 @@ import { createHash } from 'crypto';
 let openai: OpenAI | null = null;
 function getOpenAI(): OpenAI {
   if (!openai) {
-    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'sk-placeholder' });
+    const key = process.env.OPENAI_API_KEY;
+    if (!key) {
+      throw new Error('OPENAI_API_KEY is not configured');
+    }
+    openai = new OpenAI({ apiKey: key });
   }
   return openai;
 }

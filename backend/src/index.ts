@@ -19,8 +19,17 @@ dotenv.config();
 // ─── Production startup guard ─────────────────────────────────────────────────
 const DEV_SECRET = 'dev-secret-change-in-prod';
 if (process.env.NODE_ENV === 'production') {
-  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === DEV_SECRET) {
-    console.error('FATAL: JWT_SECRET must be set in production. Exiting.');
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret === DEV_SECRET || secret.length < 32) {
+    console.error('FATAL: JWT_SECRET must be set to a strong value (≥32 chars) in production. Exiting.');
+    process.exit(1);
+  }
+  if (!process.env.OPENAI_API_KEY) {
+    console.error('FATAL: OPENAI_API_KEY must be set in production. Exiting.');
+    process.exit(1);
+  }
+  if (!process.env.REVENUECAT_WEBHOOK_SECRET) {
+    console.error('FATAL: REVENUECAT_WEBHOOK_SECRET must be set in production. Exiting.');
     process.exit(1);
   }
 }
@@ -29,13 +38,23 @@ if (process.env.NODE_ENV === 'production') {
 const app = express();
 const PORT = process.env.PORT || 8430;
 
-// CORS configuration - allow iOS app and web frontend
-const corsOrigins = process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000', 'https://revelio.app', 'https://www.revelio.app'];
+// CORS: explicit allowlist. No substring matches — origin.includes('revelio')
+// would have allowed attacker-controlled hosts like revelio.evil.com.
+const defaultOrigins = [
+  'https://revelio.app',
+  'https://www.revelio.app',
+  'https://api.revelio.app',
+];
+const extraOrigins = process.env.CORS_EXTRA_ORIGINS?.split(',').map(s => s.trim()).filter(Boolean) ?? [];
+const devOrigins = process.env.NODE_ENV !== 'production' ? ['http://localhost:3000', 'http://localhost:8430'] : [];
+const corsOrigins = new Set([...defaultOrigins, ...extraOrigins, ...devOrigins]);
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
+    // Mobile apps (iOS URLSession, Android OkHttp) omit Origin. Allow, but
+    // require auth middleware to protect state-changing endpoints.
     if (!origin) return callback(null, true);
-    if (corsOrigins.includes(origin) || origin.startsWith('capacitor://') || origin.startsWith('ionic://') || origin.includes('revelio')) {
+    if (corsOrigins.has(origin) || origin.startsWith('capacitor://') || origin.startsWith('ionic://')) {
       return callback(null, true);
     }
     callback(new Error('Not allowed by CORS'));
