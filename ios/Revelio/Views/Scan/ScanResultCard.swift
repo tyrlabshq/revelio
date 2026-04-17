@@ -60,6 +60,14 @@ struct ScanResultCard: View {
                     GradeBadge(grade: scan.grade, score: scan.displayScore, size: .large)
                 }
                 
+                // Nutri / Nova / Eco badges (Track 2.1–2.3). Rendered only when
+                // the server returned any of the fields for this product.
+                ScoreBadgesView(
+                    nutriScoreGrade: scan.nutriScoreGrade,
+                    novaGroup: scan.novaGroup,
+                    ecoScoreGrade: scan.ecoScoreGrade
+                )
+
                 // Ingredient flags as chips
                 if !scan.flags.isEmpty {
                     FlowLayout(spacing: 8) {
