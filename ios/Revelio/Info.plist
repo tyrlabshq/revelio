@@ -46,5 +46,42 @@
     </array>
     <key>MinimumOSVersion</key>
     <string>17.0</string>
+    <!--
+      App Transport Security.
+      Arbitrary loads are forbidden app-wide. DEBUG builds are allowed to talk
+      to localhost (and 127.0.0.1 / ::1) over plain HTTP so the simulator can
+      hit a dev server; release builds must use HTTPS for every destination.
+      The NetworkClient additionally enforces this in code via scheme checks
+      and SPKI pinning against the production leaf certificate.
+    -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+        <key>NSAllowsArbitraryLoadsInWebContent</key>
+        <false/>
+        <key>NSAllowsLocalNetworking</key>
+        <false/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>localhost</key>
+            <dict>
+                <!-- DEBUG-only: NetworkClient refuses http:// in release anyway. -->
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <false/>
+            </dict>
+            <key>127.0.0.1</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <false/>
+            </dict>
+        </dict>
+    </dict>
 </dict>
 </plist>
