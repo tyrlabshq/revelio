@@ -1,6 +1,7 @@
 import rateLimit, { Options, Store } from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import Redis from 'ioredis';
+import { logger } from '../logger';
 
 /**
  * Central rate-limit factory. Uses Redis when REDIS_URL is configured so
@@ -18,13 +19,9 @@ if (process.env.REDIS_URL) {
       enableOfflineQueue: false,
       lazyConnect: false,
     });
-    redis.on('error', (err) => {
-      // eslint-disable-next-line no-console
-      console.warn('[rateLimit] redis error:', err.message);
-    });
+    redis.on('error', (err) => logger.warn({ err: err.message }, 'redis_error'));
   } catch (err: any) {
-    // eslint-disable-next-line no-console
-    console.warn('[rateLimit] redis init failed:', err?.message);
+    logger.warn({ err: err?.message }, 'redis_init_failed');
     redis = null;
   }
 }

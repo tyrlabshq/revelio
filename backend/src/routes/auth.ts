@@ -1,7 +1,19 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router } from 'express';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db';
+import { logger } from '../logger';
+import { otpRequestLimiter, getRedis } from '../middleware/rateLimit';
+import { requireAuth, AuthRequest } from '../middleware/requireAuth';
+import {
+  requestOtpSchema,
+  verifyOtpSchema,
+  refreshSchema,
+} from '../lib/zod-schemas';
+
+// Re-export for back-compat with existing callers (scans.ts, pantry.ts, etc.)
+export { requireAuth, AuthRequest } from '../middleware/requireAuth';
 
 export const authRouter = Router();
 
@@ -10,7 +22,15 @@ const JWT_SECRET: string = (() => {
   if (!secret) throw new Error('JWT_SECRET environment variable is required');
   return secret;
 })();
+
+// Short-lived access token; rotate via refresh token below. The 15m
+// shortening is a follow-up commit — this commit introduces the rotation
+// machinery without changing the access-token lifetime yet.
 const JWT_EXPIRY = '30d';
+const ACCESS_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
+const REFRESH_EXPIRY_DAYS = 30;
+const REFRESH_EXPIRY_MS = REFRESH_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWILIO_VERIFY_SID = process.env.TWILIO_VERIFY_SID;
@@ -35,10 +55,23 @@ async function ensureTables() {
       PRIMARY KEY (user_id, date)
     )
   `);
+  // Mirror of migrations/006_refresh_tokens.sql so dev boxes without a
+  // migration runner pick the table up automatically.
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS refresh_tokens (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      revoked_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_refresh_user ON refresh_tokens(user_id)`);
 }
 
 // Run on startup (non-blocking)
-ensureTables().catch(err => console.error('[auth] table setup error:', err));
+ensureTables().catch(err => logger.error({ err: err?.message, event: 'auth_table_setup_error' }));
 
 // ─── Twilio helpers ───────────────────────────────────────────────────────────
 
@@ -48,7 +81,9 @@ function twilioConfigured(): boolean {
 
 async function sendTwilioOTP(phone: string): Promise<void> {
   if (!twilioConfigured()) {
-    console.log(`[auth/mock] OTP requested for ${phone} — Twilio not configured, skipping`);
+    // NB: do NOT include `phone` in the log payload — the redaction list
+    // scrubs that path anyway but keep the code itself PII-free.
+    logger.info({ event: 'otp_mock_skipped', twilioConfigured: false });
     return;
   }
   const url = `https://verify.twilio.com/v2/Services/${TWILIO_VERIFY_SID}/Verifications`;
@@ -69,8 +104,8 @@ async function sendTwilioOTP(phone: string): Promise<void> {
 
 async function verifyTwilioOTP(phone: string, code: string): Promise<boolean> {
   if (!twilioConfigured()) {
-    // In dev mode, accept any 6-digit code or "123456"
-    console.log(`[auth/mock] OTP verify for ${phone} code=${code} — mock accepting`);
+    // Dev mode: accept any 6-digit code. We do not log phone or code.
+    logger.info({ event: 'otp_mock_verify', twilioConfigured: false });
     return code.length === 6 && /^\d{6}$/.test(code);
   }
   const url = `https://verify.twilio.com/v2/Services/${TWILIO_VERIFY_SID}/VerificationCheck`;
@@ -88,22 +123,50 @@ async function verifyTwilioOTP(phone: string, code: string): Promise<boolean> {
   return data.status === 'approved';
 }
 
+// ─── Token helpers ────────────────────────────────────────────────────────────
+
+function hashRefreshToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function issueAccessToken(user: { id: string; phone: string; tier: string }): { token: string; jti: string } {
+  const jti = uuidv4();
+  const token = jwt.sign(
+    { userId: user.id, phone: user.phone, tier: user.tier, jti },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRY }
+  );
+  return { token, jti };
+}
+
+async function issueRefreshToken(userId: string): Promise<string> {
+  const raw = crypto.randomBytes(64).toString('base64url');
+  const hash = hashRefreshToken(raw);
+  const expiresAt = new Date(Date.now() + REFRESH_EXPIRY_MS);
+  await db.query(
+    `INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)`,
+    [userId, hash, expiresAt]
+  );
+  return raw;
+}
+
 // ─── POST /auth/request-otp ───────────────────────────────────────────────────
 
-authRouter.post('/request-otp', async (req, res) => {
-  const { phone } = req.body as { phone?: string };
-
-  if (!phone || !/^\+?[1-9]\d{7,14}$/.test(phone.replace(/\s/g, ''))) {
+authRouter.post('/request-otp', otpRequestLimiter, async (req, res) => {
+  const parsed = requestOtpSchema.safeParse(req.body);
+  if (!parsed.success) {
     return res.status(400).json({ error: 'Valid phone number required (E.164 format)' });
   }
-
+  const { phone } = parsed.data;
   const normalizedPhone = phone.startsWith('+') ? phone : `+1${phone.replace(/\D/g, '')}`;
 
   try {
     await sendTwilioOTP(normalizedPhone);
+    // Structured, PII-free log. Phone/code never hit disk.
+    logger.info({ event: 'otp_requested' });
     return res.json({ ok: true, message: 'OTP sent' });
   } catch (err: any) {
-    console.error('[auth] request-otp error:', err.message);
+    logger.error({ err: err?.message, event: 'otp_request_failed' });
     return res.status(500).json({ error: 'Failed to send OTP' });
   }
 });
@@ -111,12 +174,11 @@ authRouter.post('/request-otp', async (req, res) => {
 // ─── POST /auth/verify-otp ────────────────────────────────────────────────────
 
 authRouter.post('/verify-otp', async (req, res) => {
-  const { phone, code } = req.body as { phone?: string; code?: string };
-
-  if (!phone || !code) {
-    return res.status(400).json({ error: 'phone and code are required' });
+  const parsed = verifyOtpSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'phone and code are required (E.164 phone, 6-digit code)' });
   }
-
+  const { phone, code } = parsed.data;
   const normalizedPhone = phone.startsWith('+') ? phone : `+1${phone.replace(/\D/g, '')}`;
 
   try {
@@ -141,16 +203,115 @@ authRouter.post('/verify-otp', async (req, res) => {
       user = result.rows[0];
     }
 
-    const token = jwt.sign(
-      { userId: user.id, phone: user.phone, tier: user.tier },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRY }
+    const { token } = issueAccessToken(user);
+    const refreshToken = await issueRefreshToken(user.id);
+
+    logger.info({ event: 'otp_verified' });
+
+    return res.json({
+      ok: true,
+      token,
+      refreshToken,
+      expiresIn: ACCESS_TOKEN_TTL_SECONDS,
+      user: { id: user.id, phone: user.phone, tier: user.tier },
+    });
+  } catch (err: any) {
+    logger.error({ err: err?.message, event: 'verify_otp_failed' });
+    return res.status(500).json({ error: 'Authentication failed' });
+  }
+});
+
+// ─── POST /auth/refresh — rotate token pair ───────────────────────────────────
+
+authRouter.post('/refresh', async (req, res) => {
+  const parsed = refreshSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'refreshToken is required' });
+  }
+  const { refreshToken } = parsed.data;
+  const hash = hashRefreshToken(refreshToken);
+
+  try {
+    const row = await db.query(
+      `SELECT rt.id, rt.user_id, rt.expires_at, rt.revoked_at,
+              u.id AS uid, u.phone, u.tier
+       FROM refresh_tokens rt
+       JOIN user_profiles u ON u.id = rt.user_id
+       WHERE rt.token_hash = $1`,
+      [hash]
+    );
+    const record = row.rows[0];
+    if (!record) {
+      return res.status(401).json({ error: 'Invalid refresh token' });
+    }
+    if (record.revoked_at) {
+      // Token reuse after revocation: likely theft. Revoke all tokens for the
+      // user as a defensive measure.
+      await db.query(
+        `UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL`,
+        [record.user_id]
+      );
+      logger.warn({ event: 'refresh_reuse_detected' });
+      return res.status(401).json({ error: 'Refresh token revoked' });
+    }
+    if (new Date(record.expires_at).getTime() < Date.now()) {
+      return res.status(401).json({ error: 'Refresh token expired' });
+    }
+
+    // Rotate: revoke old, issue new.
+    await db.query(`UPDATE refresh_tokens SET revoked_at = NOW() WHERE id = $1`, [record.id]);
+    const user = { id: record.uid, phone: record.phone, tier: record.tier };
+    const { token } = issueAccessToken(user);
+    const newRefresh = await issueRefreshToken(user.id);
+
+    logger.info({ event: 'token_refreshed' });
+
+    return res.json({
+      ok: true,
+      token,
+      refreshToken: newRefresh,
+      expiresIn: ACCESS_TOKEN_TTL_SECONDS,
+      user,
+    });
+  } catch (err: any) {
+    logger.error({ err: err?.message, event: 'refresh_failed' });
+    return res.status(500).json({ error: 'Failed to refresh token' });
+  }
+});
+
+// ─── POST /auth/logout ────────────────────────────────────────────────────────
+
+authRouter.post('/logout', requireAuth, async (req: AuthRequest, res) => {
+  const userId = req.user!.userId;
+  const jti = req.user!.jti;
+  const exp = req.user!.exp;
+
+  try {
+    // Revoke every outstanding refresh token for this user.
+    await db.query(
+      `UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL`,
+      [userId]
     );
 
-    return res.json({ ok: true, token, user: { id: user.id, phone: user.phone, tier: user.tier } });
+    // Blacklist the current access JWT until its natural expiry. If Redis is
+    // unavailable the access token will still expire on its own in ≤15m.
+    if (jti && exp) {
+      const ttl = Math.max(1, exp - Math.floor(Date.now() / 1000));
+      const redis = getRedis();
+      if (redis) {
+        try {
+          await redis.set(`blacklist:jwt:${jti}`, '1', 'EX', ttl);
+        } catch (err: any) {
+          logger.warn({ err: err?.message, event: 'blacklist_set_failed' });
+        }
+      }
+    }
+
+    logger.info({ event: 'logout' });
+    return res.status(204).send();
   } catch (err: any) {
-    console.error('[auth] verify-otp error:', err.message);
-    return res.status(500).json({ error: 'Authentication failed' });
+    logger.error({ err: err?.message, event: 'logout_failed' });
+    return res.status(500).json({ error: 'Failed to log out' });
   }
 });
 
@@ -182,28 +343,7 @@ authRouter.get('/me', requireAuth, async (req: AuthRequest, res) => {
       dailyScansLimit,
     });
   } catch (err: any) {
-    console.error('[auth] me error:', err.message);
+    logger.error({ err: err?.message, event: 'me_failed' });
     return res.status(500).json({ error: 'Failed to fetch user' });
   }
 });
-
-// ─── JWT Middleware ───────────────────────────────────────────────────────────
-
-export interface AuthRequest extends Request {
-  user?: { userId: string; phone: string; tier: string };
-}
-
-export function requireAuth(req: AuthRequest, res: Response, next: NextFunction) {
-  const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Authorization required' });
-  }
-  const token = header.slice(7);
-  try {
-    const payload = jwt.verify(token, JWT_SECRET) as any;
-    req.user = { userId: payload.userId, phone: payload.phone, tier: payload.tier };
-    next();
-  } catch {
-    return res.status(401).json({ error: 'Invalid or expired token' });
-  }
-}
