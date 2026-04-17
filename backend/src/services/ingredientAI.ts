@@ -84,3 +84,65 @@ export async function explainIngredient(
 
   return { explanation, cached: false };
 }
+
+// ─── streamIngredientChat (REV-T3.1) ──────────────────────────────────────────
+// Conversational follow-up: "why is this worse than the alternative?", "is
+// this safe during pregnancy?", etc. Returns an async iterator of text
+// chunks from a streaming gpt-4o-mini completion.
+
+const CHAT_SYSTEM_PROMPT = `You are Revelio's friendly ingredient safety expert.
+Answer the user's follow-up questions about a specific food or cosmetic
+ingredient. Ground every answer in scientific consensus; flag when a concern
+is precautionary vs well-established. Keep replies under 150 words, plain
+English, no jargon. End with one actionable next step when it makes sense.`;
+
+export interface IngredientChatParams {
+  ingredient: string;
+  priorities: string[];
+  history: Array<{ role: 'user' | 'assistant'; content: string }>;
+  question: string;
+}
+
+/**
+ * Stream a chat completion for an ingredient follow-up question.
+ *
+ * Returns an AsyncIterable<string> — each yielded value is a text delta ready
+ * to be written to an SSE stream.
+ *
+ * Async-iterator note: the OpenAI SDK exposes its stream as an AsyncIterable
+ * of ChatCompletionChunk. Our wrapper drops the non-text chunks (tool calls,
+ * finish reasons) and yields just `choices[0].delta.content` so the route
+ * layer can stay boring: `for await (const chunk of ...)`.
+ */
+export async function* streamIngredientChat(
+  params: IngredientChatParams
+): AsyncIterable<string> {
+  const { ingredient, priorities, history, question } = params;
+
+  const prioritiesText = priorities.length > 0 ? priorities.join(', ') : 'general health';
+  const systemMsg = `${CHAT_SYSTEM_PROMPT}
+
+Current ingredient under discussion: "${ingredient}".
+User priorities: ${prioritiesText}.`;
+
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    { role: 'system', content: systemMsg },
+    ...history.map(h => ({ role: h.role, content: h.content })),
+    { role: 'user', content: question },
+  ];
+
+  const stream = await getOpenAI().chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages,
+    max_tokens: 400,
+    temperature: 0.6,
+    stream: true,
+  });
+
+  for await (const chunk of stream) {
+    const delta = chunk.choices?.[0]?.delta?.content;
+    if (typeof delta === 'string' && delta.length > 0) {
+      yield delta;
+    }
+  }
+}
