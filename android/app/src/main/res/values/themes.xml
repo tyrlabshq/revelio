@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Minimal XML theme; the real theme is Compose-based (see ui/theme/). -->
+    <style name="Theme.Revelio" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
