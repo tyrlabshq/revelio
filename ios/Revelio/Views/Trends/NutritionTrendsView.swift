@@ -99,12 +99,13 @@ class NutritionTrendsViewModel: ObservableObject {
 
     // MARK: - Helpers
 
+    // Thresholds mirror shared/scoring.ts — keep in sync.
     private func scoreToGrade(_ score: Int) -> String {
         switch score {
-        case 85...: return "A"
-        case 70..<85: return "B"
-        case 55..<70: return "C"
-        case 40..<55: return "D"
+        case 80...: return "A"
+        case 65..<80: return "B"
+        case 50..<65: return "C"
+        case 35..<50: return "D"
         default: return "F"
         }
     }

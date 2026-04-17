@@ -1,17 +1,12 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { db } from '../db';
+import { requireAuth, AuthRequest } from '../middleware/auth';
+import { scoreToGrade } from '../../../shared/scoring';
 
 export const pantryRouter = Router();
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function gradeFromScore(score: number): string {
-  if (score >= 85) return 'A';
-  if (score >= 70) return 'B';
-  if (score >= 55) return 'C';
-  if (score >= 40) return 'D';
-  return 'F';
-}
+const BARCODE_RE = /^[0-9]{6,14}$/;
+const PANTRY_MAX_ITEMS = 500;
 
 function weightForGrade(grade: string): number {
   if (grade === 'F') return 3;
@@ -35,23 +30,28 @@ async function ensurePantryTable(): Promise<void> {
       UNIQUE(user_id, barcode)
     )
   `);
-  await db.query(`
-    CREATE INDEX IF NOT EXISTS idx_pantry_user ON pantry_items(user_id)
-  `);
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_pantry_user ON pantry_items(user_id)`);
 }
 
-// Bootstrap table on first import
 ensurePantryTable().catch(console.error);
 
-// ─── POST /pantry — add item ──────────────────────────────────────────────────
-pantryRouter.post('/', async (req: Request, res: Response) => {
-  const { user_id, barcode } = req.body;
-  if (!user_id || !barcode) {
-    return res.status(400).json({ error: 'user_id and barcode required' });
+// ─── POST /pantry ─────────────────────────────────────────────────────────────
+pantryRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.userId;
+  const { barcode } = req.body as { barcode?: string };
+  if (!barcode || !BARCODE_RE.test(barcode)) {
+    return res.status(400).json({ error: 'valid barcode required' });
   }
 
   try {
-    // Pull cached product data
+    const countRow = await db.query(
+      'SELECT COUNT(*)::int AS n FROM pantry_items WHERE user_id = $1',
+      [userId]
+    );
+    if ((countRow.rows[0]?.n ?? 0) >= PANTRY_MAX_ITEMS) {
+      return res.status(400).json({ error: 'pantry item limit reached' });
+    }
+
     const prod = await db.query('SELECT * FROM products WHERE barcode = $1', [barcode]);
     const product = prod.rows[0];
 
@@ -60,7 +60,6 @@ pantryRouter.post('/', async (req: Request, res: Response) => {
     const imageUrl = product?.image_url || null;
     const category = product?.category || 'food';
 
-    // Pull cached score (from scores table if available, or fall back)
     let score = 50;
     let grade = 'C';
     try {
@@ -87,7 +86,7 @@ pantryRouter.post('/', async (req: Request, res: Response) => {
         image_url = EXCLUDED.image_url,
         category = EXCLUDED.category,
         added_at = NOW()
-    `, [user_id, barcode, name, brand, score, grade, imageUrl, category]);
+    `, [userId, barcode, name, brand, score, grade, imageUrl, category]);
 
     return res.status(201).json({ ok: true, barcode, name, score, grade });
   } catch (err) {
@@ -96,17 +95,18 @@ pantryRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// ─── DELETE /pantry/:barcode — remove item ────────────────────────────────────
-pantryRouter.delete('/:barcode', async (req: Request, res: Response) => {
-  const user_id = req.query.user_id as string || req.body?.user_id;
+// ─── DELETE /pantry/:barcode ──────────────────────────────────────────────────
+pantryRouter.delete('/:barcode', requireAuth, async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.userId;
   const { barcode } = req.params;
-
-  if (!user_id) return res.status(400).json({ error: 'user_id required' });
+  if (!BARCODE_RE.test(barcode)) {
+    return res.status(400).json({ error: 'invalid barcode' });
+  }
 
   try {
     const result = await db.query(
       'DELETE FROM pantry_items WHERE user_id = $1 AND barcode = $2 RETURNING id',
-      [user_id, barcode]
+      [userId, barcode]
     );
     if (result.rowCount === 0) return res.status(404).json({ error: 'Item not found' });
     return res.json({ ok: true, barcode });
@@ -116,16 +116,15 @@ pantryRouter.delete('/:barcode', async (req: Request, res: Response) => {
   }
 });
 
-// ─── GET /pantry — all items for a user ──────────────────────────────────────
-pantryRouter.get('/', async (req: Request, res: Response) => {
-  const user_id = req.query.user_id as string;
-  if (!user_id) return res.status(400).json({ error: 'user_id required' });
+// ─── GET /pantry ──────────────────────────────────────────────────────────────
+pantryRouter.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.userId;
 
   try {
     const result = await db.query(
       `SELECT id, barcode, product_name, brand, score, grade, image_url, category, added_at
        FROM pantry_items WHERE user_id = $1 ORDER BY added_at DESC`,
-      [user_id]
+      [userId]
     );
 
     const items = result.rows.map(r => ({
@@ -147,15 +146,14 @@ pantryRouter.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// ─── GET /pantry/score — household aggregate ──────────────────────────────────
-pantryRouter.get('/score', async (req: Request, res: Response) => {
-  const user_id = req.query.user_id as string;
-  if (!user_id) return res.status(400).json({ error: 'user_id required' });
+// ─── GET /pantry/score ────────────────────────────────────────────────────────
+pantryRouter.get('/score', requireAuth, async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.userId;
 
   try {
     const result = await db.query(
       'SELECT score, grade FROM pantry_items WHERE user_id = $1',
-      [user_id]
+      [userId]
     );
 
     const items = result.rows;
@@ -178,23 +176,21 @@ pantryRouter.get('/score', async (req: Request, res: Response) => {
     }
 
     const householdScore = Math.round(weightedSum / totalWeight);
-    const grade = gradeFromScore(householdScore);
+    const grade = scoreToGrade(householdScore);
     const total = items.length;
 
-    // Worst offenders (top 3 lowest scored)
     const worstOffenders = await db.query(
       `SELECT barcode, product_name, score, grade
        FROM pantry_items WHERE user_id = $1
        ORDER BY score ASC LIMIT 3`,
-      [user_id]
+      [userId]
     );
 
-    // Quick wins (score < 50)
     const quickWins = await db.query(
       `SELECT barcode, product_name, score, grade
        FROM pantry_items WHERE user_id = $1 AND score < 50
        ORDER BY score ASC LIMIT 3`,
-      [user_id]
+      [userId]
     );
 
     return res.json({

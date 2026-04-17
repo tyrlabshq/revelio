@@ -2,6 +2,16 @@ import { Router } from 'express';
 
 export const privacyRouter = Router();
 
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'privacy@revelio.app';
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c] as string));
+}
+
+const contactSafe = escapeHtml(CONTACT_EMAIL);
+
 const PRIVACY_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -166,7 +176,7 @@ const PRIVACY_HTML = `<!DOCTYPE html>
       <li><strong>Opt-out</strong> — disable the optional AI analysis feature at any time in app settings.</li>
     </ul>
     <p>
-      To exercise any of these rights, contact us at <a href="mailto:tj.clawdbot@gmail.com">tj.clawdbot@gmail.com</a>.
+      To exercise any of these rights, contact us at <a href="mailto:${contactSafe}">${contactSafe}</a>.
     </p>
 
     <!-- ─── 8. Changes to This Policy ────────────────────────────────────── -->
@@ -181,7 +191,7 @@ const PRIVACY_HTML = `<!DOCTYPE html>
       If you have questions or concerns about this privacy policy or your data, please reach out:
     </p>
     <p>
-      <strong>Email:</strong> <a href="mailto:tj.clawdbot@gmail.com">tj.clawdbot@gmail.com</a><br/>
+      <strong>Email:</strong> <a href="mailto:${contactSafe}">${contactSafe}</a><br/>
       <strong>App:</strong> Revelio — Supplement &amp; Ingredient Scanner
     </p>
 

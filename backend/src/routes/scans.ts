@@ -1,14 +1,16 @@
 import { Router } from 'express';
 import { db } from '../db';
+import { requireAuth, AuthRequest } from '../middleware/auth';
+import { scoreToGrade } from '../../../shared/scoring';
 
 export const scansRouter = Router();
 
 // ─── GET /scans — Paginated history with filters ──────────────────────────────
-//   ?userId=<uuid>&page=1&limit=20&category=food&grade=F&from=2025-01-01&to=2025-12-31&q=cheerios
+//   ?page=1&limit=20&category=food&grade=F&from=2025-01-01&to=2025-12-31&q=cheerios
 
-scansRouter.get('/', async (req, res) => {
+scansRouter.get('/', requireAuth, async (req: AuthRequest, res) => {
+  const userId = req.user!.userId;
   const {
-    userId,
     page = '1',
     limit = '20',
     category,
@@ -17,8 +19,6 @@ scansRouter.get('/', async (req, res) => {
     to,
     q,
   } = req.query as Record<string, string | undefined>;
-
-  if (!userId) return res.status(400).json({ error: 'userId is required' });
 
   const pageNum  = Math.max(1, parseInt(page  ?? '1',  10));
   const limitNum = Math.min(100, Math.max(1, parseInt(limit ?? '20', 10)));
@@ -30,11 +30,20 @@ scansRouter.get('/', async (req, res) => {
 
   if (category) { conditions.push(`s.category = $${p++}`); params.push(category); }
   if (grade)    { conditions.push(`UPPER(s.grade) = $${p++}`); params.push(grade.toUpperCase()); }
-  if (from)     { conditions.push(`s.scanned_at >= $${p++}`); params.push(new Date(from)); }
-  if (to)       { conditions.push(`s.scanned_at <= $${p++}`); params.push(new Date(to)); }
+  if (from)     {
+    const d = new Date(from);
+    if (!isNaN(d.getTime())) { conditions.push(`s.scanned_at >= $${p++}`); params.push(d); }
+  }
+  if (to)       {
+    const d = new Date(to);
+    if (!isNaN(d.getTime())) { conditions.push(`s.scanned_at <= $${p++}`); params.push(d); }
+  }
   if (q)        {
-    conditions.push(`(s.product_name ILIKE $${p} OR s.brand ILIKE $${p})`);
-    params.push(`%${q}%`); p++;
+    const trimmed = q.slice(0, 80).trim();
+    if (trimmed) {
+      conditions.push(`(s.product_name ILIKE $${p} OR s.brand ILIKE $${p})`);
+      params.push(`%${trimmed}%`); p++;
+    }
   }
 
   const where = conditions.join(' AND ');
@@ -67,14 +76,12 @@ scansRouter.get('/', async (req, res) => {
   }
 });
 
-// ─── GET /scans/insights — Weekly stats ──────────────────────────────────────
+// ─── GET /scans/insights ─────────────────────────────────────────────────────
 
-scansRouter.get('/insights', async (req, res) => {
-  const { userId } = req.query as { userId?: string };
-  if (!userId) return res.status(400).json({ error: 'userId is required' });
+scansRouter.get('/insights', requireAuth, async (req: AuthRequest, res) => {
+  const userId = req.user!.userId;
 
   try {
-    // Weekly average score (current week Mon–Sun)
     const weekStatsQuery = await db.query(
       `SELECT
          AVG(score)::numeric(5,1)  AS avg_score,
@@ -85,7 +92,6 @@ scansRouter.get('/insights', async (req, res) => {
       [userId]
     );
 
-    // Last week average
     const lastWeekQuery = await db.query(
       `SELECT AVG(score)::numeric(5,1) AS avg_score
        FROM scans
@@ -95,7 +101,6 @@ scansRouter.get('/insights', async (req, res) => {
       [userId]
     );
 
-    // Most scanned category (last 7 days)
     const categoryQuery = await db.query(
       `SELECT category, COUNT(*)::int AS cnt
        FROM scans
@@ -107,7 +112,6 @@ scansRouter.get('/insights', async (req, res) => {
       [userId]
     );
 
-    // Total scans last 7 days (for category %)
     const totalWeekQuery = await db.query(
       `SELECT COUNT(*)::int AS total
        FROM scans
@@ -116,7 +120,6 @@ scansRouter.get('/insights', async (req, res) => {
       [userId]
     );
 
-    // Most avoided flag (flag category appearing most in scans via flags JSONB)
     const flagQuery = await db.query(
       `SELECT flag->>'category' AS flag_cat, COUNT(*)::int AS cnt
        FROM scans s, jsonb_array_elements(s.flags) AS flag
@@ -129,7 +132,6 @@ scansRouter.get('/insights', async (req, res) => {
       [userId]
     );
 
-    // Top clean product (highest score in last 7 days)
     const topProductQuery = await db.query(
       `SELECT product_name, grade, score
        FROM scans
@@ -177,11 +179,9 @@ scansRouter.get('/insights', async (req, res) => {
 
 // ─── DELETE /scans/:id ────────────────────────────────────────────────────────
 
-scansRouter.delete('/:id', async (req, res) => {
+scansRouter.delete('/:id', requireAuth, async (req: AuthRequest, res) => {
+  const userId = req.user!.userId;
   const { id } = req.params;
-  const { userId } = req.query as { userId?: string };
-
-  if (!userId) return res.status(400).json({ error: 'userId is required' });
 
   try {
     const result = await db.query(
@@ -197,13 +197,3 @@ scansRouter.delete('/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete scan' });
   }
 });
-
-// ─── Helper ───────────────────────────────────────────────────────────────────
-
-function scoreToGrade(score: number): string {
-  if (score >= 85) return 'A';
-  if (score >= 70) return 'B';
-  if (score >= 55) return 'C';
-  if (score >= 40) return 'D';
-  return 'F';
-}

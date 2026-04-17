@@ -11,6 +11,8 @@ class HistoryManager: ObservableObject {
 
     private let historyKey = "scan_history_v1"
     private let favoritesKey = "favorites_barcodes_v1"
+    private let historyFile = "history.bin"
+    private let favoritesFile = "favorites.bin"
     private let maxHistory = 100
 
     private init() {
@@ -129,26 +131,40 @@ class HistoryManager: ObservableObject {
     // MARK: - Persistence
 
     private func load() {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        if let data = UserDefaults.standard.data(forKey: historyKey),
-           let decoded = try? decoder.decode([ScanResult].self, from: data) {
+        // Prefer encrypted-at-rest store; fall back to (and migrate away from)
+        // the legacy UserDefaults blobs on first launch after upgrade.
+        if let decoded = try? SecureStore.shared.read([ScanResult].self, from: historyFile) {
             history = decoded
+        } else if let data = UserDefaults.standard.data(forKey: historyKey) {
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            if let decoded = try? decoder.decode([ScanResult].self, from: data) {
+                history = decoded
+            }
+            UserDefaults.standard.removeObject(forKey: historyKey)
         }
-        if let data = UserDefaults.standard.data(forKey: favoritesKey),
-           let decoded = try? JSONDecoder().decode([String].self, from: data) {
+
+        if let decoded = try? SecureStore.shared.read([String].self, from: favoritesFile) {
             favorites = Set(decoded)
+        } else if let data = UserDefaults.standard.data(forKey: favoritesKey),
+                  let decoded = try? JSONDecoder().decode([String].self, from: data) {
+            favorites = Set(decoded)
+            UserDefaults.standard.removeObject(forKey: favoritesKey)
         }
+
+        // Persist in the new format immediately so the legacy keys aren't
+        // needed on next launch.
+        save()
     }
 
     private func save() {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        if let data = try? encoder.encode(history) {
-            UserDefaults.standard.set(data, forKey: historyKey)
-        }
-        if let data = try? JSONEncoder().encode(Array(favorites)) {
-            UserDefaults.standard.set(data, forKey: favoritesKey)
+        do {
+            try SecureStore.shared.write(history, to: historyFile)
+            try SecureStore.shared.write(Array(favorites), to: favoritesFile)
+        } catch {
+            // Non-fatal: surface to the console so devs see keychain issues,
+            // but don't crash the UI over a write failure.
+            print("[HistoryManager] secure write failed: \(error)")
         }
     }
 }

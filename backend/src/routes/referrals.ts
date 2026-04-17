@@ -1,21 +1,22 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { db } from '../db';
+import { requireAuth, AuthRequest } from '../middleware/auth';
 
 export const referralsRouter = Router();
 
 const COMMISSION_RATE = 0.20; // 20% recurring
+const REFERRAL_CODE_RE = /^[A-Z0-9]{3,20}$/;
 
-// ─── POST /referrals/apply ─────────────────────────────────────────────────
-// Called during signup when a ref code is present in the URL
-referralsRouter.post('/apply', async (req: Request, res: Response) => {
-  const { referral_code, user_id } = req.body;
+// ─── POST /referrals/apply ────────────────────────────────────────────────────
+referralsRouter.post('/apply', requireAuth, async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.userId;
+  const { referral_code } = req.body as { referral_code?: string };
 
-  if (!referral_code || !user_id) {
-    return res.status(400).json({ error: 'referral_code and user_id are required' });
+  if (!referral_code || typeof referral_code !== 'string' || !REFERRAL_CODE_RE.test(referral_code)) {
+    return res.status(400).json({ error: 'valid referral_code is required' });
   }
 
   try {
-    // Verify code exists and is approved
     const codeResult = await db.query(
       `SELECT code, user_id FROM referral_codes WHERE code = $1 AND status = 'approved'`,
       [referral_code]
@@ -27,31 +28,28 @@ referralsRouter.post('/apply', async (req: Request, res: Response) => {
 
     const creator = codeResult.rows[0];
 
-    // Prevent self-referral
-    if (creator.user_id === user_id) {
+    if (creator.user_id === userId) {
       return res.status(400).json({ error: 'Cannot use your own referral code' });
     }
 
-    // Prevent double attribution
-    const existing = await db.query(
-      `SELECT id FROM referral_attributions WHERE referred_user_id = $1`,
-      [user_id]
+    // Atomic insert: the UNIQUE constraint on referred_user_id prevents any
+    // concurrent second apply from slipping through. If the row already
+    // exists, ON CONFLICT DO NOTHING leaves it untouched and rowCount is 0.
+    const insertResult = await db.query(
+      `INSERT INTO referral_attributions (referral_code, referred_user_id, attributed_at)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (referred_user_id) DO NOTHING
+       RETURNING id, referral_code, referred_user_id, attributed_at`,
+      [referral_code, userId]
     );
 
-    if (existing.rows.length > 0) {
+    if (insertResult.rowCount === 0) {
       return res.status(409).json({ error: 'User already has a referral attribution' });
     }
 
-    const result = await db.query(
-      `INSERT INTO referral_attributions (referral_code, referred_user_id, attributed_at)
-       VALUES ($1, $2, NOW())
-       RETURNING id, referral_code, referred_user_id, attributed_at`,
-      [referral_code, user_id]
-    );
-
     return res.status(201).json({
       success: true,
-      attribution: result.rows[0]
+      attribution: insertResult.rows[0],
     });
   } catch (err) {
     console.error('[referrals/apply]', err);
@@ -59,20 +57,15 @@ referralsRouter.post('/apply', async (req: Request, res: Response) => {
   }
 });
 
-// ─── GET /referrals/my-stats ───────────────────────────────────────────────
-// Creator dashboard stats — requires authenticated user_id
-referralsRouter.get('/my-stats', async (req: Request, res: Response) => {
-  const user_id = req.headers['x-user-id'] as string;
-
-  if (!user_id) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
+// ─── GET /referrals/my-stats ──────────────────────────────────────────────────
+referralsRouter.get('/my-stats', requireAuth, async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.userId;
 
   try {
     const codeResult = await db.query(
       `SELECT code, status, total_earnings_cents, pending_payout_cents
        FROM referral_codes WHERE user_id = $1`,
-      [user_id]
+      [userId]
     );
 
     if (codeResult.rows.length === 0) {
@@ -87,11 +80,10 @@ referralsRouter.get('/my-stats', async (req: Request, res: Response) => {
         status: creator.status,
         message: creator.status === 'pending'
           ? 'Your creator application is under review'
-          : 'Your creator account is not active'
+          : 'Your creator account is not active',
       });
     }
 
-    // Referral counts
     const countResult = await db.query(
       `SELECT
          COUNT(*) AS referred_count,
@@ -101,7 +93,6 @@ referralsRouter.get('/my-stats', async (req: Request, res: Response) => {
       [creator.code]
     );
 
-    // Earnings this month
     const monthEarnings = await db.query(
       `SELECT COALESCE(SUM(commission_cents), 0) AS month_earnings_cents
        FROM referral_earnings_log
@@ -118,7 +109,7 @@ referralsRouter.get('/my-stats', async (req: Request, res: Response) => {
       activeSubscribers: parseInt(countResult.rows[0].active_subscribers),
       totalEarningsCents: parseInt(creator.total_earnings_cents),
       pendingPayoutCents: parseInt(creator.pending_payout_cents),
-      monthEarningsCents: parseInt(monthEarnings.rows[0].month_earnings_cents)
+      monthEarningsCents: parseInt(monthEarnings.rows[0].month_earnings_cents),
     });
   } catch (err) {
     console.error('[referrals/my-stats]', err);
@@ -126,41 +117,48 @@ referralsRouter.get('/my-stats', async (req: Request, res: Response) => {
   }
 });
 
-// ─── POST /referrals/creator-apply ────────────────────────────────────────
-// Creator applies for the program
-referralsRouter.post('/creator-apply', async (req: Request, res: Response) => {
-  const { user_id, follower_count, platform, social_handle } = req.body;
+// ─── POST /referrals/creator-apply ────────────────────────────────────────────
+referralsRouter.post('/creator-apply', requireAuth, async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.userId;
+  const { follower_count, platform, social_handle } = req.body as {
+    follower_count?: unknown;
+    platform?: unknown;
+    social_handle?: unknown;
+  };
 
-  if (!user_id || !follower_count || !platform || !social_handle) {
-    return res.status(400).json({
-      error: 'user_id, follower_count, platform, and social_handle are required'
-    });
+  const followerNum = typeof follower_count === 'number'
+    ? follower_count
+    : typeof follower_count === 'string'
+      ? parseInt(follower_count, 10)
+      : NaN;
+  if (!Number.isFinite(followerNum) || followerNum < 0 || followerNum > 1_000_000_000) {
+    return res.status(400).json({ error: 'valid follower_count required' });
+  }
+  if (typeof platform !== 'string' || !['tiktok', 'instagram', 'youtube', 'x', 'twitter'].includes(platform.toLowerCase())) {
+    return res.status(400).json({ error: 'valid platform required' });
+  }
+  if (typeof social_handle !== 'string' || social_handle.length === 0 || social_handle.length > 40) {
+    return res.status(400).json({ error: 'valid social_handle required (1-40 chars)' });
   }
 
   try {
-    // Check if already applied
     const existing = await db.query(
       `SELECT code, status FROM referral_codes WHERE user_id = $1`,
-      [user_id]
+      [userId]
     );
 
     if (existing.rows.length > 0) {
       return res.status(409).json({
         error: 'Already applied',
         status: existing.rows[0].status,
-        code: existing.rows[0].code
+        code: existing.rows[0].code,
       });
     }
 
-    // Generate unique codename (handle-based, uppercase, clean)
-    const baseCode = social_handle
-      .replace(/[^a-zA-Z0-9]/g, '')
-      .toUpperCase()
-      .slice(0, 12);
+    const baseCode = social_handle.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 12);
     const code = `${baseCode}${Math.floor(Math.random() * 100)}`;
 
-    // Auto-approve if >1K followers (honor system v1)
-    const autoApprove = parseInt(follower_count) >= 1000;
+    const autoApprove = followerNum >= 1000;
     const status = autoApprove ? 'approved' : 'pending';
 
     const result = await db.query(
@@ -168,13 +166,13 @@ referralsRouter.post('/creator-apply', async (req: Request, res: Response) => {
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7)
        RETURNING code, status`,
       [
-        user_id,
+        userId,
         code,
         status,
-        follower_count,
-        platform,
+        followerNum,
+        platform.toLowerCase(),
         social_handle,
-        autoApprove ? new Date() : null
+        autoApprove ? new Date() : null,
       ]
     );
 
@@ -185,7 +183,7 @@ referralsRouter.post('/creator-apply', async (req: Request, res: Response) => {
       shareUrl: autoApprove ? `https://revelio.app/ref/${code}` : null,
       message: autoApprove
         ? `Welcome to the creator program! Your link: revelio.app/ref/${code}`
-        : 'Application submitted. We\'ll review and reach out within 48 hours.'
+        : 'Application submitted. We\'ll review and reach out within 48 hours.',
     });
   } catch (err) {
     console.error('[referrals/creator-apply]', err);
@@ -193,18 +191,14 @@ referralsRouter.post('/creator-apply', async (req: Request, res: Response) => {
   }
 });
 
-// ─── GET /referrals/payout-history ────────────────────────────────────────
-referralsRouter.get('/payout-history', async (req: Request, res: Response) => {
-  const user_id = req.headers['x-user-id'] as string;
-
-  if (!user_id) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
+// ─── GET /referrals/payout-history ────────────────────────────────────────────
+referralsRouter.get('/payout-history', requireAuth, async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.userId;
 
   try {
     const codeResult = await db.query(
       `SELECT code FROM referral_codes WHERE user_id = $1 AND status = 'approved'`,
-      [user_id]
+      [userId]
     );
 
     if (codeResult.rows.length === 0) {
@@ -227,7 +221,7 @@ referralsRouter.get('/payout-history', async (req: Request, res: Response) => {
   }
 });
 
-// ─── Internal helper: process commission ──────────────────────────────────
+// ─── Internal helper: process commission ──────────────────────────────────────
 export async function processReferralCommission(
   referredUserId: string,
   grossCents: number,
@@ -241,20 +235,23 @@ export async function processReferralCommission(
     [referredUserId]
   );
 
-  if (attribution.rows.length === 0) return; // no referral for this user
+  if (attribution.rows.length === 0) return;
 
   const code = attribution.rows[0].referral_code;
 
-  // Idempotent insert
-  await db.query(
+  // Idempotent insert (UNIQUE on revenue_cat_event_id). xmax is 0 on a real
+  // insert; non-zero on conflict — we only credit the creator once per event.
+  const inserted = await db.query(
     `INSERT INTO referral_earnings_log
        (referral_code, referred_user_id, event_type, gross_cents, commission_cents, revenue_cat_event_id)
      VALUES ($1, $2, $3, $4, $5, $6)
-     ON CONFLICT (revenue_cat_event_id) DO NOTHING`,
+     ON CONFLICT (revenue_cat_event_id) DO NOTHING
+     RETURNING id`,
     [code, referredUserId, eventType, grossCents, commissionCents, revenueCatEventId]
   );
 
-  // Update creator totals + lifetime revenue on attribution
+  if (inserted.rowCount === 0) return;
+
   await db.query(
     `UPDATE referral_codes
      SET total_earnings_cents = total_earnings_cents + $1,

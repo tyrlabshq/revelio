@@ -1,5 +1,6 @@
 import { db } from '../db';
 import { scoreProduct } from './scorer';
+import { scoreToGrade } from '../../../shared/scoring';
 
 export interface AlternativeResult {
   id: string;
@@ -12,16 +13,6 @@ export interface AlternativeResult {
   purchaseUrl: string;
   affiliateNetwork: string;
   priceCents: number | null;
-}
-
-// ─── scoreToGrade helper ──────────────────────────────────────────────────────
-
-function scoreToGrade(score: number): string {
-  if (score >= 85) return 'A';
-  if (score >= 70) return 'B';
-  if (score >= 55) return 'C';
-  if (score >= 40) return 'D';
-  return 'F';
 }
 
 // ─── Main finder ──────────────────────────────────────────────────────────────

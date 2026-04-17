@@ -11,8 +11,12 @@ const REVENUECAT_WEBHOOK_SECRET = process.env.REVENUECAT_WEBHOOK_SECRET;
 
 function verifyRevenueCatSignature(rawBody: string, signature: string | undefined): boolean {
   if (!REVENUECAT_WEBHOOK_SECRET) {
-    // No secret configured — allow in dev
-    console.warn('[webhooks] REVENUECAT_WEBHOOK_SECRET not set, skipping signature check');
+    if (process.env.NODE_ENV === 'production') {
+      // Fail closed — never accept unsigned webhooks in production.
+      console.error('[webhooks] REVENUECAT_WEBHOOK_SECRET not set in production — rejecting');
+      return false;
+    }
+    console.warn('[webhooks] REVENUECAT_WEBHOOK_SECRET not set, skipping signature check (dev only)');
     return true;
   }
   if (!signature) return false;
@@ -22,10 +26,15 @@ function verifyRevenueCatSignature(rawBody: string, signature: string | undefine
     .update(rawBody)
     .digest('hex');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(expected, 'hex'),
-    Buffer.from(signature, 'hex')
-  );
+  const expectedBuf = Buffer.from(expected, 'hex');
+  let actualBuf: Buffer;
+  try {
+    actualBuf = Buffer.from(signature, 'hex');
+  } catch {
+    return false;
+  }
+  if (actualBuf.length !== expectedBuf.length) return false;
+  return crypto.timingSafeEqual(expectedBuf, actualBuf);
 }
 
 // ─── Event type mapping ───────────────────────────────────────────────────────

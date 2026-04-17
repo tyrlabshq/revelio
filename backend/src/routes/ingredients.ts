@@ -1,45 +1,58 @@
 import { Router } from 'express';
-import { requireAuth, AuthRequest } from './auth';
+import { requireAuth, AuthRequest } from '../middleware/auth';
+import { db } from '../db';
 import { explainIngredient } from '../services/ingredientAI';
 
 export const ingredientRouter = Router();
 
-// ─── In-Memory Rate Limiter ───────────────────────────────────────────────────
-// Free tier: 3 AI explain calls/day. Pro: unlimited.
-
-interface RateLimitEntry {
-  count: number;
-  date: string; // YYYY-MM-DD
-}
+// Free tier: 3 AI explain calls/day. Pro: unlimited. Persisted in Postgres so
+// the limit survives restarts and works across replicas.
 
 const FREE_TIER_AI_LIMIT = 3;
-const aiRateLimit = new Map<string, RateLimitEntry>();
 
-function getTodayDate(): string {
-  return new Date().toISOString().slice(0, 10);
+async function ensureAiUsageTable(): Promise<void> {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS ai_usage (
+      user_id UUID NOT NULL,
+      date    DATE NOT NULL,
+      count   INTEGER DEFAULT 0,
+      PRIMARY KEY (user_id, date)
+    )
+  `);
 }
 
-function checkAndIncrementAIUsage(userId: string, tier: string): { allowed: boolean; used: number; limit: number | null } {
+ensureAiUsageTable().catch(err => console.error('[ingredients] ai_usage setup:', err));
+
+async function checkAndIncrementAIUsage(
+  userId: string,
+  tier: string
+): Promise<{ allowed: boolean; used: number; limit: number | null }> {
   if (tier === 'pro') {
     return { allowed: true, used: 0, limit: null };
   }
 
-  const today = getTodayDate();
-  const existing = aiRateLimit.get(userId);
+  const today = new Date().toISOString().slice(0, 10);
 
-  if (!existing || existing.date !== today) {
-    // Fresh day (or new user)
-    aiRateLimit.set(userId, { count: 1, date: today });
-    return { allowed: true, used: 1, limit: FREE_TIER_AI_LIMIT };
+  const result = await db.query(
+    `INSERT INTO ai_usage (user_id, date, count)
+     VALUES ($1, $2, 1)
+     ON CONFLICT (user_id, date) DO UPDATE
+       SET count = ai_usage.count + 1
+       WHERE ai_usage.count < $3
+     RETURNING count`,
+    [userId, today, FREE_TIER_AI_LIMIT]
+  );
+
+  if (result.rowCount === 0) {
+    const usage = await db.query(
+      'SELECT count FROM ai_usage WHERE user_id = $1 AND date = $2',
+      [userId, today]
+    );
+    const used = usage.rows[0]?.count ?? FREE_TIER_AI_LIMIT;
+    return { allowed: false, used, limit: FREE_TIER_AI_LIMIT };
   }
 
-  if (existing.count >= FREE_TIER_AI_LIMIT) {
-    return { allowed: false, used: existing.count, limit: FREE_TIER_AI_LIMIT };
-  }
-
-  existing.count += 1;
-  aiRateLimit.set(userId, existing);
-  return { allowed: true, used: existing.count, limit: FREE_TIER_AI_LIMIT };
+  return { allowed: true, used: result.rows[0].count, limit: FREE_TIER_AI_LIMIT };
 }
 
 // ─── GET /ingredients/:name ───────────────────────────────────────────────────
@@ -59,8 +72,7 @@ ingredientRouter.get('/:name/explain', requireAuth, async (req: AuthRequest, res
   const userId = req.user!.userId;
   const tier = req.user!.tier;
 
-  // Rate limit check
-  const rateCheck = checkAndIncrementAIUsage(userId, tier);
+  const rateCheck = await checkAndIncrementAIUsage(userId, tier);
   if (!rateCheck.allowed) {
     return res.status(429).json({
       error: 'Daily AI explain limit reached',
@@ -70,10 +82,10 @@ ingredientRouter.get('/:name/explain', requireAuth, async (req: AuthRequest, res
     });
   }
 
-  const ingredientName = decodeURIComponent(name).trim();
-  const productCategory = category?.trim() || 'general';
+  const ingredientName = decodeURIComponent(name).trim().slice(0, 100);
+  const productCategory = (category?.trim() || 'general').slice(0, 40);
   const userPriorities = priorities
-    ? priorities.split(',').map(p => p.trim()).filter(p => p.length > 0)
+    ? priorities.split(',').map(p => p.trim()).filter(p => p.length > 0 && p.length <= 40).slice(0, 20)
     : [];
 
   try {

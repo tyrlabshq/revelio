@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "build": "tsc",
-    "start": "node dist/backend/src/index.js"
+    "start": "node dist/backend/src/index.js",
+    "test": "node --require ts-node/register --test tests/scoring.test.ts"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",

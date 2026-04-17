@@ -13,4 +13,5 @@ COPY shared/ ./shared/
 WORKDIR /app/backend
 RUN npm run build
 
-CMD ["node", "dist/index.js"]
+# tsconfig has rootDir="..", so src/**/* compiles to dist/backend/src/
+CMD ["node", "dist/backend/src/index.js"]
