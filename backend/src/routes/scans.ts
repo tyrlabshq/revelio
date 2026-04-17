@@ -1,14 +1,17 @@
 import { Router } from 'express';
 import { db } from '../db';
+import { requireAuth, AuthRequest } from './auth';
 
 export const scansRouter = Router();
 
-// ─── GET /scans — Paginated history with filters ──────────────────────────────
-//   ?userId=<uuid>&page=1&limit=20&category=food&grade=F&from=2025-01-01&to=2025-12-31&q=cheerios
+// All scans routes require auth; userId is sourced from the JWT.
+scansRouter.use(requireAuth);
 
-scansRouter.get('/', async (req, res) => {
+// ─── GET /scans — Paginated history with filters ──────────────────────────────
+//   ?page=1&limit=20&category=food&grade=F&from=2025-01-01&to=2025-12-31&q=cheerios
+
+scansRouter.get('/', async (req: AuthRequest, res) => {
   const {
-    userId,
     page = '1',
     limit = '20',
     category,
@@ -18,7 +21,7 @@ scansRouter.get('/', async (req, res) => {
     q,
   } = req.query as Record<string, string | undefined>;
 
-  if (!userId) return res.status(400).json({ error: 'userId is required' });
+  const userId = req.user!.userId;
 
   const pageNum  = Math.max(1, parseInt(page  ?? '1',  10));
   const limitNum = Math.min(100, Math.max(1, parseInt(limit ?? '20', 10)));
@@ -69,9 +72,8 @@ scansRouter.get('/', async (req, res) => {
 
 // ─── GET /scans/insights — Weekly stats ──────────────────────────────────────
 
-scansRouter.get('/insights', async (req, res) => {
-  const { userId } = req.query as { userId?: string };
-  if (!userId) return res.status(400).json({ error: 'userId is required' });
+scansRouter.get('/insights', async (req: AuthRequest, res) => {
+  const userId = req.user!.userId;
 
   try {
     // Weekly average score (current week Mon–Sun)
@@ -177,11 +179,9 @@ scansRouter.get('/insights', async (req, res) => {
 
 // ─── DELETE /scans/:id ────────────────────────────────────────────────────────
 
-scansRouter.delete('/:id', async (req, res) => {
+scansRouter.delete('/:id', async (req: AuthRequest, res) => {
   const { id } = req.params;
-  const { userId } = req.query as { userId?: string };
-
-  if (!userId) return res.status(400).json({ error: 'userId is required' });
+  const userId = req.user!.userId;
 
   try {
     const result = await db.query(

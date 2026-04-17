@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { db } from '../db';
 import { scoreProduct } from '../services/scorer';
 import { UserPriority } from '../../../shared/scoring';
+import { requireAuth, AuthRequest } from './auth';
 
 export const scanRouter = Router();
 
@@ -62,9 +63,8 @@ scanRouter.get('/:barcode', async (req, res) => {
 
 // ─── POST /scan/history — Record a scan ───────────────────────────────────────
 
-scanRouter.post('/history', async (req, res) => {
-  const { userId, barcode, productName, brand, category, imageUrl, score, grade, flags } = req.body as {
-    userId?: string;
+scanRouter.post('/history', requireAuth, async (req: AuthRequest, res) => {
+  const { barcode, productName, brand, category, imageUrl, score, grade, flags } = req.body as {
     barcode: string;
     productName: string;
     brand?: string;
@@ -75,13 +75,14 @@ scanRouter.post('/history', async (req, res) => {
     flags?: unknown[];
   };
 
+  const userId = req.user!.userId;
   if (!barcode) return res.status(400).json({ error: 'barcode is required' });
 
   try {
     await db.query(
       `INSERT INTO scans (user_id, barcode, product_name, brand, category, image_url, score, grade, flags, scanned_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
-      [userId || null, barcode, productName, brand || null, category || 'food', imageUrl || null, score, grade, JSON.stringify(flags ?? [])]
+      [userId, barcode, productName, brand || null, category || 'food', imageUrl || null, score, grade, JSON.stringify(flags ?? [])]
     );
     res.status(201).json({ ok: true });
   } catch (err) {
@@ -92,10 +93,9 @@ scanRouter.post('/history', async (req, res) => {
 
 // ─── GET /scan/history — Get scan history for a user ──────────────────────────
 
-scanRouter.get('/history', async (req, res) => {
-  const { userId, limit = '50' } = req.query as { userId?: string; limit?: string };
-
-  if (!userId) return res.status(400).json({ error: 'userId is required' });
+scanRouter.get('/history', requireAuth, async (req: AuthRequest, res) => {
+  const { limit = '50' } = req.query as { limit?: string };
+  const userId = req.user!.userId;
 
   try {
     const result = await db.query(
