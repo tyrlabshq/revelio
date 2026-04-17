@@ -8,11 +8,14 @@ import { alternativesRouter } from './routes/alternatives';
 import { pantryRouter } from './routes/pantry';
 import { profileRouter } from './routes/profiles';
 import { authRouter } from './routes/auth';
+import { accountRouter } from './routes/account';
 import { webhookRouter } from './routes/webhooks';
 import { referralsRouter } from './routes/referrals';
 import { scansRouter } from './routes/scans';
 import { privacyRouter } from './routes/privacy';
 import { ensureAlternativesTable } from './db';
+import { logger, httpLogger } from './logger';
+import { globalLimiter } from './middleware/rateLimit';
 
 dotenv.config();
 
@@ -61,11 +64,24 @@ app.use(cors({
   },
   credentials: true
 }));
+
+// Structured request logging with PII redaction. Mounts above routes so every
+// request/response gets a correlated log line; health checks are filtered out.
+app.use(httpLogger);
+
+// Global rate limit: 60 req/min per IP. Must run after CORS (so OPTIONS
+// preflights don't burn quota for the real request) and before express.json so
+// rejected requests don't pay JSON parse cost.
+app.use(globalLimiter);
+
 app.use(express.json());
 
 app.get('/health', (_, res) => res.json({ ok: true, service: 'revelio-api', version: '1.0.0' }));
 
 app.use('/auth', authRouter);
+// GDPR endpoints (DELETE /auth/account, GET /auth/export) live under /auth so
+// the public surface groups all authenticated-user actions together.
+app.use('/auth', accountRouter);
 app.use('/webhooks', webhookRouter);
 app.use('/scan', scanRouter);
 app.use('/products', productRouter);
@@ -80,9 +96,9 @@ app.use('/privacy', privacyRouter);
 // Bootstrap DB tables then start
 ensureAlternativesTable()
   .then(() => {
-    app.listen(PORT, () => console.log(`Revelio API on :${PORT}`));
+    app.listen(PORT, () => logger.info({ event: 'server_started', port: PORT }));
   })
   .catch(err => {
-    console.error('DB bootstrap failed:', err);
+    logger.error({ err: err?.message, event: 'db_bootstrap_failed' });
     process.exit(1);
   });
