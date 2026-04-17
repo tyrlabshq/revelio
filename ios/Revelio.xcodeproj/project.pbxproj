@@ -13,6 +13,7 @@
 		0E7B765E46E58BA8DB098D18 /* AlternativesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95B466613FEF84DB9F6604D /* AlternativesViewModel.swift */; };
 		0EBE36579CBB3A8175089334 /* IngredientExplainerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D04ED65224810FAA53A6EB /* IngredientExplainerSheet.swift */; };
 		1DAD70B57DAC60555FD6329B /* AllergenProfileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12C39B7E971CE266E060E93D /* AllergenProfileManager.swift */; };
+		1A2B3C4D5E6F70819203A4B5 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F70819203A4B6 /* KeychainStore.swift */; };
 		254E1A36E3D2C28538AC350D /* AlternativeProductCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EA8279A37485859A96C130 /* AlternativeProductCard.swift */; };
 		2975B8D96F94D562EB4AA936 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 867AFA9F40AF6B012B98DA4E /* SettingsView.swift */; };
 		2ACE2E3DD0D8098699DD62E2 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0591013D594B0B8CDC815AC8 /* AuthViewModel.swift */; };
@@ -68,6 +69,7 @@
 		0E536483B331979E9A1FF394 /* BarcodeScannerRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerRepresentable.swift; sourceTree = "<group>"; };
 		124A795988AE0C9CF2D5F371 /* AllergenWarningBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergenWarningBanner.swift; sourceTree = "<group>"; };
 		12C39B7E971CE266E060E93D /* AllergenProfileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergenProfileManager.swift; sourceTree = "<group>"; };
+		1A2B3C4D5E6F70819203A4B6 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		13F4AC058C6F8F0327CE7C73 /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryManager.swift; sourceTree = "<group>"; };
 		1762D8BE9FD96565A5A44FFE /* IngredientFlagDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientFlagDatabase.swift; sourceTree = "<group>"; };
 		1FA4BC87E3E36723A1C52FC8 /* GradeBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradeBadge.swift; sourceTree = "<group>"; };
@@ -318,6 +320,7 @@
 				12C39B7E971CE266E060E93D /* AllergenProfileManager.swift */,
 				13F4AC058C6F8F0327CE7C73 /* HistoryManager.swift */,
 				1762D8BE9FD96565A5A44FFE /* IngredientFlagDatabase.swift */,
+				1A2B3C4D5E6F70819203A4B6 /* KeychainStore.swift */,
 				EF68DAFBC2721F4F6366E040 /* PantryManager.swift */,
 			);
 			path = Services;
@@ -447,6 +450,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1DAD70B57DAC60555FD6329B /* AllergenProfileManager.swift in Sources */,
+				1A2B3C4D5E6F70819203A4B5 /* KeychainStore.swift in Sources */,
 				E838DFA687404D499DB3B43D /* AllergenProfilesView.swift in Sources */,
 				A10DCF6268778E3AC0BB7224 /* AllergenWarningBanner.swift in Sources */,
 				254E1A36E3D2C28538AC350D /* AlternativeProductCard.swift in Sources */,
