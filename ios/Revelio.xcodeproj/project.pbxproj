@@ -64,6 +64,19 @@
 		9C8C2A989D49DBE5B4A0F5CA /* IngredientChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFFE1D13CAD0BC5B8CC25B4E /* IngredientChatView.swift */; };
 		AFF98C8537D3DEF64CE3B32C /* MealPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5727C4D1A156A6947CDA0A9C /* MealPlanView.swift */; };
 		8DC4E0F3FF5C182A11CAE829 /* ReviewsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2809A5574103FBF46483ECB7 /* ReviewsSheet.swift */; };
+		E93C0395BA4DD6F1FFA88210 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0014B7DAC050A97044743E8D /* HealthKitService.swift */; };
+		B95E4978E27F821C510048F5 /* PushService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46C31937F2A0D8288E8CDFDD /* PushService.swift */; };
+		81E8F9AC62E1A1B05CB20195 /* ReceiptScannerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20D5961EA4917E213DA17C20 /* ReceiptScannerService.swift */; };
+		FC045B03D558D7A990930C83 /* ScanAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A144E9D6FA4293252C5CF678 /* ScanAppIntent.swift */; };
+		E5AA53BF0ECC88DC5AF7D120 /* LookupBarcodeIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F600E7BE6BDCD6869E97A8 /* LookupBarcodeIntent.swift */; };
+		22D078788357AA6B6D34D9C7 /* UniversalLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 897687705DE0A6053D572529 /* UniversalLinkHandler.swift */; };
+		5D1DC7ACB8981C4B258E5A5B /* WidgetDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED57422A68A344593AB457B6 /* WidgetDataStore.swift */; };
+		48F2B22AFC15B7468B9D77E8 /* HealthKitRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30550DD54D8D271069436F04 /* HealthKitRow.swift */; };
+		C649C0F7356C1E11521758D2 /* FamilyPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99272D5F9A8975233157FF3B /* FamilyPlanView.swift */; };
+		599A4A423D76DD575988E95D /* FriendInviteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB413DF92768420AB359523 /* FriendInviteView.swift */; };
+		9A3F5E69D6BA038C155C8269 /* ReceiptScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D12C17187EF6576FD0C248B /* ReceiptScanView.swift */; };
+		D8507B02C24910A2FED90812 /* RecallsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63897832322F6D495AAFA2CC /* RecallsView.swift */; };
+		A6DC9845164CB25DF791CA40 /* StreakHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1DC9011921CD0F113214073 /* StreakHeaderView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -138,6 +151,19 @@
 		BFFE1D13CAD0BC5B8CC25B4E /* IngredientChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientChatView.swift; sourceTree = "<group>"; };
 		5727C4D1A156A6947CDA0A9C /* MealPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlanView.swift; sourceTree = "<group>"; };
 		2809A5574103FBF46483ECB7 /* ReviewsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewsSheet.swift; sourceTree = "<group>"; };
+		0014B7DAC050A97044743E8D /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
+		46C31937F2A0D8288E8CDFDD /* PushService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushService.swift; sourceTree = "<group>"; };
+		20D5961EA4917E213DA17C20 /* ReceiptScannerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptScannerService.swift; sourceTree = "<group>"; };
+		A144E9D6FA4293252C5CF678 /* ScanAppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanAppIntent.swift; sourceTree = "<group>"; };
+		D6F600E7BE6BDCD6869E97A8 /* LookupBarcodeIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookupBarcodeIntent.swift; sourceTree = "<group>"; };
+		897687705DE0A6053D572529 /* UniversalLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniversalLinkHandler.swift; sourceTree = "<group>"; };
+		ED57422A68A344593AB457B6 /* WidgetDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataStore.swift; sourceTree = "<group>"; };
+		30550DD54D8D271069436F04 /* HealthKitRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitRow.swift; sourceTree = "<group>"; };
+		99272D5F9A8975233157FF3B /* FamilyPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FamilyPlanView.swift; sourceTree = "<group>"; };
+		ECB413DF92768420AB359523 /* FriendInviteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendInviteView.swift; sourceTree = "<group>"; };
+		2D12C17187EF6576FD0C248B /* ReceiptScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptScanView.swift; sourceTree = "<group>"; };
+		63897832322F6D495AAFA2CC /* RecallsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecallsView.swift; sourceTree = "<group>"; };
+		B1DC9011921CD0F113214073 /* StreakHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakHeaderView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -189,6 +215,9 @@
 			isa = PBXGroup;
 			children = (
 				867AFA9F40AF6B012B98DA4E /* SettingsView.swift */,
+				30550DD54D8D271069436F04 /* HealthKitRow.swift */,
+				99272D5F9A8975233157FF3B /* FamilyPlanView.swift */,
+				ECB413DF92768420AB359523 /* FriendInviteView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -325,6 +354,9 @@
 				A001A001A001A001A0010001 /* Ingredient */,
 				A002A002A002A002A0020002 /* MealPlan */,
 				A003A003A003A003A0030003 /* Community */,
+				B001B001B001B001B0010001 /* Receipt */,
+				B002B002B002B002B0020002 /* Recalls */,
+				B003B003B003B003B0030003 /* Streaks */,
 				FF8D526F09F86CC951559589 /* Scan */,
 				3CF541B57339D16358196328 /* Settings */,
 				413EF217B0CD2E177D211B58 /* Share */,
@@ -363,6 +395,13 @@
 				59A3C69B0A992C354722C602 /* LocalDatabase.swift */,
 				FB1378675E9BC9179B95BF61 /* NetworkClient.swift */,
 				AEA0E734B28EFE166CC78C47 /* ScorecardVideoExporter.swift */,
+				0014B7DAC050A97044743E8D /* HealthKitService.swift */,
+				46C31937F2A0D8288E8CDFDD /* PushService.swift */,
+				20D5961EA4917E213DA17C20 /* ReceiptScannerService.swift */,
+				A144E9D6FA4293252C5CF678 /* ScanAppIntent.swift */,
+				D6F600E7BE6BDCD6869E97A8 /* LookupBarcodeIntent.swift */,
+				897687705DE0A6053D572529 /* UniversalLinkHandler.swift */,
+				ED57422A68A344593AB457B6 /* WidgetDataStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -414,6 +453,30 @@
 				2809A5574103FBF46483ECB7 /* ReviewsSheet.swift */,
 			);
 			path = Community;
+			sourceTree = "<group>";
+		};
+		B001B001B001B001B0010001 /* Receipt */ = {
+			isa = PBXGroup;
+			children = (
+				2D12C17187EF6576FD0C248B /* ReceiptScanView.swift */,
+			);
+			path = Receipt;
+			sourceTree = "<group>";
+		};
+		B002B002B002B002B0020002 /* Recalls */ = {
+			isa = PBXGroup;
+			children = (
+				63897832322F6D495AAFA2CC /* RecallsView.swift */,
+			);
+			path = Recalls;
+			sourceTree = "<group>";
+		};
+		B003B003B003B003B0030003 /* Streaks */ = {
+			isa = PBXGroup;
+			children = (
+				B1DC9011921CD0F113214073 /* StreakHeaderView.swift */,
+			);
+			path = Streaks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -572,6 +635,19 @@
 				9C8C2A989D49DBE5B4A0F5CA /* IngredientChatView.swift in Sources */,
 				AFF98C8537D3DEF64CE3B32C /* MealPlanView.swift in Sources */,
 				8DC4E0F3FF5C182A11CAE829 /* ReviewsSheet.swift in Sources */,
+				E93C0395BA4DD6F1FFA88210 /* HealthKitService.swift in Sources */,
+				B95E4978E27F821C510048F5 /* PushService.swift in Sources */,
+				81E8F9AC62E1A1B05CB20195 /* ReceiptScannerService.swift in Sources */,
+				FC045B03D558D7A990930C83 /* ScanAppIntent.swift in Sources */,
+				E5AA53BF0ECC88DC5AF7D120 /* LookupBarcodeIntent.swift in Sources */,
+				22D078788357AA6B6D34D9C7 /* UniversalLinkHandler.swift in Sources */,
+				5D1DC7ACB8981C4B258E5A5B /* WidgetDataStore.swift in Sources */,
+				48F2B22AFC15B7468B9D77E8 /* HealthKitRow.swift in Sources */,
+				C649C0F7356C1E11521758D2 /* FamilyPlanView.swift in Sources */,
+				599A4A423D76DD575988E95D /* FriendInviteView.swift in Sources */,
+				9A3F5E69D6BA038C155C8269 /* ReceiptScanView.swift in Sources */,
+				D8507B02C24910A2FED90812 /* RecallsView.swift in Sources */,
+				A6DC9845164CB25DF791CA40 /* StreakHeaderView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
