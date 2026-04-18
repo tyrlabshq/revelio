@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireAuth, AuthRequest } from './auth';
-import { explainIngredient } from '../services/ingredientAI';
+import { explainIngredient, streamIngredientChat } from '../services/ingredientAI';
 
 export const ingredientRouter = Router();
 
@@ -85,5 +85,75 @@ ingredientRouter.get('/:name/explain', requireAuth, async (req: AuthRequest, res
   } catch (err: any) {
     console.error('[ingredients/explain] error:', err.message);
     return res.status(500).json({ error: 'Failed to generate explanation' });
+  }
+});
+
+// ─── POST /ingredients/:name/chat (SSE) ───────────────────────────────────────
+// REV-T3.1: Conversational follow-ups about a specific ingredient.
+// Body: { question: string, history?: Array<{role, content}>, priorities?: string[] }
+// TODO: assumes OPENAI_API_KEY is set in prod (enforced by the backend-security
+// agent's startup guard in index.ts).
+
+ingredientRouter.post('/:name/chat', requireAuth, async (req: AuthRequest, res) => {
+  const { name } = req.params;
+  const { question, history, priorities } = req.body as {
+    question?: string;
+    history?: Array<{ role: 'user' | 'assistant'; content: string }>;
+    priorities?: string[];
+  };
+
+  if (!name || !question || question.trim().length === 0) {
+    return res.status(400).json({ error: 'ingredient name and question are required' });
+  }
+
+  const userId = req.user!.userId;
+  const tier = req.user!.tier;
+
+  // Same rate limit as /explain for the free tier.
+  const rateCheck = checkAndIncrementAIUsage(userId, tier);
+  if (!rateCheck.allowed) {
+    return res.status(429).json({
+      error: 'Daily AI limit reached',
+      limit: rateCheck.limit,
+      used: rateCheck.used,
+      upgradeRequired: true,
+    });
+  }
+
+  // SSE headers.
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders?.();
+
+  const ingredient = decodeURIComponent(name).trim();
+  const safeHistory = Array.isArray(history)
+    ? history
+        .filter(h => (h.role === 'user' || h.role === 'assistant') && typeof h.content === 'string')
+        .slice(-10)
+    : [];
+  const safePriorities = Array.isArray(priorities) ? priorities.filter(p => typeof p === 'string') : [];
+
+  try {
+    for await (const chunk of streamIngredientChat({
+      ingredient,
+      priorities: safePriorities,
+      history: safeHistory,
+      question: question.trim(),
+    })) {
+      // Encode safely for SSE: each newline in the payload must be prefixed
+      // with `data: ` per the spec, so replace raw newlines first.
+      const safe = chunk.replace(/\r?\n/g, '\ndata: ');
+      res.write(`data: ${safe}\n\n`);
+    }
+    res.write(`event: done\ndata: [DONE]\n\n`);
+    res.end();
+  } catch (err: any) {
+    console.error('[ingredients/chat] stream error:', err?.message || err);
+    try {
+      res.write(`event: error\ndata: ${JSON.stringify({ error: 'stream failed' })}\n\n`);
+    } catch { /* noop */ }
+    res.end();
   }
 });
