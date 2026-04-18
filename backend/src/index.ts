@@ -18,6 +18,7 @@ import { swapCartRouter } from './routes/swap-cart';
 import { mealPlanRouter } from './routes/meal-plan';
 import { communityRouter } from './routes/community';
 import { insightsRouter } from './routes/insights';
+import { pRouter } from './routes/p';
 import { ensureAlternativesTable } from './db';
 import { logger, httpLogger } from './logger';
 import { globalLimiter } from './middleware/rateLimit';
@@ -103,6 +104,10 @@ app.use('/swap-cart', swapCartRouter);
 app.use('/meal-plan', mealPlanRouter);
 app.use('/community', communityRouter);
 app.use('/insights', insightsRouter);
+// Public SSR preview pages for shareable links (TikTok/bio/etc). No auth —
+// these render minimal OG-tagged HTML and trigger the iOS/Android universal
+// link handoff into the app when installed.
+app.use('/p', pRouter);
 
 // Bootstrap DB tables then start
 ensureAlternativesTable()
