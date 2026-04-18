@@ -23,11 +23,21 @@ function parseIngredients(text: string): string[] {
 }
 
 // ─── GET /scan/:barcode ───────────────────────────────────────────────────────
+//
+// Public, unauthed lookup — safe for Cloudflare / any downstream CDN to cache.
+// Cache-Control: let browsers reuse for 1 day, let the shared cache (CDN)
+// reuse for 7 days (matches the Postgres/Redis freshness window), and allow
+// serving stale up to 1 day while we refetch in the background.
+// Vary: Authorization is defensive — if an auth header ever leaks into this
+// path it must not pollute a shared cache entry.
 
 scanRouter.get('/:barcode', async (req, res) => {
   const { barcode } = req.params;
+  const bypassCache = /no-cache/i.test(req.headers['cache-control'] ?? '');
   try {
-    const cached = await db.query('SELECT * FROM products WHERE barcode = $1', [barcode]);
+    const cached = bypassCache
+      ? { rows: [] as any[] }
+      : await db.query('SELECT * FROM products WHERE barcode = $1', [barcode]);
     let product = cached.rows[0];
     const needsFetch = !product || (Date.now() - new Date(product.last_fetched).getTime() > 7 * 24 * 60 * 60 * 1000);
 
@@ -48,6 +58,11 @@ scanRouter.get('/:barcode', async (req, res) => {
     const ings = typeof product.ingredients === 'string' ? JSON.parse(product.ingredients) : product.ingredients;
     const result = await scoreProduct(ings, product.category, []);
 
+    res.setHeader(
+      'Cache-Control',
+      'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400'
+    );
+    res.setHeader('Vary', 'Authorization');
     res.json({
       id: crypto.randomUUID(), barcode, productName: product.name || 'Unknown', brand: product.brand || 'Unknown',
       category: product.category || 'food', imageUrl: product.image_url, ingredients: ings, flags: result.flags,
