@@ -44,6 +44,19 @@
             </array>
         </dict>
     </array>
+    <!--
+      Universal Links. The canonical home for `applinks:` is the target's
+      entitlements file (see Revelio.entitlements) — duplicating the hint
+      here as a discoverability anchor so anyone auditing the plist can see
+      that revelio.app is bound to the app. Xcode's "Associated Domains"
+      capability must still be enabled in Signing & Capabilities for the
+      provisioning profile to carry the entitlement.
+    -->
+    <key>RevelioAssociatedDomains</key>
+    <array>
+        <string>applinks:revelio.app</string>
+        <string>applinks:www.revelio.app</string>
+    </array>
     <key>MinimumOSVersion</key>
     <string>17.0</string>
     <!--
