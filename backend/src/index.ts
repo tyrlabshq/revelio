@@ -13,6 +13,7 @@ import { webhookRouter } from './routes/webhooks';
 import { referralsRouter } from './routes/referrals';
 import { scansRouter } from './routes/scans';
 import { privacyRouter } from './routes/privacy';
+import { contributionsRouter } from './routes/contributions';
 import { ensureAlternativesTable } from './db';
 import { logger, httpLogger } from './logger';
 import { globalLimiter } from './middleware/rateLimit';
@@ -92,6 +93,7 @@ app.use('/profiles', profileRouter);
 app.use('/referrals', referralsRouter);
 app.use('/scans', scansRouter);
 app.use('/privacy', privacyRouter);
+app.use('/contributions', contributionsRouter); // wired by OCR/offline agent
 
 // Bootstrap DB tables then start
 ensureAlternativesTable()

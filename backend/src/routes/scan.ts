@@ -146,3 +146,58 @@ scanRouter.post('/personalize', async (req, res) => {
     return res.status(500).json({ error: 'Failed to personalize score' });
   }
 });
+
+// ─── POST /scan/ocr — score an ingredient list from on-device OCR ─────────────
+// Added by OCR/offline agent (Track 2.4). Accepts raw ingredient text captured
+// on-device by the iOS Vision pipeline and returns the same shape as
+// GET /scan/:barcode so clients can reuse their rendering logic.
+
+scanRouter.post('/ocr', requireAuth, async (req: AuthRequest, res) => {
+  const { ingredientText, category, priorities, barcode } = req.body as {
+    ingredientText?: string;
+    category?: string;
+    priorities?: UserPriority[];
+    barcode?: string;
+  };
+
+  if (!ingredientText || typeof ingredientText !== 'string' || ingredientText.trim().length < 3) {
+    return res.status(400).json({ error: 'ingredientText is required' });
+  }
+
+  // Guardrail on payload size — OCR'd labels rarely exceed ~4 KB.
+  if (ingredientText.length > 20_000) {
+    return res.status(413).json({ error: 'ingredientText too long' });
+  }
+
+  try {
+    const ings = parseIngredients(ingredientText);
+    if (ings.length === 0) {
+      return res.status(422).json({ error: 'No ingredients parsed from text' });
+    }
+
+    const cat = (category === 'cosmetics' || category === 'cleaning' || category === 'supplements')
+      ? category
+      : 'food';
+
+    const result = await scoreProduct(ings, cat, priorities ?? []);
+
+    return res.json({
+      id: crypto.randomUUID(),
+      barcode: barcode || `ocr-${Date.now()}`,
+      productName: 'Scanned Label',
+      brand: 'Unknown',
+      category: cat,
+      imageUrl: null,
+      ingredients: ings,
+      flags: result.flags,
+      baseScore: result.baseScore,
+      personalizedScore: result.personalizedScore,
+      grade: result.grade,
+      scannedAt: new Date().toISOString(),
+      source: 'ocr',
+    });
+  } catch (err) {
+    console.error('[scan/ocr] error:', err);
+    return res.status(500).json({ error: 'Failed to score OCR ingredients' });
+  }
+});
