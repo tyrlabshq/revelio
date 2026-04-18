@@ -1,25 +1,26 @@
-// ─── backend/src/jobs/scheduler.ts ───────────────────────────────────────────
-// Track 3.9 — naive in-process scheduler for the weekly insights digest.
+// In-process scheduler for recurring background jobs.
 //
-// Intentionally dependency-free: uses setInterval + a clock check rather than
-// pulling in node-cron. This is fine for a single-instance deploy but NOT
-// production-robust — a real deployment should rely on an external scheduler
-// (Fly.io machines with a cron schedule, Kubernetes CronJob, GitHub Actions,
-// or similar) and have this process expose a secure trigger endpoint instead.
+// Dependency-free (just setInterval + a clock check) rather than node-cron to
+// keep deploys slim. Fine for a single-instance deploy — a real deployment
+// should rely on an external scheduler (Fly machines cron, K8s CronJob, GitHub
+// Actions) and have this process expose secure trigger endpoints instead.
 //
-// Behavior: ticks every 60s. When it observes Monday at 15:00 UTC (i.e. the
-// current minute matches and we have not already fired this week), it invokes
-// sendWeeklyDigest().
+// Current jobs:
+//   - weeklyInsights (Mon 15:00 UTC): per-user digest email.
+//   - fdaRecalls (every 6h): ingest openFDA recalls + notify affected users.
 
 import { sendWeeklyDigest } from './weeklyInsights';
+import { ingestRecentRecalls } from './fdaRecalls';
 
 const TICK_MS = 60 * 1000;
+const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
 const TARGET_DAY_UTC = 1;   // 0=Sun, 1=Mon
 const TARGET_HOUR_UTC = 15; // 15:00 UTC
 const TARGET_MINUTE_UTC = 0;
 
 let lastFiredIsoWeek: string | null = null;
-let intervalHandle: ReturnType<typeof setInterval> | null = null;
+let weeklyHandle: ReturnType<typeof setInterval> | null = null;
+let recallsHandle: ReturnType<typeof setInterval> | null = null;
 
 // ISO week-year key (e.g. "2026-W16") — used to deduplicate fires within a week.
 function isoWeekKey(d: Date): string {
@@ -31,7 +32,7 @@ function isoWeekKey(d: Date): string {
   return `${date.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
 }
 
-async function tick(): Promise<void> {
+async function weeklyTick(): Promise<void> {
   const now = new Date();
   if (
     now.getUTCDay() !== TARGET_DAY_UTC ||
@@ -55,25 +56,30 @@ async function tick(): Promise<void> {
 }
 
 /**
- * Start the in-process scheduler. Safe to call multiple times — subsequent
- * calls are no-ops.
- *
- * NOTE: naive implementation. For production-grade reliability, replace with
- * an external scheduler (Fly machines, K8s CronJob, GitHub Actions) hitting
- * POST /insights/send-now (or a dedicated admin endpoint) with the right
- * credentials.
+ * Start all schedulers. Safe to call multiple times — no-ops on re-invocation.
  */
 export function startSchedulers(): void {
-  if (intervalHandle) return;
-  intervalHandle = setInterval(() => {
-    void tick();
+  if (weeklyHandle || recallsHandle) return;
+
+  // Weekly digest (Mon 15:00 UTC)
+  weeklyHandle = setInterval(() => {
+    void weeklyTick();
   }, TICK_MS);
-  console.log('[scheduler] started — weekly digest at Mon 15:00 UTC');
+
+  // FDA recalls: kick once on boot so cold starts don't wait 6 hours.
+  void ingestRecentRecalls().catch(err => {
+    console.error('[scheduler] initial fdaRecalls run failed:', err);
+  });
+  recallsHandle = setInterval(() => {
+    void ingestRecentRecalls().catch(err => {
+      console.error('[scheduler] fdaRecalls run failed:', err);
+    });
+  }, SIX_HOURS_MS);
+
+  console.log('[scheduler] started — weekly digest Mon 15:00 UTC, fdaRecalls every 6h');
 }
 
 export function stopSchedulers(): void {
-  if (intervalHandle) {
-    clearInterval(intervalHandle);
-    intervalHandle = null;
-  }
+  if (weeklyHandle) { clearInterval(weeklyHandle); weeklyHandle = null; }
+  if (recallsHandle) { clearInterval(recallsHandle); recallsHandle = null; }
 }

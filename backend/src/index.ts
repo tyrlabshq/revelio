@@ -20,6 +20,7 @@ import { communityRouter } from './routes/community';
 import { insightsRouter } from './routes/insights';
 import { pRouter } from './routes/p';
 import { wellKnownRouter } from './routes/well-known';
+import { recallsRouter } from './routes/recalls';
 import { ensureAlternativesTable } from './db';
 import { logger, httpLogger } from './logger';
 import { globalLimiter } from './middleware/rateLimit';
@@ -111,6 +112,7 @@ app.use('/swap-cart', swapCartRouter);
 app.use('/meal-plan', mealPlanRouter);
 app.use('/community', communityRouter);
 app.use('/insights', insightsRouter);
+app.use('/recalls', recallsRouter);
 // Public SSR preview pages for shareable links (TikTok/bio/etc). No auth —
 // these render minimal OG-tagged HTML and trigger the iOS/Android universal
 // link handoff into the app when installed.
