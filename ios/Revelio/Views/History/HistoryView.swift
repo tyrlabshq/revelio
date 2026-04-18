@@ -80,6 +80,12 @@ struct HistoryView: View {
 
                 ScrollView {
                     LazyVStack(spacing: 0, pinnedViews: []) {
+                        // Streak header — pinned above insights per product spec
+                        StreakHeaderView()
+                            .padding(.horizontal, 16)
+                            .padding(.top, 12)
+                            .padding(.bottom, 4)
+
                         // Insights card
                         if let ins = insights {
                             InsightsCard(insights: ins)
