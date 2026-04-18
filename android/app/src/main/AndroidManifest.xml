@@ -33,6 +33,40 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!--
+              Android App Links for https://revelio.app/p/<barcode>.
+              autoVerify=true triggers Play Protect to fetch
+              /.well-known/assetlinks.json and verify our signing fingerprint;
+              once verified the link opens the app directly without the
+              disambiguation dialog. MainActivity.onNewIntent parses the
+              URL and navigates to the scan result.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="revelio.app"
+                    android:pathPrefix="/p/" />
+                <data
+                    android:scheme="https"
+                    android:host="www.revelio.app"
+                    android:pathPrefix="/p/" />
+            </intent-filter>
+
+            <!--
+              Custom-scheme fallback (revelio://scan/<barcode>). Fired by the
+              SSR page's inline JS when App Links verification hasn't taken
+              effect yet (fresh install, downgraded CA, etc).
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="revelio" android:host="scan" />
+            </intent-filter>
         </activity>
 
         <!-- ML Kit: download the barcode model at install time. -->
