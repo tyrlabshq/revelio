@@ -69,6 +69,44 @@ class PantryManager: ObservableObject {
 
     // MARK: - Public API
 
+    /// Recomputes the household score and pushes a fresh snapshot to the
+    /// home-screen widget via the shared App Group. Safe to call frequently.
+    func refreshWidget(streakDays: Int = 0, lastScanGrade: String? = nil) {
+        guard !items.isEmpty else {
+            WidgetDataStore.write(
+                householdScore: 0,
+                grade: "—",
+                streakDays: streakDays,
+                lastScanGrade: lastScanGrade,
+                itemCount: 0
+            )
+            return
+        }
+        var totalWeight = 0.0
+        var weightedSum = 0.0
+        for item in items {
+            let w: Double = item.grade == "F" ? 3 : item.grade == "D" ? 2 : 1
+            weightedSum += Double(item.score) * w
+            totalWeight += w
+        }
+        let score = Int(weightedSum / max(totalWeight, 1))
+        let grade: String
+        switch score {
+        case 85...: grade = "A"
+        case 70..<85: grade = "B"
+        case 55..<70: grade = "C"
+        case 40..<55: grade = "D"
+        default: grade = "F"
+        }
+        WidgetDataStore.write(
+            householdScore: score,
+            grade: grade,
+            streakDays: streakDays,
+            lastScanGrade: lastScanGrade ?? items.first?.grade,
+            itemCount: items.count
+        )
+    }
+
     /// Add or update a product from a successful scan.
     /// If the barcode already exists, updates the scan date and latest data.
     func addItem(from scan: ScanResult) {
@@ -110,6 +148,7 @@ class PantryManager: ObservableObject {
         }
 
         persist(updatedItem, category: scan.category.rawValue)
+        refreshWidget(lastScanGrade: scan.grade)
     }
 
     func removeItem(_ item: PantryItem) {
@@ -121,6 +160,7 @@ class PantryManager: ObservableObject {
         } catch {
             NSLog("[PantryManager] removeItem failed: \(error)")
         }
+        refreshWidget()
     }
 
     /// Used by List.onDelete — offsets map into the filtered list, not the full items array.
@@ -136,6 +176,7 @@ class PantryManager: ObservableObject {
         } catch {
             NSLog("[PantryManager] removeItems failed: \(error)")
         }
+        refreshWidget()
     }
 
     // MARK: - Persistence

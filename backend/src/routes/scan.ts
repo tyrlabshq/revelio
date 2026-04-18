@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db';
 import { scoreProduct } from '../services/scorer';
+import { recordScanForStreak } from '../services/streaks';
 import { UserPriority } from '../../../shared/scoring';
 import { requireAuth, AuthRequest } from './auth';
 
@@ -99,6 +100,15 @@ scanRouter.post('/history', requireAuth, async (req: AuthRequest, res) => {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
       [userId, barcode, productName, brand || null, category || 'food', imageUrl || null, score, grade, JSON.stringify(flags ?? [])]
     );
+    if (userId) {
+      // Narrowly scoped: update streak state for this authenticated user.
+      // Failures here shouldn't block the scan insert.
+      try {
+        await recordScanForStreak(userId);
+      } catch (streakErr: any) {
+        console.error('[scan] streak update failed:', streakErr.message);
+      }
+    }
     res.status(201).json({ ok: true });
   } catch (err) {
     console.error('History record error:', err);
