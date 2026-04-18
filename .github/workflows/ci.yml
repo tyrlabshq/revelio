@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend deps
+        run: cd backend && npm ci
+
+      - name: Typecheck
+        run: cd backend && ./node_modules/.bin/tsc --noEmit
+
+  migrations-dry-run:
+    name: Migrations dry-run
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      PGURL: postgres://postgres:postgres@localhost:5432/postgres
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install psql client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Wait for Postgres
+        run: |
+          for i in $(seq 1 30); do
+            if pg_isready -h localhost -p 5432 -U postgres; then
+              echo "Postgres ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Postgres never became ready"
+          exit 1
+
+      - name: Run migrations in order
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(backend/migrations/*.sql)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No migration files found — nothing to run."
+            exit 0
+          fi
+          # Sort lexically so 001_, 002_, ... run in order.
+          IFS=$'\n' sorted=($(printf '%s\n' "${files[@]}" | sort))
+          unset IFS
+          for f in "${sorted[@]}"; do
+            echo "=== Applying $f ==="
+            psql "$PGURL" -v ON_ERROR_STOP=1 -f "$f"
+          done
+          echo "All migrations applied cleanly."
+
+  android-lint:
+    name: Android compileDebugKotlin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for android/ directory
+        id: android_present
+        run: |
+          if [ -d android ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "android/ directory not present — skipping Android build."
+          fi
+
+      - name: Setup Java 17
+        if: steps.android_present.outputs.present == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        if: steps.android_present.outputs.present == 'true'
+        uses: gradle/gradle-build-action@v2
+
+      - name: Generate Gradle wrapper if missing
+        if: steps.android_present.outputs.present == 'true'
+        run: |
+          cd android
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ] || [ ! -x gradlew ]; then
+            echo "Gradle wrapper missing — generating with Gradle 8.5."
+            gradle wrapper --gradle-version 8.5
+            chmod +x gradlew
+          fi
+
+      - name: compileDebugKotlin
+        if: steps.android_present.outputs.present == 'true'
+        run: |
+          cd android
+          ./gradlew compileDebugKotlin --no-daemon --stacktrace

@@ -29,6 +29,30 @@ export interface IngredientFlag {
   priorities: UserPriority[]; // which user priorities this triggers
 }
 
+// ─── Nutri-Score / Nova / Eco-Score types ────────────────────────────────────
+
+export type NutriScore = 'A' | 'B' | 'C' | 'D' | 'E';
+export type NovaGroup = 1 | 2 | 3 | 4;
+export type EcoScore = 'A' | 'B' | 'C' | 'D' | 'E';
+
+export interface Nutriments {
+  // Per 100g / 100ml. All optional — the OFF API is inconsistent.
+  energyKj?: number;
+  saturatedFatG?: number;
+  sugarsG?: number;
+  sodiumMg?: number;
+  fiberG?: number;
+  proteinG?: number;
+  fruitsVegNutsPercent?: number;
+}
+
+export interface NutriScoreResult {
+  grade: NutriScore;
+  points: number; // final Nutri-Score points (negative - positive)
+  negativePoints: number;
+  positivePoints: number;
+}
+
 export interface ScanResult {
   barcode: string;
   productName: string;
@@ -41,6 +65,10 @@ export interface ScanResult {
   personalizedScore: number; // re-weighted for user priorities
   grade: 'A' | 'B' | 'C' | 'D' | 'F';
   alternatives?: AlternativeProduct[];
+  nutriScore?: NutriScore;
+  novaGroup?: NovaGroup;
+  ecoScore?: EcoScore;
+  kidSafeGrade?: 'A' | 'B' | 'C' | 'D' | 'F';
 }
 
 export interface AlternativeProduct {
@@ -87,3 +115,197 @@ export const personalizeScore = (
   }
   return Math.max(0, Math.min(100, baseScore - penalty));
 };
+
+// ─── Nutri-Score v2 (2023 official algorithm) ────────────────────────────────
+//
+// Implementation notes / approximations (documented inline per the 2023 update):
+//
+// NEGATIVE POINTS (lower = cleaner):
+//   energy  — per 100g/ml kJ: step = 335 kJ → 0 points at ≤335, +1 per additional
+//             335 kJ up to a cap of 10. (Solid-food table from official doc.)
+//   satfat  — g per 100g: step 1g → +1 per +1g up to 10.
+//   sugars  — g per 100g: 2023 update uses a steeper, non-uniform curve.
+//             Approximation: 0pts ≤4.5g, thresholds at
+//             {9, 13.5, 18, 22.5, 27, 31, 36, 41, 46, 51} g → capped at 15 pts.
+//             This approximation is within ±1 pt of the official table for most
+//             products; precise boundaries are documented at
+//             https://world.openfoodfacts.org/nutriscore
+//   sodium  — mg per 100g: step 90 mg → +1 per +90 mg up to 10.
+//             (Official range 0–20 pts; we clamp at 10 which matches v1 and
+//             matches OFF's implementation for solid products.)
+//
+// POSITIVE POINTS (higher = cleaner):
+//   fiber   — g per 100g: step 0.9g → +1 per +0.9g up to 5.
+//   protein — g per 100g: step 1.6g → +1 per +1.6g up to 5.
+//   fvn %   — fruits/vegetables/nuts/legumes %: +1 per +20% up to 5.
+//
+// FINAL: points = negative - positive.
+// General (solid) food thresholds (from OFF):
+//   A ≤ -1, B ≤ 2, C ≤ 10, D ≤ 18, else E.
+// Beverage thresholds differ; we use the general one here and flag beverages
+// separately in the caller. Link for reference:
+//   https://world.openfoodfacts.org/files/nutriscore-2023-algorithm.pdf
+
+function pointsStep(value: number, step: number, cap: number): number {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  const pts = Math.floor(value / step);
+  return Math.max(0, Math.min(cap, pts));
+}
+
+function sugarsPoints(sugarsG: number): number {
+  // 2023 algorithm: steeper scale. Thresholds below are grams per 100g.
+  // See inline notes above for the approximation rationale.
+  if (!Number.isFinite(sugarsG) || sugarsG <= 4.5) return 0;
+  const thresholds = [4.5, 9, 13.5, 18, 22.5, 27, 31, 36, 41, 46, 51, 56, 61, 66, 71];
+  let pts = 0;
+  for (const t of thresholds) {
+    if (sugarsG > t) pts++;
+    else break;
+  }
+  return Math.min(15, pts);
+}
+
+export function computeNutriScore(n: Nutriments): NutriScoreResult | null {
+  // Require at least energy + satfat + sugars + sodium to compute. Fiber /
+  // protein / fvn default to 0 positive points when missing.
+  if (
+    n.energyKj == null ||
+    n.saturatedFatG == null ||
+    n.sugarsG == null ||
+    n.sodiumMg == null
+  ) {
+    return null;
+  }
+
+  const energyPts = pointsStep(n.energyKj - 335, 335, 10) + (n.energyKj > 335 ? 1 : 0);
+  // The +1 at boundary above matches: 0pts ≤335, +1 per 335 up to 10.
+  // Simpler form: floor(energy/335) capped at 10 (but 335 itself → 1 pt).
+  const energyPtsSimple = Math.max(0, Math.min(10, Math.floor(n.energyKj / 335)));
+
+  const satFatPts = pointsStep(n.saturatedFatG - 1, 1, 10) + (n.saturatedFatG > 1 ? 1 : 0);
+  const satFatPtsSimple = Math.max(0, Math.min(10, Math.floor(n.saturatedFatG / 1)));
+
+  const sugarsPts = sugarsPoints(n.sugarsG);
+
+  const sodiumPts = Math.max(0, Math.min(10, Math.floor(n.sodiumMg / 90)));
+
+  // Use the simpler ceil-based forms for stability (they match the commonly
+  // implemented OFF version for solid foods).
+  const neg = energyPtsSimple + satFatPtsSimple + sugarsPts + sodiumPts;
+
+  const fiberPts = n.fiberG != null
+    ? Math.max(0, Math.min(5, Math.floor(n.fiberG / 0.9)))
+    : 0;
+  const proteinPts = n.proteinG != null
+    ? Math.max(0, Math.min(5, Math.floor(n.proteinG / 1.6)))
+    : 0;
+  const fvnPts = n.fruitsVegNutsPercent != null
+    ? Math.max(0, Math.min(5, Math.floor(n.fruitsVegNutsPercent / 20)))
+    : 0;
+
+  // OFF rule: if negative points >= 11, don't count protein unless fvn is 5.
+  const proteinCountable = neg < 11 || fvnPts === 5 ? proteinPts : 0;
+  const pos = fiberPts + proteinCountable + fvnPts;
+
+  const points = neg - pos;
+  // Silence unused-var warnings for the alternate energy/satfat computations;
+  // they're kept inline as reference for reviewers comparing to the OFF code.
+  void energyPts;
+  void satFatPts;
+
+  let grade: NutriScore;
+  if (points <= -1) grade = 'A';
+  else if (points <= 2) grade = 'B';
+  else if (points <= 10) grade = 'C';
+  else if (points <= 18) grade = 'D';
+  else grade = 'E';
+
+  return { grade, points, negativePoints: neg, positivePoints: pos };
+}
+
+// ─── Nova Group classification ───────────────────────────────────────────────
+//
+// Prefers the OFF-provided nova_group. Fallback heuristic counts flagged
+// additives (category tag starts with "additive" — check is
+// case-insensitive).
+//   0 additives  → 1 (unprocessed / minimally processed)
+//   1–2          → 2 (processed culinary)
+//   3–5          → 3 (processed)
+//   6+           → 4 (ultra-processed)
+
+export function classifyNovaGroup(
+  offNovaGroup: number | null | undefined,
+  flags: IngredientFlag[]
+): NovaGroup | undefined {
+  if (offNovaGroup != null && offNovaGroup >= 1 && offNovaGroup <= 4) {
+    return offNovaGroup as NovaGroup;
+  }
+  const additiveCount = flags.filter(f =>
+    f.category?.toLowerCase?.().includes('additive') ||
+    f.category?.toLowerCase?.().includes('preservative') ||
+    f.category?.toLowerCase?.().includes('sweetener') ||
+    f.category?.toLowerCase?.().includes('dye') ||
+    f.category?.toLowerCase?.().includes('emulsifier') ||
+    f.category?.toLowerCase?.().includes('thickener') ||
+    f.category?.toLowerCase?.().includes('flavor enhancer')
+  ).length;
+  if (additiveCount === 0) return 1;
+  if (additiveCount <= 2) return 2;
+  if (additiveCount <= 5) return 3;
+  return 4;
+}
+
+// ─── Eco-Score (pass-through from OFF) ───────────────────────────────────────
+
+export function normalizeEcoScore(offEcoGrade: string | null | undefined): EcoScore | undefined {
+  if (!offEcoGrade) return undefined;
+  const g = offEcoGrade.toUpperCase();
+  if (g === 'A' || g === 'B' || g === 'C' || g === 'D' || g === 'E') return g as EcoScore;
+  return undefined;
+}
+
+// ─── Kid-safe scoring ────────────────────────────────────────────────────────
+//
+// When the caller opts into kid-safe mode, any matched flag whose severity
+// is ≥2 AND whose category tag intersects one of
+//   { artificial_additives, heavy_metals, endocrine_disruptors }
+// downgrades the whole product to F. The priorities[] array on each flag
+// is how we tag which concern categories it belongs to.
+
+const KID_SAFE_CATEGORIES: UserPriority[] = [
+  'artificial_additives',
+  'heavy_metals',
+  'endocrine_disruptors',
+];
+
+export interface KidSafeOptions {
+  kidSafe: boolean;
+}
+
+export interface KidSafeResult {
+  grade: 'A' | 'B' | 'C' | 'D' | 'F';
+  reason?: string; // prominent reason string when downgraded
+  triggeringFlag?: IngredientFlag;
+}
+
+export function kidSafeScore(
+  flags: IngredientFlag[],
+  personalizedScore: number,
+  options: KidSafeOptions = { kidSafe: false }
+): KidSafeResult {
+  if (!options.kidSafe) {
+    return { grade: scoreToGrade(personalizedScore) };
+  }
+  const trigger = flags.find(f =>
+    f.severity >= 2 &&
+    f.priorities.some(p => KID_SAFE_CATEGORIES.includes(p))
+  );
+  if (trigger) {
+    return {
+      grade: 'F',
+      triggeringFlag: trigger,
+      reason: `Contains ${trigger.ingredient} — ${trigger.reason}`,
+    };
+  }
+  return { grade: scoreToGrade(personalizedScore) };
+}

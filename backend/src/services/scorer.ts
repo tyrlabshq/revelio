@@ -4,6 +4,14 @@ import {
   UserPriority,
   scoreToGrade,
   personalizeScore,
+  computeNutriScore,
+  classifyNovaGroup,
+  normalizeEcoScore,
+  kidSafeScore,
+  NutriScore,
+  NovaGroup,
+  EcoScore,
+  Nutriments,
 } from '../../../shared/scoring';
 
 // ─── In-memory cache ────────────────────────────────────────────────────────
@@ -72,6 +80,23 @@ export interface ScoreResult {
   personalizedScore: number;
   grade: 'A' | 'B' | 'C' | 'D' | 'F';
   flags: IngredientFlag[];
+  nutriScore?: NutriScore;
+  novaGroup?: NovaGroup;
+  ecoScore?: EcoScore;
+  kidSafeGrade?: 'A' | 'B' | 'C' | 'D' | 'F';
+  kidSafeReason?: string;
+}
+
+export interface ScoreOptions {
+  // Nutri/Nova/Eco inputs. When null/undefined the engine tries to compute
+  // Nutri from `nutriments`, falls back to nothing.
+  nutriments?: Nutriments;
+  offNutriScoreGrade?: NutriScore;
+  offNovaGroup?: NovaGroup;
+  offEcoGrade?: EcoScore | string;
+  // Kid-safe mode: when true, a severity ≥2 flag in the kid-safe category set
+  // forces the kidSafeGrade to F with a reason string.
+  kidSafe?: boolean;
 }
 
 // ─── Penalty map ──────────────────────────────────────────────────────────────
@@ -88,7 +113,8 @@ const SEVERITY_PENALTY: Record<number, number> = {
 export async function scoreProduct(
   ingredients: string[],
   category: string,
-  priorities: UserPriority[]
+  priorities: UserPriority[],
+  options: ScoreOptions = {}
 ): Promise<ScoreResult> {
   const allFlags = await getIngredientFlags();
 
@@ -116,7 +142,68 @@ export async function scoreProduct(
   // Grade
   const grade = scoreToGrade(personalizedScore);
 
-  return { baseScore, personalizedScore, grade, flags: matchedFlags };
+  // Prefer OFF-provided Nutri-Score when available; otherwise compute.
+  let nutriScore: NutriScore | undefined = options.offNutriScoreGrade;
+  if (!nutriScore && options.nutriments) {
+    const ns = computeNutriScore(options.nutriments);
+    if (ns) nutriScore = ns.grade;
+  }
+
+  const novaGroup = classifyNovaGroup(options.offNovaGroup, matchedFlags);
+  const ecoScore = normalizeEcoScore(options.offEcoGrade ?? undefined);
+
+  const result: ScoreResult = {
+    baseScore,
+    personalizedScore,
+    grade,
+    flags: matchedFlags,
+    nutriScore,
+    novaGroup,
+    ecoScore,
+  };
+
+  if (options.kidSafe) {
+    const ks = kidSafeScore(matchedFlags, personalizedScore, { kidSafe: true });
+    result.kidSafeGrade = ks.grade;
+    result.kidSafeReason = ks.reason;
+  }
+
+  return result;
+}
+
+// ─── Convenience: score directly from a cached product row ───────────────────
+//
+// Most callers have a barcode and a priorities[] array — this wrapper loads the
+// cached row (written by productLookup.lookupProduct) and forwards the OFF
+// fields (nutriscore_grade, nova_group, ecoscore_grade, nutriments) into the
+// main scorer. It is NOT a replacement for scoreProduct — existing callers that
+// pass pre-parsed ingredient arrays continue to work unchanged.
+
+export async function scoreBarcode(
+  barcode: string,
+  priorities: UserPriority[],
+  opts: { kidSafe?: boolean } = {}
+): Promise<ScoreResult | null> {
+  const { rows } = await db.query('SELECT * FROM products WHERE barcode = $1', [barcode]);
+  if (rows.length === 0) return null;
+  const row = rows[0];
+  const ingredients = typeof row.ingredients === 'string' ? JSON.parse(row.ingredients) : (row.ingredients ?? []);
+  const raw = row.off_data || {};
+  const { parseNutriments } = await import('./productLookup');
+  const nutriments = parseNutriments(raw);
+  const offNutri = (typeof row.nutri_score_grade === 'string' ? row.nutri_score_grade.toUpperCase() : null);
+  const offNutriScoreGrade = offNutri && ['A','B','C','D','E'].includes(offNutri) ? (offNutri as NutriScore) : undefined;
+  const offNova = typeof row.nova_group === 'number' ? row.nova_group : parseInt(row.nova_group, 10);
+  const offNovaGroup = Number.isFinite(offNova) && offNova >= 1 && offNova <= 4 ? (offNova as NovaGroup) : undefined;
+  const offEcoGrade = typeof row.ecoscore_grade === 'string' ? row.ecoscore_grade : undefined;
+
+  return scoreProduct(ingredients, row.category || 'food', priorities, {
+    nutriments,
+    offNutriScoreGrade,
+    offNovaGroup,
+    offEcoGrade,
+    kidSafe: opts.kidSafe,
+  });
 }
 
 // ─── Cache invalidation (exported for tests / admin routes) ──────────────────

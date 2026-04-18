@@ -1,7 +1,12 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { db } from '../db';
+import { requireAuth, AuthRequest } from './auth';
 
 export const pantryRouter = Router();
+
+// All pantry routes require auth. user_id is derived from the JWT; any
+// client-provided user_id is ignored to prevent IDOR.
+pantryRouter.use(requireAuth);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -44,10 +49,11 @@ async function ensurePantryTable(): Promise<void> {
 ensurePantryTable().catch(console.error);
 
 // ─── POST /pantry — add item ──────────────────────────────────────────────────
-pantryRouter.post('/', async (req: Request, res: Response) => {
-  const { user_id, barcode } = req.body;
-  if (!user_id || !barcode) {
-    return res.status(400).json({ error: 'user_id and barcode required' });
+pantryRouter.post('/', async (req: AuthRequest, res: Response) => {
+  const user_id = req.user!.userId;
+  const { barcode } = req.body;
+  if (!barcode) {
+    return res.status(400).json({ error: 'barcode required' });
   }
 
   try {
@@ -97,11 +103,9 @@ pantryRouter.post('/', async (req: Request, res: Response) => {
 });
 
 // ─── DELETE /pantry/:barcode — remove item ────────────────────────────────────
-pantryRouter.delete('/:barcode', async (req: Request, res: Response) => {
-  const user_id = req.query.user_id as string || req.body?.user_id;
+pantryRouter.delete('/:barcode', async (req: AuthRequest, res: Response) => {
+  const user_id = req.user!.userId;
   const { barcode } = req.params;
-
-  if (!user_id) return res.status(400).json({ error: 'user_id required' });
 
   try {
     const result = await db.query(
@@ -117,9 +121,8 @@ pantryRouter.delete('/:barcode', async (req: Request, res: Response) => {
 });
 
 // ─── GET /pantry — all items for a user ──────────────────────────────────────
-pantryRouter.get('/', async (req: Request, res: Response) => {
-  const user_id = req.query.user_id as string;
-  if (!user_id) return res.status(400).json({ error: 'user_id required' });
+pantryRouter.get('/', async (req: AuthRequest, res: Response) => {
+  const user_id = req.user!.userId;
 
   try {
     const result = await db.query(
@@ -148,9 +151,8 @@ pantryRouter.get('/', async (req: Request, res: Response) => {
 });
 
 // ─── GET /pantry/score — household aggregate ──────────────────────────────────
-pantryRouter.get('/score', async (req: Request, res: Response) => {
-  const user_id = req.query.user_id as string;
-  if (!user_id) return res.status(400).json({ error: 'user_id required' });
+pantryRouter.get('/score', async (req: AuthRequest, res: Response) => {
+  const user_id = req.user!.userId;
 
   try {
     const result = await db.query(

@@ -1,5 +1,7 @@
 # 🔬 Revelio
 
+[![CI](https://github.com/tyrlabshq/revelio/actions/workflows/ci.yml/badge.svg)](https://github.com/tyrlabshq/revelio/actions/workflows/ci.yml)
+
 **Know what's really in it.**
 
 The Yuka killer — a barcode scanner for food, cosmetics, cleaning products, and supplements. Personalized scoring with cited science, not a black box. Built to bury Exposr.

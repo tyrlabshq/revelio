@@ -13,3 +13,5 @@ DerivedData/
 *.dSYM.zip
 *.dSYM
 Pods/
+# Claude Code agent worktrees (ephemeral)
+.claude/

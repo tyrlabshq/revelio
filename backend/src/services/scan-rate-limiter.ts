@@ -1,5 +1,10 @@
 import { db } from '../db';
 
+// NOTE: these functions take `tier` as a string arg rather than reading a
+// request, because they're intended to be callable from jobs/tests with no
+// request context. Callers should resolve the effective tier via
+// `hasProAccess(req)` / `effectiveTier(userId)` (see middleware/familyTier.ts)
+// and pass the resolved string in.
 const FREE_TIER_LIMIT = 10;
 
 export interface ScanUsageResult {

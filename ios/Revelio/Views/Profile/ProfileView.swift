@@ -97,6 +97,13 @@ struct ProfileView: View {
                     }
                 }
 
+                // Track 3.6: Kid-safe toggle per active family member
+                Section("Kid-Safe Mode") {
+                    KidSafeToggleView()
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
+                }
+
                 if authViewModel.currentUser?.isPro != true {
                     Section("Upgrade") {
                         Button {

@@ -6,5 +6,19 @@
     <array>
         <string>Default</string>
     </array>
+    <!--
+      Universal Links. `applinks:revelio.app` tells iOS to fetch
+      https://revelio.app/.well-known/apple-app-site-association at install
+      time and, on match, hand tapped https://revelio.app/p/<barcode> URLs
+      to this app via NSUserActivityTypeBrowsingWeb (see
+      Services/UniversalLinkHandler.swift). The main session must also
+      enable "Associated Domains" in the Xcode target's Signing &
+      Capabilities pane so the provisioning profile carries the entitlement.
+    -->
+    <key>com.apple.developer.associated-domains</key>
+    <array>
+        <string>applinks:revelio.app</string>
+        <string>applinks:www.revelio.app</string>
+    </array>
 </dict>
 </plist>

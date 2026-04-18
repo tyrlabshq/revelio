@@ -1,6 +1,7 @@
 import SwiftUI
 import StoreKit
 import UserNotifications
+import UIKit
 
 // MARK: - SettingsView
 
@@ -18,6 +19,22 @@ struct SettingsView: View {
     @State private var exportError: String?
     @State private var isClearingHistory = false
 
+    // Export my data (GDPR)
+    @State private var isExportingAccount = false
+    @State private var accountExportURL: IdentifiableURL?
+    @State private var accountExportError: String?
+
+    // Delete account (GDPR, triple-confirmation)
+    @State private var showDeleteConfirm1 = false
+    @State private var showDeleteConfirm2 = false
+    @State private var showDeleteTypePrompt = false
+    @State private var deleteTypedConfirmation = ""
+    @State private var isDeletingAccount = false
+    @State private var deleteAccountError: String?
+
+    // Recalls badge — fetched once on load, refreshed on appear.
+    @State private var recallUnreadCount: Int = 0
+
     // RevenueCat / subscription
     @State private var showManageSubsError: String?
 
@@ -27,6 +44,8 @@ struct SettingsView: View {
     @State private var restoreError: String?
 
     @Environment(\.requestReview) private var requestReview
+
+    private let authAPI = AuthAPI()
 
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -45,8 +64,10 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 accountSection
+                safetySection
                 preferencesSection
                 dataSection
+                privacySection
                 subscriptionSection
                 appSection
             }
@@ -54,6 +75,7 @@ struct SettingsView: View {
             .background(Theme.background.ignoresSafeArea())
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
+            .task { await refreshRecallBadge() }
         }
         .alert("Clear Scan History?", isPresented: $showClearHistoryAlert) {
             Button("Clear", role: .destructive) { clearHistory() }
@@ -70,6 +92,42 @@ struct SettingsView: View {
             Button("OK") {}
         } message: {
             Text("Your Pro subscription has been restored.")
+        }
+        // ─── Delete account: alert 1 ──────────────────────────────────────
+        .alert("Delete account?", isPresented: $showDeleteConfirm1) {
+            Button("Continue", role: .destructive) { showDeleteConfirm2 = true }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This erases your scans, pantry, goals, and family profiles forever.")
+        }
+        // ─── Delete account: alert 2 ──────────────────────────────────────
+        .alert("Are you sure?", isPresented: $showDeleteConfirm2) {
+            Button("Yes, continue", role: .destructive) {
+                deleteTypedConfirmation = ""
+                showDeleteTypePrompt = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This cannot be undone.")
+        }
+        // ─── Delete account: alert 3 (type-to-confirm) ────────────────────
+        .alert("Type DELETE to confirm", isPresented: $showDeleteTypePrompt) {
+            TextField("DELETE", text: $deleteTypedConfirmation)
+                .textInputAutocapitalization(.characters)
+                .autocorrectionDisabled(true)
+            Button("Delete my account", role: .destructive) {
+                if deleteTypedConfirmation == "DELETE" {
+                    Task { await performDeleteAccount() }
+                }
+            }
+            .disabled(deleteTypedConfirmation != "DELETE")
+            Button("Cancel", role: .cancel) { deleteTypedConfirmation = "" }
+        } message: {
+            Text("Type DELETE in all caps to permanently remove your account.")
+        }
+        // ─── Share sheet for /auth/export payload ─────────────────────────
+        .sheet(item: $accountExportURL) { wrapped in
+            ShareSheet(activityItems: [wrapped.url])
         }
     }
 
@@ -115,6 +173,49 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Safety Section
+
+    private var safetySection: some View {
+        Section("Safety") {
+            NavigationLink {
+                RecallsView()
+                    .environmentObject(authViewModel)
+            } label: {
+                HStack {
+                    Label("Recall Alerts", systemImage: "exclamationmark.triangle")
+                        .foregroundColor(Theme.textPrimary)
+                    Spacer()
+                    if recallUnreadCount > 0 {
+                        Text("\(recallUnreadCount)")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(Theme.danger)
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func refreshRecallBadge() async {
+        guard let token = authViewModel.loadToken() else { return }
+        let apiBase = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://api.revelio.app"
+        guard let url = URL(string: "\(apiBase)/recalls/mine") else { return }
+
+        var req = URLRequest(url: url)
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: req)
+            guard (response as? HTTPURLResponse)?.statusCode == 200 else { return }
+            let decoded = try JSONDecoder.revelio.decode(RecallsResponse.self, from: data)
+            recallUnreadCount = decoded.unreadCount
+        } catch { /* non-fatal */ }
     }
 
     // MARK: - Preferences Section
@@ -196,6 +297,72 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundColor(Theme.danger)
             }
+        }
+    }
+
+    // MARK: - Privacy Section (GDPR)
+
+    private var privacySection: some View {
+        Section {
+            // Export my data — GET /auth/export → share sheet
+            Button {
+                Task { await performExportMyData() }
+            } label: {
+                HStack {
+                    if isExportingAccount {
+                        ProgressView()
+                            .tint(Theme.accent)
+                        Text("Preparing export...")
+                            .foregroundColor(Theme.textSecondary)
+                    } else {
+                        Label("Export my data", systemImage: "square.and.arrow.down.on.square")
+                            .foregroundColor(Theme.textPrimary)
+                    }
+                    Spacer()
+                    if !isExportingAccount {
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(Theme.textDim)
+                    }
+                }
+            }
+            .disabled(isExportingAccount || isDeletingAccount)
+
+            if let err = accountExportError {
+                Text(err)
+                    .font(.caption)
+                    .foregroundColor(Theme.danger)
+            }
+
+            // Delete account — triple-confirm → DELETE /auth/account → nuke local state
+            Button(role: .destructive) {
+                showDeleteConfirm1 = true
+            } label: {
+                HStack {
+                    if isDeletingAccount {
+                        ProgressView()
+                            .tint(Theme.danger)
+                        Text("Deleting...")
+                            .foregroundColor(Theme.danger)
+                    } else {
+                        Label("Delete account", systemImage: "trash.slash")
+                    }
+                    Spacer()
+                }
+            }
+            .disabled(isExportingAccount || isDeletingAccount)
+
+            if let err = deleteAccountError {
+                Text(err)
+                    .font(.caption)
+                    .foregroundColor(Theme.danger)
+            }
+        } header: {
+            Text("Privacy")
+        } footer: {
+            Text("You can download a copy of your data or permanently delete your account at any time. Account deletion is immediate and irreversible.")
+                .font(.caption)
+                .foregroundColor(Theme.textSecondary)
         }
     }
 
@@ -380,6 +547,63 @@ struct SettingsView: View {
         isClearingHistory = false
     }
 
+    // MARK: - GDPR: Export my data
+
+    private func performExportMyData() async {
+        accountExportError = nil
+        isExportingAccount = true
+        defer { isExportingAccount = false }
+
+        do {
+            let data = try await authAPI.exportData()
+            let url = FileManager.default.temporaryDirectory
+                .appendingPathComponent("revelio-export.json")
+            try data.write(to: url, options: .atomic)
+            accountExportURL = IdentifiableURL(url: url)
+        } catch {
+            accountExportError = "Export failed: \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - GDPR: Delete account
+
+    private func performDeleteAccount() async {
+        deleteAccountError = nil
+        isDeletingAccount = true
+        defer { isDeletingAccount = false }
+
+        do {
+            try await authAPI.deleteAccount()
+        } catch {
+            deleteAccountError = "Could not delete account: \(error.localizedDescription)"
+            return
+        }
+
+        // Server accepted (204). Scrub everything on-device.
+        clearAllLocalState()
+
+        // Drop the session — ContentView will switch back to OnboardingView /
+        // PhoneEntryView because isAuthenticated flips to false.
+        authViewModel.signOut()
+    }
+
+    /// Wipes every local cache touched by the GDPR delete flow.
+    private func clearAllLocalState() {
+        let defaults = UserDefaults.standard
+        for key in [
+            "scan_history_v1",
+            "favorites_barcodes_v1",
+            "pantry_items_v1",
+            "revelio_personalization_v1"
+        ] {
+            defaults.removeObject(forKey: key)
+        }
+
+        // In-memory caches too, so the UI doesn't flash stale data on the
+        // way out.
+        HistoryManager.shared.clearHistory()
+    }
+
     private func restorePurchases() async {
         isRestoring = true
         restoreError = nil
@@ -419,6 +643,27 @@ struct SettingsView: View {
         case .supplements: return "pills"
         }
     }
+}
+
+// MARK: - Share sheet bridge
+//
+// UIActivityViewController wrapped for SwiftUI so we can present the export
+// JSON file for AirDrop / Mail / Save to Files / etc.
+
+private struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+/// Box so we can drive a `.sheet(item:)` from a URL value.
+private struct IdentifiableURL: Identifiable {
+    let url: URL
+    var id: String { url.absoluteString }
 }
 
 // MARK: - Preview

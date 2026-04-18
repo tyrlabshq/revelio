@@ -25,6 +25,8 @@
     <string>Revelio uses your camera to scan product barcodes for ingredient analysis.</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Revelio saves your scan scorecards to your Camera Roll so you can share them.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Revelio reads receipt photos from your library to score every item in one trip.</string>
     <key>UIRequiredDeviceCapabilities</key>
     <array>
         <string>arm64</string>
@@ -44,7 +46,57 @@
             </array>
         </dict>
     </array>
+    <!--
+      Universal Links. The canonical home for `applinks:` is the target's
+      entitlements file (see Revelio.entitlements) — duplicating the hint
+      here as a discoverability anchor so anyone auditing the plist can see
+      that revelio.app is bound to the app. Xcode's "Associated Domains"
+      capability must still be enabled in Signing & Capabilities for the
+      provisioning profile to carry the entitlement.
+    -->
+    <key>RevelioAssociatedDomains</key>
+    <array>
+        <string>applinks:revelio.app</string>
+        <string>applinks:www.revelio.app</string>
+    </array>
     <key>MinimumOSVersion</key>
     <string>17.0</string>
+    <!--
+      App Transport Security.
+      Arbitrary loads are forbidden app-wide. DEBUG builds are allowed to talk
+      to localhost (and 127.0.0.1 / ::1) over plain HTTP so the simulator can
+      hit a dev server; release builds must use HTTPS for every destination.
+      The NetworkClient additionally enforces this in code via scheme checks
+      and SPKI pinning against the production leaf certificate.
+    -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+        <key>NSAllowsArbitraryLoadsInWebContent</key>
+        <false/>
+        <key>NSAllowsLocalNetworking</key>
+        <false/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>localhost</key>
+            <dict>
+                <!-- DEBUG-only: NetworkClient refuses http:// in release anyway. -->
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <false/>
+            </dict>
+            <key>127.0.0.1</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <false/>
+            </dict>
+        </dict>
+    </dict>
 </dict>
 </plist>

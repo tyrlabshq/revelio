@@ -1,10 +1,21 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { db } from '../db';
+import { requireAuth, AuthRequest } from './auth';
 
 export const profileRouter = Router();
 
+// Every profile route is owner-scoped: reject if the authenticated user
+// is not the owner of :id. This prevents IDOR across profiles.
+function requireOwner(req: AuthRequest, res: Response, next: NextFunction) {
+  const ownerId = req.params.id;
+  if (!req.user || req.user.userId !== ownerId) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  next();
+}
+
 // GET /profiles/:id — fetch a profile with goals + allergies
-profileRouter.get('/:id', async (req, res) => {
+profileRouter.get('/:id', requireAuth, requireOwner, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const result = await db.query(
@@ -20,7 +31,7 @@ profileRouter.get('/:id', async (req, res) => {
 });
 
 // PATCH /profiles/:id — update priorities, allergies, goals
-profileRouter.patch('/:id', async (req, res) => {
+profileRouter.patch('/:id', requireAuth, requireOwner, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const { priorities, allergies, goals } = req.body as {
@@ -67,7 +78,7 @@ profileRouter.patch('/:id', async (req, res) => {
 });
 
 // GET /profiles/:id/members — list family members
-profileRouter.get('/:id/members', async (req, res) => {
+profileRouter.get('/:id/members', requireAuth, requireOwner, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const result = await db.query(
@@ -82,7 +93,7 @@ profileRouter.get('/:id/members', async (req, res) => {
 });
 
 // POST /profiles/:id/members — add a family member
-profileRouter.post('/:id/members', async (req, res) => {
+profileRouter.post('/:id/members', requireAuth, requireOwner, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const { name, is_child, goals, allergies, avatar_color } = req.body as {
@@ -116,7 +127,7 @@ profileRouter.post('/:id/members', async (req, res) => {
 });
 
 // DELETE /profiles/:id/members/:memberId — remove a family member
-profileRouter.delete('/:id/members/:memberId', async (req, res) => {
+profileRouter.delete('/:id/members/:memberId', requireAuth, requireOwner, async (req: AuthRequest, res) => {
   try {
     const { id, memberId } = req.params;
     const result = await db.query(

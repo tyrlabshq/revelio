@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db';
+import { requireAuth, AuthRequest } from './auth';
 
 export const referralsRouter = Router();
 
@@ -7,11 +8,12 @@ const COMMISSION_RATE = 0.20; // 20% recurring
 
 // ─── POST /referrals/apply ─────────────────────────────────────────────────
 // Called during signup when a ref code is present in the URL
-referralsRouter.post('/apply', async (req: Request, res: Response) => {
-  const { referral_code, user_id } = req.body;
+referralsRouter.post('/apply', requireAuth, async (req: AuthRequest, res: Response) => {
+  const { referral_code } = req.body;
+  const user_id = req.user!.userId;
 
-  if (!referral_code || !user_id) {
-    return res.status(400).json({ error: 'referral_code and user_id are required' });
+  if (!referral_code) {
+    return res.status(400).json({ error: 'referral_code is required' });
   }
 
   try {
@@ -61,12 +63,8 @@ referralsRouter.post('/apply', async (req: Request, res: Response) => {
 
 // ─── GET /referrals/my-stats ───────────────────────────────────────────────
 // Creator dashboard stats — requires authenticated user_id
-referralsRouter.get('/my-stats', async (req: Request, res: Response) => {
-  const user_id = req.headers['x-user-id'] as string;
-
-  if (!user_id) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
+referralsRouter.get('/my-stats', requireAuth, async (req: AuthRequest, res: Response) => {
+  const user_id = req.user!.userId;
 
   try {
     const codeResult = await db.query(
@@ -128,12 +126,13 @@ referralsRouter.get('/my-stats', async (req: Request, res: Response) => {
 
 // ─── POST /referrals/creator-apply ────────────────────────────────────────
 // Creator applies for the program
-referralsRouter.post('/creator-apply', async (req: Request, res: Response) => {
-  const { user_id, follower_count, platform, social_handle } = req.body;
+referralsRouter.post('/creator-apply', requireAuth, async (req: AuthRequest, res: Response) => {
+  const { follower_count, platform, social_handle } = req.body;
+  const user_id = req.user!.userId;
 
-  if (!user_id || !follower_count || !platform || !social_handle) {
+  if (!follower_count || !platform || !social_handle) {
     return res.status(400).json({
-      error: 'user_id, follower_count, platform, and social_handle are required'
+      error: 'follower_count, platform, and social_handle are required'
     });
   }
 
@@ -194,12 +193,8 @@ referralsRouter.post('/creator-apply', async (req: Request, res: Response) => {
 });
 
 // ─── GET /referrals/payout-history ────────────────────────────────────────
-referralsRouter.get('/payout-history', async (req: Request, res: Response) => {
-  const user_id = req.headers['x-user-id'] as string;
-
-  if (!user_id) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
+referralsRouter.get('/payout-history', requireAuth, async (req: AuthRequest, res: Response) => {
+  const user_id = req.user!.userId;
 
   try {
     const codeResult = await db.query(

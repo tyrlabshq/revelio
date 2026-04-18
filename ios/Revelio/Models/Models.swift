@@ -15,7 +15,76 @@ struct ScanResult: Identifiable, Codable {
     let alternatives: [AlternativeProduct]?
     let scannedAt: Date
 
+    // Yuka-parity scoring extras (Track 2.1–2.3). All optional — the server
+    // only populates them when OFF has the data for this barcode.
+    var nutriScoreGrade: String? = nil    // "A"…"E"
+    var novaGroup: Int? = nil             // 1…4
+    var ecoScoreGrade: String? = nil      // "A"…"E"
+    // Track 3.6 kid-safe grade: only present when the caller passed
+    // kidSafe=true on the scan request.
+    var kidSafeGrade: String? = nil
+    var kidSafeReason: String? = nil
+
     var displayScore: Int { personalizedScore }
+
+    // Backward-compatible decoder so older cached scans without the new fields
+    // still decode cleanly.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        barcode = try c.decode(String.self, forKey: .barcode)
+        productName = try c.decode(String.self, forKey: .productName)
+        brand = try c.decode(String.self, forKey: .brand)
+        category = try c.decode(ProductCategory.self, forKey: .category)
+        imageUrl = try c.decodeIfPresent(String.self, forKey: .imageUrl)
+        ingredients = (try? c.decode([String].self, forKey: .ingredients)) ?? []
+        flags = (try? c.decode([IngredientFlag].self, forKey: .flags)) ?? []
+        baseScore = try c.decode(Int.self, forKey: .baseScore)
+        personalizedScore = try c.decode(Int.self, forKey: .personalizedScore)
+        grade = try c.decode(String.self, forKey: .grade)
+        alternatives = try? c.decode([AlternativeProduct].self, forKey: .alternatives)
+        scannedAt = try c.decode(Date.self, forKey: .scannedAt)
+        nutriScoreGrade = try? c.decodeIfPresent(String.self, forKey: .nutriScoreGrade)
+        novaGroup = try? c.decodeIfPresent(Int.self, forKey: .novaGroup)
+        ecoScoreGrade = try? c.decodeIfPresent(String.self, forKey: .ecoScoreGrade)
+        kidSafeGrade = try? c.decodeIfPresent(String.self, forKey: .kidSafeGrade)
+        kidSafeReason = try? c.decodeIfPresent(String.self, forKey: .kidSafeReason)
+    }
+
+    init(
+        id: String, barcode: String, productName: String, brand: String,
+        category: ProductCategory, imageUrl: String?, ingredients: [String],
+        flags: [IngredientFlag], baseScore: Int, personalizedScore: Int,
+        grade: String, alternatives: [AlternativeProduct]?, scannedAt: Date,
+        nutriScoreGrade: String? = nil, novaGroup: Int? = nil,
+        ecoScoreGrade: String? = nil, kidSafeGrade: String? = nil,
+        kidSafeReason: String? = nil
+    ) {
+        self.id = id
+        self.barcode = barcode
+        self.productName = productName
+        self.brand = brand
+        self.category = category
+        self.imageUrl = imageUrl
+        self.ingredients = ingredients
+        self.flags = flags
+        self.baseScore = baseScore
+        self.personalizedScore = personalizedScore
+        self.grade = grade
+        self.alternatives = alternatives
+        self.scannedAt = scannedAt
+        self.nutriScoreGrade = nutriScoreGrade
+        self.novaGroup = novaGroup
+        self.ecoScoreGrade = ecoScoreGrade
+        self.kidSafeGrade = kidSafeGrade
+        self.kidSafeReason = kidSafeReason
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, barcode, productName, brand, category, imageUrl, ingredients,
+             flags, baseScore, personalizedScore, grade, alternatives, scannedAt,
+             nutriScoreGrade, novaGroup, ecoScoreGrade, kidSafeGrade, kidSafeReason
+    }
 }
 
 enum ProductCategory: String, Codable, CaseIterable {
