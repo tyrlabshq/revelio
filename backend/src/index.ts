@@ -19,6 +19,7 @@ import { mealPlanRouter } from './routes/meal-plan';
 import { communityRouter } from './routes/community';
 import { insightsRouter } from './routes/insights';
 import { pRouter } from './routes/p';
+import { wellKnownRouter } from './routes/well-known';
 import { ensureAlternativesTable } from './db';
 import { logger, httpLogger } from './logger';
 import { globalLimiter } from './middleware/rateLimit';
@@ -75,6 +76,12 @@ app.use(cors({
 // Structured request logging with PII redaction. Mounts above routes so every
 // request/response gets a correlated log line; health checks are filtered out.
 app.use(httpLogger);
+
+// /.well-known/* endpoints must be reachable by Apple's CDN and Google's
+// verifier on every install/launch. Apple in particular hammers the AASA file
+// and will permanently disable universal links if we 429 it. Mount BEFORE the
+// global limiter so those requests bypass rate limiting entirely.
+app.use('/.well-known', wellKnownRouter);
 
 // Global rate limit: 60 req/min per IP. Must run after CORS (so OPTIONS
 // preflights don't burn quota for the real request) and before express.json so
