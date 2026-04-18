@@ -18,6 +18,9 @@ struct SettingsView: View {
     @State private var exportError: String?
     @State private var isClearingHistory = false
 
+    // Recalls badge — fetched once on load, refreshed on appear.
+    @State private var recallUnreadCount: Int = 0
+
     // RevenueCat / subscription
     @State private var showManageSubsError: String?
 
@@ -45,6 +48,7 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 accountSection
+                safetySection
                 preferencesSection
                 dataSection
                 subscriptionSection
@@ -54,6 +58,7 @@ struct SettingsView: View {
             .background(Theme.background.ignoresSafeArea())
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
+            .task { await refreshRecallBadge() }
         }
         .alert("Clear Scan History?", isPresented: $showClearHistoryAlert) {
             Button("Clear", role: .destructive) { clearHistory() }
@@ -115,6 +120,49 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Safety Section
+
+    private var safetySection: some View {
+        Section("Safety") {
+            NavigationLink {
+                RecallsView()
+                    .environmentObject(authViewModel)
+            } label: {
+                HStack {
+                    Label("Recall Alerts", systemImage: "exclamationmark.triangle")
+                        .foregroundColor(Theme.textPrimary)
+                    Spacer()
+                    if recallUnreadCount > 0 {
+                        Text("\(recallUnreadCount)")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(Theme.danger)
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func refreshRecallBadge() async {
+        guard let token = authViewModel.loadToken() else { return }
+        let apiBase = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://api.revelio.app"
+        guard let url = URL(string: "\(apiBase)/recalls/mine") else { return }
+
+        var req = URLRequest(url: url)
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: req)
+            guard (response as? HTTPURLResponse)?.statusCode == 200 else { return }
+            let decoded = try JSONDecoder.revelio.decode(RecallsResponse.self, from: data)
+            recallUnreadCount = decoded.unreadCount
+        } catch { /* non-fatal */ }
     }
 
     // MARK: - Preferences Section
