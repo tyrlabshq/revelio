@@ -1,6 +1,7 @@
 import pLimit from 'p-limit';
 import { db } from '../db';
 import type { Nutriments, NutriScore, NovaGroup, EcoScore } from '../../../shared/scoring';
+import { getRedis } from '../lib/redis';
 
 export interface ProductData {
   barcode: string;
@@ -18,8 +19,15 @@ export interface ProductData {
   ecoScore?: number;
 }
 
-// OFF v2 fields we need. Added: nova_group, nutriscore_grade, nutriscore_score,
-// ecoscore_grade, ecoscore_score, fruits-vegetables-nuts_100g.
+export interface LookupOptions {
+  // When true, skip memory + Redis + Postgres caches and force a fresh
+  // fetch from the upstream APIs. Routes plumb `Cache-Control: no-cache`
+  // into this flag. Postgres is still written on success so downstream
+  // readers see the refreshed row.
+  bypassCache?: boolean;
+}
+
+// OFF v2 fields we need. Includes nutri/nova/eco for Track 2 parity.
 const FIELDS = [
   'product_name',
   'brands',
@@ -43,6 +51,60 @@ const SOURCES = [
 
 // Rate limiter: max 1 concurrent request to OFF (1 req/sec friendly)
 const offLimiter = pLimit(1);
+
+// ─── Cache config ────────────────────────────────────────────────────────────
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const SEVEN_DAYS_SEC = 7 * 24 * 60 * 60;
+const MEMORY_TTL_MS = 5 * 60 * 1000; // 5 min hot cache in-process
+const MEMORY_MAX_ENTRIES = 500;
+const cacheKey = (barcode: string) => `product:v1:${barcode}`;
+
+type MemoryEntry = { value: ProductData; expiresAt: number };
+const memoryCache = new Map<string, MemoryEntry>();
+
+function memoryGet(barcode: string): ProductData | null {
+  const entry = memoryCache.get(barcode);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    memoryCache.delete(barcode);
+    return null;
+  }
+  return entry.value;
+}
+
+function memorySet(barcode: string, value: ProductData): void {
+  if (memoryCache.size >= MEMORY_MAX_ENTRIES) {
+    // Evict the oldest insertion — Map preserves insertion order.
+    const oldest = memoryCache.keys().next().value;
+    if (oldest !== undefined) memoryCache.delete(oldest);
+  }
+  memoryCache.set(barcode, { value, expiresAt: Date.now() + MEMORY_TTL_MS });
+}
+
+async function redisGet(barcode: string): Promise<ProductData | null> {
+  const redis = getRedis();
+  if (!redis) return null;
+  try {
+    const raw = await redis.get(cacheKey(barcode));
+    if (!raw) return null;
+    return JSON.parse(raw) as ProductData;
+  } catch (err) {
+    console.error('[productLookup] redis get failed:', (err as Error).message);
+    return null;
+  }
+}
+
+async function redisSet(barcode: string, value: ProductData): Promise<void> {
+  const redis = getRedis();
+  if (!redis) return;
+  try {
+    await redis.set(cacheKey(barcode), JSON.stringify(value), 'EX', SEVEN_DAYS_SEC);
+  } catch (err) {
+    console.error('[productLookup] redis set failed:', (err as Error).message);
+  }
+}
+
+// ─── Parsing helpers ─────────────────────────────────────────────────────────
 
 function detectCategory(categoriesTags: string[]): 'food' | 'cosmetics' | 'cleaning' {
   const tags = categoriesTags.map(t => t.toLowerCase());
@@ -188,19 +250,41 @@ function hydrateCached(row: any): ProductData {
   };
 }
 
-export async function lookupProduct(barcode: string): Promise<ProductData | null> {
-  // Check DB cache first
-  const cached = await db.query('SELECT * FROM products WHERE barcode = $1', [barcode]);
-  if (cached.rows.length > 0) {
-    const row = cached.rows[0];
-    const ageMs = Date.now() - new Date(row.last_fetched).getTime();
-    const sevenDays = 7 * 24 * 60 * 60 * 1000;
-    if (ageMs < sevenDays) {
-      return hydrateCached(row);
+// ─── Lookup ──────────────────────────────────────────────────────────────────
+
+export async function lookupProduct(
+  barcode: string,
+  options: LookupOptions = {}
+): Promise<ProductData | null> {
+  const { bypassCache = false } = options;
+
+  if (!bypassCache) {
+    // Layer 1: in-process memory
+    const mem = memoryGet(barcode);
+    if (mem) return mem;
+
+    // Layer 2: Redis
+    const hit = await redisGet(barcode);
+    if (hit) {
+      memorySet(barcode, hit);
+      return hit;
+    }
+
+    // Layer 3: Postgres 7-day cache (hydrated with Nutri/Nova/Eco columns)
+    const cached = await db.query('SELECT * FROM products WHERE barcode = $1', [barcode]);
+    if (cached.rows.length > 0) {
+      const row = cached.rows[0];
+      const ageMs = Date.now() - new Date(row.last_fetched).getTime();
+      if (ageMs < SEVEN_DAYS_MS) {
+        const product = hydrateCached(row);
+        memorySet(barcode, product);
+        void redisSet(barcode, product);
+        return product;
+      }
     }
   }
 
-  // Fetch from APIs (fallback chain: OFF → OBF → OPF)
+  // Layer 4: upstream APIs (OFF → OBF → OPF)
   const result = await fetchFromAPIs(barcode);
   if (!result) return null;
 
@@ -216,7 +300,8 @@ export async function lookupProduct(barcode: string): Promise<ProductData | null
   const ecoScoreGrade = normalizeEcoGrade(raw.ecoscore_grade);
   const ecoScoreNumeric = typeof raw.ecoscore_score === 'number' ? raw.ecoscore_score : null;
 
-  // Upsert to DB (now including the Nutri/Nova/Eco columns from migration 007).
+  // Upsert to DB (always — even on bypassCache, readers stay fresh).
+  // Includes Nutri/Nova/Eco columns from migration 007.
   await db.query(
     `INSERT INTO products (
        barcode, name, brand, category, image_url, ingredients, off_data,
@@ -238,7 +323,7 @@ export async function lookupProduct(barcode: string): Promise<ProductData | null
     ]
   );
 
-  return {
+  const product: ProductData = {
     barcode, name, brand, category, imageUrl, ingredients, rawData: raw,
     nutriments,
     nutriScoreGrade,
@@ -247,4 +332,7 @@ export async function lookupProduct(barcode: string): Promise<ProductData | null
     ecoScoreGrade,
     ecoScore: ecoScoreNumeric ?? undefined,
   };
+  memorySet(barcode, product);
+  void redisSet(barcode, product);
+  return product;
 }

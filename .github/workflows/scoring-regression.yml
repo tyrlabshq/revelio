@@ -1,0 +1,29 @@
+name: Scoring Regression Gate
+
+on:
+  pull_request:
+    paths:
+      - 'shared/scoring.ts'
+      - 'backend/src/services/scorer.ts'
+      - 'backend/test/scoring-golden.ts'
+      - '.github/workflows/scoring-regression.yml'
+
+jobs:
+  golden-set:
+    name: Scoring golden-set regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend deps
+        run: cd backend && npm ci
+
+      - name: Run scoring golden-set
+        run: cd backend && npx -y tsx test/scoring-golden.ts
