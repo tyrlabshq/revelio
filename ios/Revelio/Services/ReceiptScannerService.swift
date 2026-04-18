@@ -52,7 +52,7 @@ struct ReceiptScannerService {
                     obs.topCandidates(1).first?.string
                 }
 
-                let filtered = filterProductLines(raw)
+                let filtered = Self.filterProductLines(raw)
                 let lines = filtered.map { ReceiptLine(lineText: $0) }
                 continuation.resume(returning: lines)
             }
@@ -81,10 +81,11 @@ struct ReceiptScannerService {
 
             // Mostly letters/spaces: reject lines where digits dominate
             // (phone numbers, prices, dates) and lines that are pure punctuation.
-            let letters = trimmed.unicodeScalars.filter {
-                CharacterSet.letters.contains($0) || $0 == " " || $0 == "'" || $0 == "-" || $0 == "&"
+            let allowedExtras: Set<Character> = [" ", "'", "-", "&"]
+            let letterChars = trimmed.filter { ch in
+                ch.isLetter || allowedExtras.contains(ch)
             }
-            guard letters.count >= Int(Double(trimmed.count) * 0.6) else { continue }
+            guard letterChars.count >= Int(Double(trimmed.count) * 0.6) else { continue }
 
             // Drop obvious non-product lines
             let lower = trimmed.lowercased()
