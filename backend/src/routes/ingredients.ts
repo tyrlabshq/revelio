@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth, AuthRequest } from './auth';
 import { explainIngredient } from '../services/ingredientAI';
+import { hasProAccess } from '../middleware/familyTier';
 
 export const ingredientRouter = Router();
 
@@ -57,7 +58,8 @@ ingredientRouter.get('/:name/explain', requireAuth, async (req: AuthRequest, res
   }
 
   const userId = req.user!.userId;
-  const tier = req.user!.tier;
+  // hasProAccess covers JWT tier + family plan membership + active pro_grants.
+  const tier = (await hasProAccess(req)) ? 'pro' : 'free';
 
   // Rate limit check
   const rateCheck = checkAndIncrementAIUsage(userId, tier);

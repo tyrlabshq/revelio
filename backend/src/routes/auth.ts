@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db';
+import { effectiveTier } from '../middleware/familyTier';
 
 export const authRouter = Router();
 
@@ -172,12 +173,14 @@ authRouter.get('/me', requireAuth, async (req: AuthRequest, res) => {
       [userId, today]
     );
     const dailyScansUsed = usageRow.rows[0]?.count ?? 0;
-    const dailyScansLimit = user.tier === 'pro' ? null : 10;
+    // effectiveTier rolls up the user's own tier + family plan + active pro_grants.
+    const tier = await effectiveTier(userId);
+    const dailyScansLimit = tier === 'pro' ? null : 10;
 
     return res.json({
       userId: user.id,
       phone: user.phone,
-      tier: user.tier,
+      tier,
       dailyScansUsed,
       dailyScansLimit,
     });
