@@ -1,6 +1,14 @@
+// Observability MUST be initialized before any other module loads so that
+// the OTel auto-instrumentation patches express / pg / ioredis on require.
+import dotenv from 'dotenv';
+dotenv.config();
+
+import { initOtel, initSentry, Sentry } from './observability';
+initOtel();
+initSentry();
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { scanRouter } from './routes/scan';
 import { productRouter } from './routes/products';
 import { ingredientRouter } from './routes/ingredients';
@@ -24,12 +32,12 @@ import { recallsRouter } from './routes/recalls';
 import { streaksRouter } from './routes/streaks';
 import { familyPlanRouter } from './routes/family-plan';
 import { friendInvitesRouter } from './routes/friend-invites';
+import { receiptsRouter } from './routes/receipts';
+import { requestIdMiddleware, errorHandler } from './middleware/errorHandler';
 import { ensureAlternativesTable } from './db';
 import { logger, httpLogger } from './logger';
 import { globalLimiter } from './middleware/rateLimit';
 import { startSchedulers } from './jobs/scheduler';
-
-dotenv.config();
 
 // ─── Production startup guard ─────────────────────────────────────────────────
 const DEV_SECRET = 'dev-secret-change-in-prod';
@@ -93,6 +101,7 @@ app.use('/.well-known', wellKnownRouter);
 app.use(globalLimiter);
 
 app.use(express.json());
+app.use(requestIdMiddleware);
 
 app.get('/health', (_, res) => res.json({ ok: true, service: 'revelio-api', version: '1.0.0' }));
 
@@ -119,10 +128,21 @@ app.use('/recalls', recallsRouter);
 app.use('/streaks', streaksRouter);
 app.use('/family-plan', familyPlanRouter);
 app.use('/friend-invites', friendInvitesRouter);
+app.use('/receipts', receiptsRouter);
 // Public SSR preview pages for shareable links (TikTok/bio/etc). No auth —
 // these render minimal OG-tagged HTML and trigger the iOS/Android universal
 // link handoff into the app when installed.
 app.use('/p', pRouter);
+
+// ─── Error handling ───────────────────────────────────────────────────────────
+// Sentry error handler (attached if the current @sentry/node exposes it —
+// removed from v8's ESM API but left on the namespace for compat).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const sentryErrHandler = (Sentry as any).Handlers?.errorHandler?.();
+if (typeof sentryErrHandler === 'function') {
+  app.use(sentryErrHandler);
+}
+app.use(errorHandler);
 
 // Bootstrap DB tables then start
 ensureAlternativesTable()

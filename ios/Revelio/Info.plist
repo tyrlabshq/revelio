@@ -25,6 +25,8 @@
     <string>Revelio uses your camera to scan product barcodes for ingredient analysis.</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Revelio saves your scan scorecards to your Camera Roll so you can share them.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Revelio reads receipt photos from your library to score every item in one trip.</string>
     <key>UIRequiredDeviceCapabilities</key>
     <array>
         <string>arm64</string>
