@@ -1,6 +1,14 @@
+// Observability MUST be initialized before any other module loads so that
+// the OTel auto-instrumentation patches express / pg / ioredis on require.
+import dotenv from 'dotenv';
+dotenv.config();
+
+import { initOtel, initSentry, Sentry } from './observability';
+initOtel();
+initSentry();
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { scanRouter } from './routes/scan';
 import { productRouter } from './routes/products';
 import { ingredientRouter } from './routes/ingredients';
@@ -13,9 +21,8 @@ import { referralsRouter } from './routes/referrals';
 import { scansRouter } from './routes/scans';
 import { privacyRouter } from './routes/privacy';
 import { receiptsRouter } from './routes/receipts';
+import { requestIdMiddleware, errorHandler, logger } from './middleware/errorHandler';
 import { ensureAlternativesTable } from './db';
-
-dotenv.config();
 
 // ─── Production startup guard ─────────────────────────────────────────────────
 const DEV_SECRET = 'dev-secret-change-in-prod';
@@ -44,6 +51,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use(requestIdMiddleware);
 
 app.get('/health', (_, res) => res.json({ ok: true, service: 'revelio-api', version: '1.0.0' }));
 
@@ -60,12 +68,24 @@ app.use('/scans', scansRouter);
 app.use('/privacy', privacyRouter);
 app.use('/receipts', receiptsRouter);
 
+// ─── Error handling ───────────────────────────────────────────────────────────
+// Sentry request/error handlers are wired via the auto-instrumentation when
+// OTel is active; we additionally attach Sentry.Handlers.errorHandler() if the
+// current @sentry/node version exposes it (it was removed in v8's ESM API but
+// left on the namespace for compat). Fail-soft if not present.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const sentryErrHandler = (Sentry as any).Handlers?.errorHandler?.();
+if (typeof sentryErrHandler === 'function') {
+  app.use(sentryErrHandler);
+}
+app.use(errorHandler);
+
 // Bootstrap DB tables then start
 ensureAlternativesTable()
   .then(() => {
-    app.listen(PORT, () => console.log(`Revelio API on :${PORT}`));
+    app.listen(PORT, () => logger.info({ port: PORT }, 'Revelio API listening'));
   })
   .catch(err => {
-    console.error('DB bootstrap failed:', err);
+    logger.error({ err }, 'DB bootstrap failed');
     process.exit(1);
   });

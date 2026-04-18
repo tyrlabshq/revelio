@@ -7,6 +7,11 @@
     "start": "node dist/backend/src/index.js"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.52.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.54.0",
+    "@opentelemetry/sdk-node": "^0.54.0",
+    "@sentry/node": "^8.40.0",
     "@types/jsonwebtoken": "^9.0.10",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
