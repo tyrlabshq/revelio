@@ -13,6 +13,7 @@ import { referralsRouter } from './routes/referrals';
 import { scansRouter } from './routes/scans';
 import { privacyRouter } from './routes/privacy';
 import { familyPlanRouter } from './routes/family-plan';
+import { friendInvitesRouter } from './routes/friend-invites';
 import { ensureAlternativesTable } from './db';
 
 dotenv.config();
@@ -59,6 +60,7 @@ app.use('/referrals', referralsRouter);
 app.use('/scans', scansRouter);
 app.use('/privacy', privacyRouter);
 app.use('/family-plan', familyPlanRouter);
+app.use('/friend-invites', friendInvitesRouter);
 
 // Bootstrap DB tables then start
 ensureAlternativesTable()
