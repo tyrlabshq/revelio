@@ -22,6 +22,8 @@ import { pRouter } from './routes/p';
 import { wellKnownRouter } from './routes/well-known';
 import { recallsRouter } from './routes/recalls';
 import { streaksRouter } from './routes/streaks';
+import { familyPlanRouter } from './routes/family-plan';
+import { friendInvitesRouter } from './routes/friend-invites';
 import { ensureAlternativesTable } from './db';
 import { logger, httpLogger } from './logger';
 import { globalLimiter } from './middleware/rateLimit';
@@ -115,6 +117,8 @@ app.use('/community', communityRouter);
 app.use('/insights', insightsRouter);
 app.use('/recalls', recallsRouter);
 app.use('/streaks', streaksRouter);
+app.use('/family-plan', familyPlanRouter);
+app.use('/friend-invites', friendInvitesRouter);
 // Public SSR preview pages for shareable links (TikTok/bio/etc). No auth —
 // these render minimal OG-tagged HTML and trigger the iOS/Android universal
 // link handoff into the app when installed.

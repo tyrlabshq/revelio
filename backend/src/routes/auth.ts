@@ -6,6 +6,7 @@ import { db } from '../db';
 import { logger } from '../logger';
 import { otpRequestLimiter, getRedis } from '../middleware/rateLimit';
 import { requireAuth, AuthRequest } from '../middleware/requireAuth';
+import { effectiveTier } from '../middleware/familyTier';
 import {
   requestOtpSchema,
   verifyOtpSchema,
@@ -331,12 +332,14 @@ authRouter.get('/me', requireAuth, async (req: AuthRequest, res) => {
       [userId, today]
     );
     const dailyScansUsed = usageRow.rows[0]?.count ?? 0;
-    const dailyScansLimit = user.tier === 'pro' ? null : 10;
+    // effectiveTier rolls up the user's own tier + family plan + active pro_grants.
+    const tier = await effectiveTier(userId);
+    const dailyScansLimit = tier === 'pro' ? null : 10;
 
     return res.json({
       userId: user.id,
       phone: user.phone,
-      tier: user.tier,
+      tier,
       dailyScansUsed,
       dailyScansLimit,
     });
