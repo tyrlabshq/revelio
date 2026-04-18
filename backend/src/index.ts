@@ -14,9 +14,14 @@ import { referralsRouter } from './routes/referrals';
 import { scansRouter } from './routes/scans';
 import { privacyRouter } from './routes/privacy';
 import { contributionsRouter } from './routes/contributions';
+import { swapCartRouter } from './routes/swap-cart';
+import { mealPlanRouter } from './routes/meal-plan';
+import { communityRouter } from './routes/community';
+import { insightsRouter } from './routes/insights';
 import { ensureAlternativesTable } from './db';
 import { logger, httpLogger } from './logger';
 import { globalLimiter } from './middleware/rateLimit';
+import { startSchedulers } from './jobs/scheduler';
 
 dotenv.config();
 
@@ -93,12 +98,17 @@ app.use('/profiles', profileRouter);
 app.use('/referrals', referralsRouter);
 app.use('/scans', scansRouter);
 app.use('/privacy', privacyRouter);
-app.use('/contributions', contributionsRouter); // wired by OCR/offline agent
+app.use('/contributions', contributionsRouter);
+app.use('/swap-cart', swapCartRouter);
+app.use('/meal-plan', mealPlanRouter);
+app.use('/community', communityRouter);
+app.use('/insights', insightsRouter);
 
 // Bootstrap DB tables then start
 ensureAlternativesTable()
   .then(() => {
     app.listen(PORT, () => logger.info({ event: 'server_started', port: PORT }));
+    startSchedulers();
   })
   .catch(err => {
     logger.error({ err: err?.message, event: 'db_bootstrap_failed' });

@@ -49,6 +49,21 @@
 		EBA478AF6E0BC28031574CEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 882220A5CBCDF8F2A55A882F /* Assets.xcassets */; };
 		EDC4BBD98253559559C97C55 /* ScanViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE077B1A76C559779DE4F7F6 /* ScanViewModel.swift */; };
 		F7773B6C5FD2D228D4532567 /* PantryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF68DAFBC2721F4F6366E040 /* PantryManager.swift */; };
+		F9814DCE126ED1992312A3A7 /* AuthAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8676F832C840493067363360 /* AuthAPI.swift */; };
+		64771B453121C2BA401F187D /* IngredientOCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2805F9FD440AA00C638D5AAC /* IngredientOCRService.swift */; };
+		9464DEDE6F754F46AF4D6B1B /* LocalDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59A3C69B0A992C354722C602 /* LocalDatabase.swift */; };
+		95697AA9CD50925EC4D1CAD9 /* NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB1378675E9BC9179B95BF61 /* NetworkClient.swift */; };
+		1507AE552E3A67EE1E9A8099 /* ScorecardVideoExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEA0E734B28EFE166CC78C47 /* ScorecardVideoExporter.swift */; };
+		99A1AE8D377A8773DABBBF5E /* DupeFinderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7EF236D5D8EFBB6360EE3F /* DupeFinderView.swift */; };
+		D5B661A23E88B3B8A45A4DD3 /* OCRScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DE3D4D40486714358B2BF22 /* OCRScanView.swift */; };
+		4B5E50990C85253463023D84 /* ScoreBadgesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B75DEB20028D9CD621AAE221 /* ScoreBadgesView.swift */; };
+		78E8624C9271F51340E4B5C3 /* KidSafeToggleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B7B6A1A462C8FC4A1BCA80 /* KidSafeToggleView.swift */; };
+		AE262664630F0D68AD4C3D1A /* SwapCartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537A479496CB58F44D66B276 /* SwapCartView.swift */; };
+		E590CC66534189EFF18D9EC8 /* ScoreVideoShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6264CF8DD4D0C7A470AF34F /* ScoreVideoShareSheet.swift */; };
+		91123ECAC9CDFFF60521532A /* HallOfShameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B4E68F09084CEAEA862E84D /* HallOfShameView.swift */; };
+		9C8C2A989D49DBE5B4A0F5CA /* IngredientChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFFE1D13CAD0BC5B8CC25B4E /* IngredientChatView.swift */; };
+		AFF98C8537D3DEF64CE3B32C /* MealPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5727C4D1A156A6947CDA0A9C /* MealPlanView.swift */; };
+		8DC4E0F3FF5C182A11CAE829 /* ReviewsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2809A5574103FBF46483ECB7 /* ReviewsSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,6 +123,21 @@
 		EF68DAFBC2721F4F6366E040 /* PantryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PantryManager.swift; sourceTree = "<group>"; };
 		F9BF37F2420E013DF868C88A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		FA1975F323CA83EF03BC0805 /* PantryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PantryView.swift; sourceTree = "<group>"; };
+		8676F832C840493067363360 /* AuthAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthAPI.swift; sourceTree = "<group>"; };
+		2805F9FD440AA00C638D5AAC /* IngredientOCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientOCRService.swift; sourceTree = "<group>"; };
+		59A3C69B0A992C354722C602 /* LocalDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalDatabase.swift; sourceTree = "<group>"; };
+		FB1378675E9BC9179B95BF61 /* NetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkClient.swift; sourceTree = "<group>"; };
+		AEA0E734B28EFE166CC78C47 /* ScorecardVideoExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScorecardVideoExporter.swift; sourceTree = "<group>"; };
+		4F7EF236D5D8EFBB6360EE3F /* DupeFinderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DupeFinderView.swift; sourceTree = "<group>"; };
+		1DE3D4D40486714358B2BF22 /* OCRScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRScanView.swift; sourceTree = "<group>"; };
+		B75DEB20028D9CD621AAE221 /* ScoreBadgesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreBadgesView.swift; sourceTree = "<group>"; };
+		E3B7B6A1A462C8FC4A1BCA80 /* KidSafeToggleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KidSafeToggleView.swift; sourceTree = "<group>"; };
+		537A479496CB58F44D66B276 /* SwapCartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwapCartView.swift; sourceTree = "<group>"; };
+		C6264CF8DD4D0C7A470AF34F /* ScoreVideoShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreVideoShareSheet.swift; sourceTree = "<group>"; };
+		0B4E68F09084CEAEA862E84D /* HallOfShameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HallOfShameView.swift; sourceTree = "<group>"; };
+		BFFE1D13CAD0BC5B8CC25B4E /* IngredientChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientChatView.swift; sourceTree = "<group>"; };
+		5727C4D1A156A6947CDA0A9C /* MealPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlanView.swift; sourceTree = "<group>"; };
+		2809A5574103FBF46483ECB7 /* ReviewsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewsSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -168,6 +198,7 @@
 			children = (
 				89E4DE772F2DE996C34708FE /* ShareCardGenerator.swift */,
 				6CDA34692B2E861A430DF733 /* ShareCardView.swift */,
+				C6264CF8DD4D0C7A470AF34F /* ScoreVideoShareSheet.swift */,
 			);
 			path = Share;
 			sourceTree = "<group>";
@@ -194,6 +225,7 @@
 			isa = PBXGroup;
 			children = (
 				FA1975F323CA83EF03BC0805 /* PantryView.swift */,
+				537A479496CB58F44D66B276 /* SwapCartView.swift */,
 			);
 			path = Pantry;
 			sourceTree = "<group>";
@@ -221,6 +253,7 @@
 			children = (
 				0646DACF5C19ACD428607E12 /* PersonalizationView.swift */,
 				ABBEDB2A106C588CF3B6A182 /* ProfileView.swift */,
+				E3B7B6A1A462C8FC4A1BCA80 /* KidSafeToggleView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -289,6 +322,9 @@
 				59F0FFA7191AD6333EB75E50 /* Pantry */,
 				25B3E458350E8E98E6382E91 /* Paywall */,
 				80E09A6C71D5F8BF465DEF44 /* Profile */,
+				A001A001A001A001A0010001 /* Ingredient */,
+				A002A002A002A002A0020002 /* MealPlan */,
+				A003A003A003A003A0030003 /* Community */,
 				FF8D526F09F86CC951559589 /* Scan */,
 				3CF541B57339D16358196328 /* Settings */,
 				413EF217B0CD2E177D211B58 /* Share */,
@@ -322,6 +358,11 @@
 				1762D8BE9FD96565A5A44FFE /* IngredientFlagDatabase.swift */,
 				1A2B3C4D5E6F70819203A4B6 /* KeychainStore.swift */,
 				EF68DAFBC2721F4F6366E040 /* PantryManager.swift */,
+				8676F832C840493067363360 /* AuthAPI.swift */,
+				2805F9FD440AA00C638D5AAC /* IngredientOCRService.swift */,
+				59A3C69B0A992C354722C602 /* LocalDatabase.swift */,
+				FB1378675E9BC9179B95BF61 /* NetworkClient.swift */,
+				AEA0E734B28EFE166CC78C47 /* ScorecardVideoExporter.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -330,6 +371,7 @@
 			isa = PBXGroup;
 			children = (
 				46163D4F416023B064C16486 /* ExploreView.swift */,
+				0B4E68F09084CEAEA862E84D /* HallOfShameView.swift */,
 			);
 			path = Explore;
 			sourceTree = "<group>";
@@ -343,8 +385,35 @@
 				09646FD131E0D14CB67FFB55 /* ScanResultCard.swift */,
 				5F5F3C5B645B0928D66B9B01 /* ScanView.swift */,
 				BE077B1A76C559779DE4F7F6 /* ScanViewModel.swift */,
+				4F7EF236D5D8EFBB6360EE3F /* DupeFinderView.swift */,
+				1DE3D4D40486714358B2BF22 /* OCRScanView.swift */,
+				B75DEB20028D9CD621AAE221 /* ScoreBadgesView.swift */,
 			);
 			path = Scan;
+			sourceTree = "<group>";
+		};
+		A001A001A001A001A0010001 /* Ingredient */ = {
+			isa = PBXGroup;
+			children = (
+				BFFE1D13CAD0BC5B8CC25B4E /* IngredientChatView.swift */,
+			);
+			path = Ingredient;
+			sourceTree = "<group>";
+		};
+		A002A002A002A002A0020002 /* MealPlan */ = {
+			isa = PBXGroup;
+			children = (
+				5727C4D1A156A6947CDA0A9C /* MealPlanView.swift */,
+			);
+			path = MealPlan;
+			sourceTree = "<group>";
+		};
+		A003A003A003A003A0030003 /* Community */ = {
+			isa = PBXGroup;
+			children = (
+				2809A5574103FBF46483ECB7 /* ReviewsSheet.swift */,
+			);
+			path = Community;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -488,6 +557,21 @@
 				B4CFAB2C5D3239BC83A77D1A /* ShareCardGenerator.swift in Sources */,
 				5A4AAA686AEB05F1E2CBA183 /* ShareCardView.swift in Sources */,
 				AF687004FC78274A2CF3FCBB /* Theme.swift in Sources */,
+				F9814DCE126ED1992312A3A7 /* AuthAPI.swift in Sources */,
+				64771B453121C2BA401F187D /* IngredientOCRService.swift in Sources */,
+				9464DEDE6F754F46AF4D6B1B /* LocalDatabase.swift in Sources */,
+				95697AA9CD50925EC4D1CAD9 /* NetworkClient.swift in Sources */,
+				1507AE552E3A67EE1E9A8099 /* ScorecardVideoExporter.swift in Sources */,
+				99A1AE8D377A8773DABBBF5E /* DupeFinderView.swift in Sources */,
+				D5B661A23E88B3B8A45A4DD3 /* OCRScanView.swift in Sources */,
+				4B5E50990C85253463023D84 /* ScoreBadgesView.swift in Sources */,
+				78E8624C9271F51340E4B5C3 /* KidSafeToggleView.swift in Sources */,
+				AE262664630F0D68AD4C3D1A /* SwapCartView.swift in Sources */,
+				E590CC66534189EFF18D9EC8 /* ScoreVideoShareSheet.swift in Sources */,
+				91123ECAC9CDFFF60521532A /* HallOfShameView.swift in Sources */,
+				9C8C2A989D49DBE5B4A0F5CA /* IngredientChatView.swift in Sources */,
+				AFF98C8537D3DEF64CE3B32C /* MealPlanView.swift in Sources */,
+				8DC4E0F3FF5C182A11CAE829 /* ReviewsSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
