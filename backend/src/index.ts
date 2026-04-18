@@ -12,7 +12,9 @@ import { webhookRouter } from './routes/webhooks';
 import { referralsRouter } from './routes/referrals';
 import { scansRouter } from './routes/scans';
 import { privacyRouter } from './routes/privacy';
+import { recallsRouter } from './routes/recalls';
 import { ensureAlternativesTable } from './db';
+import { startScheduler } from './jobs/scheduler';
 
 dotenv.config();
 
@@ -57,11 +59,13 @@ app.use('/profiles', profileRouter);
 app.use('/referrals', referralsRouter);
 app.use('/scans', scansRouter);
 app.use('/privacy', privacyRouter);
+app.use('/recalls', recallsRouter);
 
 // Bootstrap DB tables then start
 ensureAlternativesTable()
   .then(() => {
     app.listen(PORT, () => console.log(`Revelio API on :${PORT}`));
+    startScheduler();
   })
   .catch(err => {
     console.error('DB bootstrap failed:', err);
