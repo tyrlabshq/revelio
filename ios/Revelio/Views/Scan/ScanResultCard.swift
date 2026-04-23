@@ -14,6 +14,15 @@ struct ScanResultCard: View {
     // it up from the bottom.
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    // URL-safe slug derived from the scanned brand name. Stripped of spaces
+    // and any non-alphanumeric characters so `/brands/:slug` resolves to the
+    // same canonical form the backend uses (lowercase dash-separated).
+    private var brandSlug: String {
+        scan.brand.lowercased()
+            .replacingOccurrences(of: " ", with: "-")
+            .filter { $0.isLetter || $0.isNumber || $0 == "-" }
+    }
+
     var body: some View {
         VStack {
             Spacer()
@@ -97,7 +106,10 @@ struct ScanResultCard: View {
                 }
 
                 // Brand deep-dive entry point.
-                NavigationLink("View all products from this brand →", destination: BrandDeepDiveView(brandName: scan.brand))
+                NavigationLink(
+                    "View all products from this brand →",
+                    destination: BrandDeepDiveView(slug: brandSlug, authToken: authViewModel.loadToken())
+                )
                     .font(Theme.fontCaption)
                     .foregroundColor(Theme.accent)
 
