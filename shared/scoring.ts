@@ -14,7 +14,28 @@ export type UserPriority =
   | 'vegan'
   | 'fragrance_free'
   | 'paraben_free'
-  | 'sulfate_free';
+  | 'sulfate_free'
+  // ─── Life-mode pseudo-priorities (REV-17) ──────────────────────────────────
+  // Kid-safe already lives behind its own options flag; the four below gate
+  // extra severity math in `personalizeScore` + optional grade overrides.
+  // They're part of UserPriority because the scorer's existing plumbing
+  // (profile.priorities[]) is the natural carrier — a profile can only ever
+  // be in one life mode at a time, enforced at write time in routes/profiles.
+  | 'pregnancy'
+  | 'teen'
+  | 'senior'
+  | 'menstrual_cycle';
+
+// Life-mode values that are mutually exclusive per profile/family member.
+// null / undefined / absent = no life mode.
+export type LifeMode = 'pregnancy' | 'teen' | 'senior' | 'menstrual_cycle';
+
+export const LIFE_MODE_VALUES: readonly LifeMode[] = [
+  'pregnancy',
+  'teen',
+  'senior',
+  'menstrual_cycle',
+] as const;
 
 export interface IngredientFlag {
   ingredient: string;
@@ -99,6 +120,53 @@ export const scoreToGrade = (score: number): ScanResult['grade'] => {
   return 'F';
 };
 
+// ─── Life-mode helpers (REV-17) ──────────────────────────────────────────────
+//
+// Each life mode defines (a) a set of concern categories whose matched flags
+// get their severity multiplied and (b) optional overrides used to force a
+// bad grade when a high-severity flag is present in one of those categories.
+// We keep the modes data-driven so the iOS client and the backend agree.
+
+const LIFE_MODE_FLAG_MULTIPLIER: Record<LifeMode, { categories: UserPriority[]; multiplier: number }> = {
+  pregnancy: {
+    // Pregnancy: double-weight heavy metals / endocrine disruptors /
+    // artificial additives / fragrance (absorbed via skin + inhalation).
+    categories: ['heavy_metals', 'endocrine_disruptors', 'artificial_additives', 'fragrance_free'],
+    multiplier: 2,
+  },
+  teen: {
+    // Teens: similar to kid-safe, slightly relaxed. Severity 3 flags in the
+    // kid-safe categories downgrade to F; severity 2 drops by one grade.
+    categories: ['heavy_metals', 'endocrine_disruptors', 'artificial_additives'],
+    multiplier: 1.5,
+  },
+  senior: {
+    // Seniors: sodium + sugar are handled via nutriments (see
+    // applyLifeModeNutriPenalty). No additional flag multiplier.
+    categories: [],
+    multiplier: 1,
+  },
+  menstrual_cycle: {
+    // Endocrine-disruptor sensitivity (parabens, phthalates, BPA).
+    categories: ['endocrine_disruptors', 'paraben_free'],
+    multiplier: 2,
+  },
+};
+
+/**
+ * Pull the first life-mode value present in `priorities`. A profile is only
+ * ever in one mode at a time (enforced at PATCH time), so taking the first
+ * match is safe.
+ */
+export function resolveLifeMode(priorities: UserPriority[]): LifeMode | null {
+  for (const p of priorities) {
+    if ((LIFE_MODE_VALUES as readonly string[]).includes(p)) {
+      return p as LifeMode;
+    }
+  }
+  return null;
+}
+
 // Personalized scoring: amplify flags that match user priorities
 export const personalizeScore = (
   baseScore: number,
@@ -106,15 +174,128 @@ export const personalizeScore = (
   priorities: UserPriority[]
 ): number => {
   if (priorities.length === 0) return baseScore;
+  const lifeMode = resolveLifeMode(priorities);
+  const lifeModeCfg = lifeMode ? LIFE_MODE_FLAG_MULTIPLIER[lifeMode] : null;
+
   let penalty = 0;
   for (const flag of flags) {
     const overlap = flag.priorities.filter(p => priorities.includes(p)).length;
     if (overlap > 0) {
       penalty += flag.severity * 5 * overlap;
     }
+    // Life-mode multiplier applies on top of the base overlap math. This
+    // intentionally stacks — e.g. a paraben flag on a menstrual_cycle
+    // profile that also has `paraben_free` selected gets both bumps.
+    if (lifeModeCfg && lifeModeCfg.categories.length > 0) {
+      const hits = flag.priorities.filter(p => lifeModeCfg.categories.includes(p)).length;
+      if (hits > 0) {
+        penalty += flag.severity * 5 * hits * (lifeModeCfg.multiplier - 1);
+      }
+    }
   }
   return Math.max(0, Math.min(100, baseScore - penalty));
 };
+
+// ─── Life-mode nutrition-based penalty (senior) ──────────────────────────────
+//
+// Applied on top of personalizeScore when the profile is in `senior` mode and
+// we have nutriments. >20% DV sodium (DV = 2300mg) → 10pt penalty; combined
+// with >10g sugar → another 10pt. Returns the adjusted score.
+
+export function applyLifeModeNutriPenalty(
+  score: number,
+  lifeMode: LifeMode | null,
+  n?: Nutriments
+): number {
+  if (lifeMode !== 'senior' || !n) return score;
+  let penalty = 0;
+  // FDA DV for sodium is 2300mg. 20% DV on the Nutrition Facts panel is
+  // generally considered "high" — we apply an additive 10pt hit per 100g/ml.
+  if (typeof n.sodiumMg === 'number' && n.sodiumMg > 460) {
+    penalty += 10;
+  }
+  if (typeof n.sugarsG === 'number' && n.sugarsG > 10) {
+    penalty += 10;
+  }
+  return Math.max(0, Math.min(100, score - penalty));
+}
+
+// ─── Life-mode grade override (pregnancy / teen) ─────────────────────────────
+//
+// Some modes can force a bad grade regardless of score — e.g. pregnancy with a
+// severity ≥2 flag in a pregnancy-concern category. Returns { grade, reason }
+// when an override fires; otherwise undefined.
+
+export interface LifeModeOverride {
+  grade: 'A' | 'B' | 'C' | 'D' | 'F';
+  reason: string;
+  triggeringFlag?: IngredientFlag;
+}
+
+const PREGNANCY_CONCERN_CATEGORIES: UserPriority[] = [
+  'heavy_metals',
+  'endocrine_disruptors',
+  'artificial_additives',
+  'fragrance_free',
+];
+
+const TEEN_CONCERN_CATEGORIES: UserPriority[] = [
+  'heavy_metals',
+  'endocrine_disruptors',
+  'artificial_additives',
+];
+
+export function lifeModeGradeOverride(
+  lifeMode: LifeMode | null,
+  flags: IngredientFlag[],
+  currentGrade: 'A' | 'B' | 'C' | 'D' | 'F'
+): LifeModeOverride | undefined {
+  if (!lifeMode) return undefined;
+
+  if (lifeMode === 'pregnancy') {
+    const trigger = flags.find(f =>
+      f.severity >= 2 &&
+      f.priorities.some(p => PREGNANCY_CONCERN_CATEGORIES.includes(p))
+    );
+    if (trigger) {
+      return {
+        grade: 'F',
+        triggeringFlag: trigger,
+        reason: `Pregnancy mode: ${trigger.ingredient} — ${trigger.reason}`,
+      };
+    }
+  }
+
+  if (lifeMode === 'teen') {
+    const severe = flags.find(f =>
+      f.severity >= 3 &&
+      f.priorities.some(p => TEEN_CONCERN_CATEGORIES.includes(p))
+    );
+    if (severe) {
+      return {
+        grade: 'F',
+        triggeringFlag: severe,
+        reason: `Teen mode: ${severe.ingredient} — ${severe.reason}`,
+      };
+    }
+    const moderate = flags.find(f =>
+      f.severity >= 2 &&
+      f.priorities.some(p => TEEN_CONCERN_CATEGORIES.includes(p))
+    );
+    if (moderate) {
+      const order: Array<'A' | 'B' | 'C' | 'D' | 'F'> = ['A', 'B', 'C', 'D', 'F'];
+      const idx = order.indexOf(currentGrade);
+      const dropped = order[Math.min(order.length - 1, idx + 1)];
+      return {
+        grade: dropped,
+        triggeringFlag: moderate,
+        reason: `Teen mode: flagged ${moderate.category} in ${moderate.ingredient}`,
+      };
+    }
+  }
+
+  return undefined;
+}
 
 // ─── Nutri-Score v2 (2023 official algorithm) ────────────────────────────────
 //
