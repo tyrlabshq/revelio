@@ -62,4 +62,68 @@ enum WidgetDataStore {
         decoder.dateDecodingStrategy = .iso8601
         return try? decoder.decode(Payload.self, from: data)
     }
+
+    // MARK: - Recent scans (Watch + widget surface)
+
+    /// Key under which the rolling "last 5 scans" list is persisted in the
+    /// same App Group. The Watch app's Recent Scans tab reads this, and a
+    /// future Smart Stack widget can surface it too.
+    static let lastScansKey = "widget.lastScans.v1"
+
+    /// One entry in the capped rolling history. Kept intentionally tiny —
+    /// no ingredients, no flags, no images. The Watch app only needs name
+    /// + grade to render a list row.
+    struct RecentScan: Codable, Identifiable {
+        let barcode: String
+        let name: String
+        let grade: String
+        let scannedAt: Date
+        var id: String { barcode + "|" + scannedAt.timeIntervalSince1970.description }
+    }
+
+    /// Append a new scan to the `lastScans` ring, dedup-ing on barcode and
+    /// capping at 5 entries (most-recent-first). Call this from the main
+    /// app's scan success path — safe to call often.
+    static func writeLastScan(barcode: String, name: String, grade: String) {
+        guard let defaults = UserDefaults(suiteName: appGroup) else { return }
+
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        var existing: [RecentScan] = []
+        if let data = defaults.data(forKey: lastScansKey),
+           let decoded = try? decoder.decode([RecentScan].self, from: data) {
+            existing = decoded
+        }
+
+        // Drop any prior entry for the same barcode so the rolling list
+        // always reflects the latest scan of that product, not a stale row.
+        existing.removeAll { $0.barcode == barcode }
+
+        let entry = RecentScan(barcode: barcode, name: name, grade: grade, scannedAt: Date())
+        existing.insert(entry, at: 0)
+        if existing.count > 5 { existing = Array(existing.prefix(5)) }
+
+        if let data = try? encoder.encode(existing) {
+            defaults.set(data, forKey: lastScansKey)
+        }
+
+        #if canImport(WidgetKit)
+        WidgetCenter.shared.reloadAllTimelines()
+        #endif
+    }
+
+    /// Read the rolling "last 5 scans" list. Returns an empty array if the
+    /// App Group has not yet been populated.
+    static func readLastScans() -> [RecentScan] {
+        guard let defaults = UserDefaults(suiteName: appGroup),
+              let data = defaults.data(forKey: lastScansKey) else {
+            return []
+        }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return (try? decoder.decode([RecentScan].self, from: data)) ?? []
+    }
 }

@@ -39,6 +39,10 @@ class ScanViewModel: ObservableObject {
     func handleBarcode(_ code: String) {
         guard code != lastBarcode || Date().timeIntervalSince(lastScanTime) > 2 else { return }
         lastBarcode = code; lastScanTime = Date()
+        // Best-effort Live Activity start. Silently no-ops if the user
+        // has Live Activities disabled in Settings; never blocks the
+        // scan.
+        ScanActivityService.shared.start(barcode: code)
         Task { await fetchProduct(barcode: code) }
     }
 
@@ -80,9 +84,13 @@ class ScanViewModel: ObservableObject {
 
     private func fetchProduct(barcode: String) async {
         state = .loading
+        // Advance the Live Activity from "scanning" to "analyzing" as
+        // soon as the network call fires. Still best-effort.
+        ScanActivityService.shared.updateFetching()
         let scanBase = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://api.revelio.app"
         guard let url = URL(string: "\(scanBase)/scan/\(barcode)") else {
             recordFailure()
+            ScanActivityService.shared.fail()
             state = .error("Invalid barcode")
             return
         }
@@ -90,16 +98,19 @@ class ScanViewModel: ObservableObject {
             let (data, response) = try await URLSession.shared.data(from: url)
             guard let http = response as? HTTPURLResponse else {
                 recordFailure()
+                ScanActivityService.shared.fail()
                 state = .error("No response from server")
                 return
             }
             if http.statusCode == 404 {
                 recordFailure()
+                ScanActivityService.shared.fail()
                 state = .error("Product not found in our database yet. Try another item!")
                 return
             }
             guard http.statusCode == 200 else {
                 recordFailure()
+                ScanActivityService.shared.fail()
                 state = .error("Server error (\(http.statusCode)). Try again.")
                 return
             }
@@ -109,9 +120,18 @@ class ScanViewModel: ObservableObject {
             successFeedback.notificationOccurred(.success)
             HistoryManager.shared.addScan(scan)
             PantryManager.shared.addItem(from: scan)
+            // Mirror the scan into the shared App Group so the Watch
+            // app's Recent Scans tab and future widgets can see it.
+            WidgetDataStore.writeLastScan(
+                barcode: scan.barcode,
+                name: scan.productName,
+                grade: scan.grade
+            )
+            ScanActivityService.shared.finish(grade: scan.grade, productName: scan.productName)
             state = .result(scan)
         } catch {
             recordFailure()
+            ScanActivityService.shared.fail()
             state = .error("Couldn't analyze this product. Check your connection.")
         }
     }
