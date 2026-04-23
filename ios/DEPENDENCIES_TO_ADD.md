@@ -70,3 +70,70 @@ forwarded rather than written here.)
   Swift files and `Info.plist` are picked up. The target should NOT include
   "Configuration Intent".
 - **Deployment target** for the widget extension: iOS 17.0 (matches app).
+
+---
+
+## App Clip (RevelioAppClip)
+
+- **New target**: File → New → Target → **App Clip**. Name it
+  `RevelioAppClip`, bundle id `app.revelio.Revelio.Clip` (must match the AASA
+  manifest at `backend/src/routes/well-known.ts`).
+- Point it at the existing `ios/RevelioAppClip/` directory so the two Swift
+  files, `Info.plist`, and `RevelioAppClip.entitlements` are picked up.
+- **Signing & Capabilities** → add "Associated Domains" and set it to
+  `appclips:revelio.app`. Xcode wires the entitlement into the provisioning
+  profile.
+- **Parent app identifier** in the entitlements is already set to
+  `$(AppIdentifierPrefix)app.revelio.Revelio` — confirm it matches the main
+  app's bundle id when you create the target.
+- Deployment target: iOS 17.0.
+- No SPM dependencies required — the clip deliberately uses plain
+  `URLSession` and local model stubs instead of linking against the main
+  app's sources (10 MB cap).
+
+---
+
+## watchOS companion (RevelioWatch)
+
+- **New targets** (two):
+  1. **Watch App** — File → New → Target → **Watch App** (not the legacy
+     "Watch App for iOS App" template). Name it `RevelioWatch`, bundle id
+     `app.revelio.Revelio.watchkitapp`. Point it at `ios/RevelioWatch/` so
+     `RevelioWatchApp.swift` and `WatchRootView.swift` are picked up.
+     Deployment target: watchOS 10.0.
+  2. **Watch Widget Extension** (for the complication) — File → New → Target
+     → **Widget Extension**, choose "Include Live Activity" = NO, "Include
+     Configuration Intent" = NO, and set the "Embed in Application" to the
+     Watch app. Name it `RevelioWatchComplication`. Point it at
+     `ios/RevelioWatch/Complications/`. Deployment target: watchOS 10.0.
+- **App Group** `group.app.revelio` must be enabled on BOTH the watch app
+  target AND the watch complication target, same as the main app.
+- **No network code**: the watch talks only to the shared App Group and to
+  the paired iPhone via `WKExtension.shared().openSystemURL(revelio://scan)`.
+- Because the Watch target doesn't link the main app's sources, the payload
+  types and App Group keys are duplicated in `WatchRootView.swift` /
+  `Complications/RevelioComplicationController.swift`. Keep the keys in
+  sync with `ios/Revelio/Services/WidgetDataStore.swift`.
+
+---
+
+## Live Activity (added to existing RevelioWidget bundle)
+
+- `ios/RevelioWidget/ScanLiveActivity.swift` is a NEW file that must be
+  added to the **RevelioWidget** extension target (same target as
+  `HouseholdScoreWidget.swift`). It is registered as a sibling `Widget` in
+  the existing `RevelioWidgetBundle`.
+- **Info.plist** on the MAIN app target (`ios/Revelio/Info.plist`) must gain:
+  ```xml
+  <key>NSSupportsLiveActivities</key>
+  <true/>
+  ```
+  Without this key ActivityKit silently refuses `Activity.request(...)`.
+- No capability toggle is required — Live Activities are gated on the
+  Info.plist key and the user's system-wide Settings toggle
+  (`ActivityAuthorizationInfo().areActivitiesEnabled`), both of which
+  `ScanActivityService` checks before every mutation.
+- **Model file**: `ios/Revelio/Models/ScanActivityAttributes.swift` must be
+  added to BOTH targets (main app + RevelioWidget extension) — the
+  `ActivityAttributes` conforming type has to be visible on both sides of
+  the IPC.
