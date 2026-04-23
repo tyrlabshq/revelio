@@ -96,4 +96,17 @@ describe('life-mode multipliers', () => {
     const pregnancy = personalizeScore(100, flags, ['heavy_metals', 'pregnancy']);
     expect(pregnancy).toBeLessThan(normal);
   });
+
+  it('pregnancy drops endocrine-disruptor-heavy products by ≥10 vs no mode', () => {
+    // Simulates a cosmetic with three severity-3 endocrine disruptors — the
+    // kind of product pregnancy mode is designed to flag hard.
+    const flags: IngredientFlag[] = [
+      base({ ingredient: 'oxybenzone', severity: 3, category: 'endocrine_disruptors', priorities: ['endocrine_disruptors'] }),
+      base({ ingredient: 'butylparaben', severity: 3, category: 'endocrine_disruptors', priorities: ['endocrine_disruptors', 'paraben_free'] }),
+      base({ ingredient: 'phthalates', severity: 2, category: 'endocrine_disruptors', priorities: ['endocrine_disruptors'] }),
+    ];
+    const normal = personalizeScore(100, flags, ['endocrine_disruptors']);
+    const pregnancy = personalizeScore(100, flags, ['endocrine_disruptors', 'pregnancy']);
+    expect(normal - pregnancy).toBeGreaterThanOrEqual(10);
+  });
 });

@@ -1,8 +1,13 @@
 import { Router, Response, NextFunction } from 'express';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
+import { LIFE_MODE_VALUES } from '../../../shared/scoring';
 
 export const profileRouter = Router();
+
+// Enum for the life_mode column. null = no life mode; anything else must
+// match one of shared/scoring's LIFE_MODE_VALUES. Validated at PATCH time.
+const LIFE_MODE_ALLOWED: readonly (string | null)[] = [...LIFE_MODE_VALUES, null];
 
 // Every profile route is owner-scoped: reject if the authenticated user
 // is not the owner of :id. This prevents IDOR across profiles.
@@ -19,7 +24,7 @@ profileRouter.get('/:id', requireAuth, requireOwner, async (req: AuthRequest, re
   try {
     const { id } = req.params;
     const result = await db.query(
-      'SELECT id, name, phone, tier, priorities, allergies, goals FROM user_profiles WHERE id = $1',
+      'SELECT id, name, phone, tier, priorities, allergies, goals, life_mode FROM user_profiles WHERE id = $1',
       [id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Profile not found' });
@@ -34,10 +39,11 @@ profileRouter.get('/:id', requireAuth, requireOwner, async (req: AuthRequest, re
 profileRouter.patch('/:id', requireAuth, requireOwner, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
-    const { priorities, allergies, goals } = req.body as {
+    const { priorities, allergies, goals, life_mode } = req.body as {
       priorities?: string[];
       allergies?: string[];
       goals?: string[];
+      life_mode?: string | null;
     };
 
     const setClauses: string[] = [];
@@ -55,6 +61,15 @@ profileRouter.patch('/:id', requireAuth, requireOwner, async (req: AuthRequest, 
     if (goals !== undefined) {
       setClauses.push(`goals = $${idx++}`);
       values.push(goals);
+    }
+    // life_mode: null clears the mode; otherwise must be one of the
+    // LIFE_MODE_VALUES from shared/scoring. Anything else is a 400.
+    if (life_mode !== undefined) {
+      if (!LIFE_MODE_ALLOWED.includes(life_mode as string | null)) {
+        return res.status(400).json({ error: 'invalid life_mode' });
+      }
+      setClauses.push(`life_mode = $${idx++}`);
+      values.push(life_mode);
     }
 
     if (setClauses.length === 0) {

@@ -12,6 +12,7 @@ import {
   NovaGroup,
   EcoScore,
   Nutriments,
+  LifeMode,
 } from '../../../shared/scoring';
 
 // ─── In-memory cache ────────────────────────────────────────────────────────
@@ -97,6 +98,15 @@ export interface ScoreOptions {
   // Kid-safe mode: when true, a severity ≥2 flag in the kid-safe category set
   // forces the kidSafeGrade to F with a reason string.
   kidSafe?: boolean;
+  // Life mode (REV-17): when set, personalizeScore() applies the
+  // LIFE_MODE_FLAG_MULTIPLIER from shared/scoring on top of the base
+  // priority-match penalty. The multiplier STACKS with priority matches —
+  // e.g. a paraben flag on a menstrual_cycle profile that has
+  // `paraben_free` selected is penalized twice: once for the priority
+  // overlap and again for the life-mode category overlap. We forward the
+  // mode by appending it to the priorities array so shared/scoring can
+  // resolve it via resolveLifeMode() without a second argument.
+  lifeMode?: LifeMode;
 }
 
 // ─── Penalty map ──────────────────────────────────────────────────────────────
@@ -136,8 +146,15 @@ export async function scoreProduct(
   }
   const baseScore = Math.max(20, Math.min(100, 100 - penalty));
 
-  // Personalized score
-  const personalizedScore = personalizeScore(baseScore, matchedFlags, priorities);
+  // Personalized score. When lifeMode is set, we append it to the priorities
+  // array so shared/scoring's resolveLifeMode() picks it up — the helper
+  // already tolerates duplicates. This keeps the multiplier purely additive
+  // on top of priority-match penalties.
+  const effectivePriorities: UserPriority[] =
+    options.lifeMode && !priorities.includes(options.lifeMode)
+      ? [...priorities, options.lifeMode]
+      : priorities;
+  const personalizedScore = personalizeScore(baseScore, matchedFlags, effectivePriorities);
 
   // Grade
   const grade = scoreToGrade(personalizedScore);
