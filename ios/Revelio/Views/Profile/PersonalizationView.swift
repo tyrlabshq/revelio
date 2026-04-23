@@ -208,6 +208,7 @@ struct GoalChip: View {
     let goal: HealthGoal
     let isSelected: Bool
     let onTap: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         Button(action: onTap) {
@@ -236,7 +237,7 @@ struct GoalChip: View {
             )
         }
         .foregroundColor(isSelected ? Theme.accent : Theme.textPrimary)
-        .animation(.easeInOut(duration: 0.15), value: isSelected)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.15), value: isSelected)
     }
 }
 
@@ -441,6 +442,7 @@ struct AddFamilyMemberSheet: View {
     @State private var allergies: [String] = []
     @State private var selectedColorIndex = 0
     @FocusState private var nameFieldFocused: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         NavigationStack {
@@ -466,7 +468,13 @@ struct AddFamilyMemberSheet: View {
                                     Circle().stroke(Color.white, lineWidth: selectedColorIndex == idx ? 3 : 0)
                                 )
                                 .scaleEffect(selectedColorIndex == idx ? 1.2 : 1.0)
-                                .onTapGesture { withAnimation { selectedColorIndex = idx } }
+                                .onTapGesture {
+                                    if reduceMotion {
+                                        selectedColorIndex = idx
+                                    } else {
+                                        withAnimation { selectedColorIndex = idx }
+                                    }
+                                }
                         }
                     }
 

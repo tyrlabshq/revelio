@@ -54,6 +54,7 @@ final class KidSafePreferences: ObservableObject {
 struct KidSafeToggleView: View {
     @ObservedObject private var prefs = KidSafePreferences.shared
     @ObservedObject private var allergens = AllergenProfileManager.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Optional: bind to a specific profile id. Defaults to the active one.
     var profileId: String? = nil
@@ -131,10 +132,10 @@ struct KidSafeToggleView: View {
                 .padding(12)
                 .background(Theme.surfaceElevated)
                 .cornerRadius(10)
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: isOn.wrappedValue)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: isOn.wrappedValue)
         .padding(16)
         .background(Theme.surface)
         .cornerRadius(14)

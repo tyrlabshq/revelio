@@ -3,6 +3,7 @@ import SwiftUI
 struct ScanView: View {
     @StateObject private var viewModel = ScanViewModel()
     @State private var showManualEntry = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -44,7 +45,7 @@ struct ScanView: View {
                 // Main area
                 if case .result(let scan) = viewModel.state {
                     ScanResultCard(scan: scan) { viewModel.resetScan() }
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
                 } else {
                     ZStack {
                         BarcodeScannerRepresentable(onBarcode: viewModel.handleBarcode)
@@ -117,7 +118,7 @@ struct ScanView: View {
                 autoFocused: true
             )
         }
-        .animation(.spring(response: 0.4), value: viewModel.stateTag)
+        .animation(reduceMotion ? nil : .spring(response: 0.4), value: viewModel.stateTag)
         .onDisappear {
             viewModel.turnOffTorch()
         }

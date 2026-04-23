@@ -27,6 +27,7 @@ import { streaksRouter } from '../src/routes/streaks';
 import { familyPlanRouter } from '../src/routes/family-plan';
 import { friendInvitesRouter } from '../src/routes/friend-invites';
 import { receiptsRouter } from '../src/routes/receipts';
+import { priceAlertsRouter } from '../src/routes/price-alerts';
 
 // Tests skip gracefully when no TEST_DATABASE_URL is configured so CI stays
 // green until someone wires a postgres service container. Once it's set, all
@@ -60,6 +61,7 @@ export async function buildApp(): Promise<Express> {
   app.use('/family-plan', familyPlanRouter);
   app.use('/friend-invites', friendInvitesRouter);
   app.use('/receipts', receiptsRouter);
+  app.use('/price-alerts', priceAlertsRouter);
   app.use('/p', pRouter);
   app.use('/.well-known', wellKnownRouter);
 
@@ -115,6 +117,8 @@ export async function resetDb(): Promise<void> {
       product_reviews,
       hall_of_shame_votes,
       swap_cart_clicks,
+      price_alerts,
+      price_history,
       user_streaks,
       product_contributions,
       user_profiles
