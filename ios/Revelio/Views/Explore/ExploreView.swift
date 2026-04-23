@@ -472,7 +472,9 @@ struct CategoryBrowseView: View {
                 ProgressView()
             } else if results.isEmpty {
                 VStack(spacing: 8) {
-                    Text(category.icon).font(.system(size: 48))
+                    Text(category.icon)
+                        .font(.system(size: 48))
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility3)
                     Text("No products yet in \(category.displayName)")
                         .foregroundColor(Theme.textSecondary)
                 }

@@ -92,6 +92,7 @@ struct RecallsView: View {
             Image(systemName: "checkmark.seal")
                 .font(.system(size: 56, weight: .light))
                 .foregroundColor(Theme.success)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility3)
             Text("No recalls")
                 .font(.headline.weight(.semibold))
                 .foregroundColor(Theme.textPrimary)

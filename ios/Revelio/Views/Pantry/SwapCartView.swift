@@ -167,6 +167,7 @@ struct SwapCartView: View {
             Image(systemName: "cart.badge.questionmark")
                 .font(.system(size: 48, weight: .light))
                 .foregroundColor(Theme.textDim)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility3)
             Text(title)
                 .font(.headline)
                 .foregroundColor(Theme.textPrimary)

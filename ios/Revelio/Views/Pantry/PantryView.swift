@@ -358,6 +358,7 @@ struct PantryEmptyState: View {
                     .font(.system(size: 64, weight: .ultraLight))
                     .foregroundColor(Theme.textDim)
                     .symbolRenderingMode(.hierarchical)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility3)
                     .accessibilityHidden(true)
 
                 VStack(spacing: 8) {
@@ -401,6 +402,7 @@ struct PantryFilterEmptyState: View {
                 Image(systemName: filterIcon)
                     .font(.system(size: 48, weight: .light))
                     .foregroundColor(Theme.textDim)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility3)
                     .padding(.top, 60)
                 Text(filterMessage)
                     .font(.subheadline)
@@ -445,6 +447,7 @@ struct PantryManualScanSheet: View {
                     Image(systemName: "barcode.viewfinder")
                         .font(.system(size: 72, weight: .ultraLight))
                         .foregroundColor(Theme.accent)
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility3)
 
                     VStack(spacing: 8) {
                         Text("Scan to Add")

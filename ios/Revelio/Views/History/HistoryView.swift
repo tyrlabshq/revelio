@@ -211,6 +211,7 @@ struct HistoryView: View {
             Image(systemName: "clock.badge.questionmark")
                 .font(.system(size: 56, weight: .light))
                 .foregroundColor(Theme.textDim)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility3)
                 .accessibilityHidden(true)
             Text("No scans yet")
                 .font(.headline)
