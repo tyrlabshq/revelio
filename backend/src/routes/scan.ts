@@ -4,6 +4,7 @@ import { scoreProduct } from '../services/scorer';
 import { recordScanForStreak } from '../services/streaks';
 import { UserPriority } from '../../../shared/scoring';
 import { requireAuth, AuthRequest } from './auth';
+import { logger } from '../logger';
 
 export const scanRouter = Router();
 
@@ -12,6 +13,7 @@ const OFF_BASE = 'https://world.openfoodfacts.org/api/v2/product';
 async function fetchFromAPI(barcode: string): Promise<any> {
   try {
     const res = await fetch(`${OFF_BASE}/${barcode}.json?fields=product_name,brands,image_url,ingredients_text,categories_tags`);
+    // as any: OFF v2 API has no published TS types — the shape is validated by the status/product checks below.
     const data = await res.json() as any;
     if (data.status === 1 && data.product) return data.product;
   } catch {}
@@ -38,6 +40,7 @@ scanRouter.get('/:barcode', async (req, res) => {
   const bypassCache = /no-cache/i.test(req.headers['cache-control'] ?? '');
   try {
     const cached = bypassCache
+      // as any[]: synthetic pg.QueryResult-shaped placeholder when we skip the DB cache — matches the rows shape downstream.
       ? { rows: [] as any[] }
       : await db.query('SELECT * FROM products WHERE barcode = $1', [barcode]);
     let product = cached.rows[0];
@@ -72,7 +75,7 @@ scanRouter.get('/:barcode', async (req, res) => {
       scannedAt: new Date().toISOString()
     });
   } catch (err) {
-    console.error('Scan error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'scan-failed' }, 'Scan error');
     res.status(500).json({ error: 'Failed to scan' });
   }
 });
@@ -106,12 +109,12 @@ scanRouter.post('/history', requireAuth, async (req: AuthRequest, res) => {
       try {
         await recordScanForStreak(userId);
       } catch (streakErr: any) {
-        console.error('[scan] streak update failed:', streakErr.message);
+        logger.error({ err: streakErr?.message, event: 'scan-streak-update-failed' }, 'streak update failed');
       }
     }
     res.status(201).json({ ok: true });
   } catch (err) {
-    console.error('History record error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'scan-history-record-failed' }, 'History record error');
     res.status(500).json({ error: 'Failed to record scan' });
   }
 });
@@ -131,7 +134,7 @@ scanRouter.get('/history', requireAuth, async (req: AuthRequest, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    console.error('History fetch error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'scan-history-fetch-failed' }, 'History fetch error');
     res.status(500).json({ error: 'Failed to fetch history' });
   }
 });
@@ -167,7 +170,7 @@ scanRouter.post('/personalize', async (req, res) => {
       flags: result.flags,
     });
   } catch (err) {
-    console.error('Personalize error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'scan-personalize-failed' }, 'Personalize error');
     return res.status(500).json({ error: 'Failed to personalize score' });
   }
 });
@@ -222,7 +225,7 @@ scanRouter.post('/ocr', requireAuth, async (req: AuthRequest, res) => {
       source: 'ocr',
     });
   } catch (err) {
-    console.error('[scan/ocr] error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'scan-ocr-failed' }, '[scan/ocr] error');
     return res.status(500).json({ error: 'Failed to score OCR ingredients' });
   }
 });

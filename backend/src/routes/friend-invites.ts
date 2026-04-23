@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { randomBytes } from 'crypto';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
+import { logger } from '../logger';
 
 export const friendInvitesRouter = Router();
 
@@ -53,7 +54,7 @@ friendInvitesRouter.post('/', requireAuth, async (req: AuthRequest, res: Respons
       shareUrl: `${SHARE_BASE_URL}/${result.rows[0].code}`,
     });
   } catch (err: any) {
-    console.error('[friend-invites POST] error:', err.message);
+    logger.error({ err: err?.message, event: 'friend-invites-post-failed' }, '[friend-invites POST] error');
     return res.status(500).json({ error: 'Failed to generate invite' });
   }
 });
@@ -144,7 +145,7 @@ friendInvitesRouter.post('/redeem', requireAuth, async (req: AuthRequest, res: R
       grantDays: GRANT_DURATION_DAYS,
     });
   } catch (err: any) {
-    console.error('[friend-invites/redeem] error:', err.message);
+    logger.error({ err: err?.message, event: 'friend-invites-redeem-failed' }, '[friend-invites/redeem] error');
     return res.status(500).json({ error: 'Failed to redeem invite' });
   }
 });

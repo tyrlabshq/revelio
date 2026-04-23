@@ -1,5 +1,6 @@
 import { db } from '../db';
 import { sendPush } from '../services/push';
+import { logger } from '../logger';
 
 // ─── openFDA endpoints ────────────────────────────────────────────────────────
 
@@ -71,13 +72,13 @@ async function fetchRecallsForType(productType: ProductType, sinceDays = 14): Pr
     if (!res.ok) {
       // openFDA returns 404 when a query window has zero results — that's not an error for us.
       if (res.status === 404) return [];
-      console.error(`[fdaRecalls] ${productType} fetch failed: HTTP ${res.status}`);
+      logger.error({ event: 'fda-recalls-fetch-http-error', productType, status: res.status }, `[fdaRecalls] ${productType} fetch failed`);
       return [];
     }
     const json = (await res.json()) as FdaEnforcementResponse;
     return json.results ?? [];
   } catch (err) {
-    console.error(`[fdaRecalls] ${productType} fetch exception:`, err);
+    logger.error({ err: (err as Error)?.message, event: 'fda-recalls-fetch-exception', productType }, `[fdaRecalls] ${productType} fetch exception`);
     return [];
   }
 }
@@ -183,6 +184,6 @@ export async function ingestRecentRecalls(): Promise<{ inserted: number; notifie
     }
   }
 
-  console.log(`[fdaRecalls] ingest complete: ${inserted} new recalls, ${notified} user notifications`);
+  logger.info({ event: 'fda-recalls-ingest-complete', inserted, notified }, `[fdaRecalls] ingest complete`);
   return { inserted, notified };
 }

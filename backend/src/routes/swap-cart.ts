@@ -5,6 +5,7 @@ import { Router } from 'express';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
 import { buildSwapCart } from '../services/alternatives';
+import { logger } from '../logger';
 
 export const swapCartRouter = Router();
 
@@ -25,7 +26,7 @@ async function ensureClicksTable(): Promise<void> {
     `CREATE INDEX IF NOT EXISTS idx_swap_clicks_user ON swap_cart_clicks(user_id)`
   );
 }
-ensureClicksTable().catch(err => console.error('[swap-cart] table setup error:', err));
+ensureClicksTable().catch(err => logger.error({ err: (err as Error)?.message, event: 'swap-cart-table-setup-failed' }, '[swap-cart] table setup error'));
 
 // ─── GET /swap-cart ───────────────────────────────────────────────────────────
 swapCartRouter.get('/', requireAuth, async (req: AuthRequest, res) => {
@@ -37,7 +38,7 @@ swapCartRouter.get('/', requireAuth, async (req: AuthRequest, res) => {
     const cart = await buildSwapCart(req.user!.userId, network);
     return res.json(cart);
   } catch (err: any) {
-    console.error('[swap-cart] GET error:', err);
+    logger.error({ err: err?.message, event: 'swap-cart-get-failed' }, '[swap-cart] GET error');
     return res.status(500).json({ error: 'Failed to build swap cart' });
   }
 });
@@ -61,7 +62,7 @@ swapCartRouter.post('/click', requireAuth, async (req: AuthRequest, res) => {
     );
     return res.json({ ok: true });
   } catch (err: any) {
-    console.error('[swap-cart] click log error:', err);
+    logger.error({ err: err?.message, event: 'swap-cart-click-failed' }, '[swap-cart] click log error');
     return res.status(500).json({ error: 'Failed to log click' });
   }
 });

@@ -36,6 +36,7 @@ function buildStore(prefix: string): Store | undefined {
   return new RedisStore({
     // rate-limit-redis expects `sendCommand(command, ...args)`. ioredis `.call`
     // is typed as a rest-spread so we dispatch through a tuple cast.
+    // as any: ioredis `.call` signature is typed for statically-known command names; we forward a dynamic string.
     sendCommand: (command: string, ...args: string[]) =>
       (r.call as any)(command, ...args) as Promise<any>,
     prefix: `rl:${prefix}:`,

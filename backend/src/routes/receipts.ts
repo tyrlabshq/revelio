@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
 import { scoreProduct } from '../services/scorer';
+import { logger } from '../logger';
 
 export const receiptsRouter = Router();
 
@@ -206,7 +207,7 @@ receiptsRouter.post('/score', requireAuth, async (req: AuthRequest, res) => {
 
     return res.json({ items, aggregate });
   } catch (err) {
-    console.error('[receipts] score error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'receipts-score-failed' }, '[receipts] score error');
     return res.status(500).json({ error: 'Failed to score receipt' });
   }
 });

@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
 import { barcodeSchema, uuidSchema } from '../lib/zod-schemas';
+import { logger } from '../logger';
 
 export const priceAlertsRouter = Router();
 
@@ -61,7 +62,7 @@ priceAlertsRouter.post('/', requireAuth, async (req: AuthRequest, res) => {
     );
     return res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error('[price-alerts] POST error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'price-alerts-post-failed' }, '[price-alerts] POST error');
     return res.status(500).json({ error: 'Failed to create price alert' });
   }
 });
@@ -81,7 +82,7 @@ priceAlertsRouter.get('/', requireAuth, async (req: AuthRequest, res) => {
     );
     return res.json({ data: rows });
   } catch (err) {
-    console.error('[price-alerts] GET error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'price-alerts-get-failed' }, '[price-alerts] GET error');
     return res.status(500).json({ error: 'Failed to list price alerts' });
   }
 });
@@ -109,7 +110,7 @@ priceAlertsRouter.delete('/:id', requireAuth, async (req: AuthRequest, res) => {
     }
     return res.json({ ok: true });
   } catch (err) {
-    console.error('[price-alerts] DELETE error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'price-alerts-delete-failed' }, '[price-alerts] DELETE error');
     return res.status(500).json({ error: 'Failed to delete price alert' });
   }
 });

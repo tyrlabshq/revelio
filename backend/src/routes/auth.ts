@@ -118,6 +118,7 @@ async function verifyTwilioOTP(phone: string, code: string): Promise<boolean> {
     body: body.toString(),
   });
   if (!res.ok) return false;
+  // as any: Twilio Verify's VerificationCheck response has no official TS types in fetch — we only use the status field.
   const data = await res.json() as any;
   return data.status === 'approved';
 }

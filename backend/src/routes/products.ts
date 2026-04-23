@@ -4,6 +4,7 @@ import { requireAuth, AuthRequest } from './auth';
 import { scoreProduct } from '../services/scorer';
 import { UserPriority } from '../../../shared/scoring';
 import { embedOneProduct } from '../jobs/embedProducts';
+import { logger } from '../logger';
 
 export const productRouter = Router();
 
@@ -44,7 +45,7 @@ productRouter.get('/search', async (req, res) => {
     );
     res.json({ results: result.rows });
   } catch (err) {
-    console.error('[products/search]', err);
+    logger.error({ err: (err as Error)?.message, event: 'products-search-failed' }, '[products/search]');
     res.status(500).json({ error: 'Search failed', results: [] });
   }
 });
@@ -71,7 +72,7 @@ productRouter.get('/trending', async (req, res) => {
     );
     res.json({ products: result.rows });
   } catch (err) {
-    console.error('[products/trending]', err);
+    logger.error({ err: (err as Error)?.message, event: 'products-trending-failed' }, '[products/trending]');
     // Fallback: return top-scanned overall if scans table join fails
     try {
       const fallback = await db.query(
@@ -106,7 +107,7 @@ productRouter.get('/hall-of-shame', async (req, res) => {
     );
     res.json({ products: result.rows });
   } catch (err) {
-    console.error('[products/hall-of-shame]', err);
+    logger.error({ err: (err as Error)?.message, event: 'products-hall-of-shame-failed' }, '[products/hall-of-shame]');
     res.json({ products: [] });
   }
 });
@@ -129,7 +130,7 @@ productRouter.get('/hidden-gems', async (req, res) => {
     );
     res.json({ products: result.rows });
   } catch (err) {
-    console.error('[products/hidden-gems]', err);
+    logger.error({ err: (err as Error)?.message, event: 'products-hidden-gems-failed' }, '[products/hidden-gems]');
     res.json({ products: [] });
   }
 });
@@ -151,7 +152,7 @@ productRouter.get('/recently-added', async (req, res) => {
     );
     res.json({ products: result.rows });
   } catch (err) {
-    console.error('[products/recently-added]', err);
+    logger.error({ err: (err as Error)?.message, event: 'products-recently-added-failed' }, '[products/recently-added]');
     res.json({ products: [] });
   }
 });
@@ -254,7 +255,7 @@ productRouter.get('/:barcode/dupes', requireAuth, async (req: AuthRequest, res) 
           [sourceVectorLiteral, source.barcode]
         ).catch(() => { /* non-fatal */ });
       } catch (err) {
-        console.error('[products/dupes] inline embed failed:', err);
+        logger.error({ err: (err as Error)?.message, event: 'products-dupes-inline-embed-failed' }, '[products/dupes] inline embed failed');
         return res.json({ dupes: [], reason: 'source_embedding_unavailable' });
       }
     }
@@ -325,7 +326,7 @@ productRouter.get('/:barcode/dupes', requireAuth, async (req: AuthRequest, res) 
       dupes,
     });
   } catch (err: any) {
-    console.error('[products/dupes] error:', err);
+    logger.error({ err: err?.message, event: 'products-dupes-failed' }, '[products/dupes] error');
     return res.status(500).json({ error: 'Failed to find dupes' });
   }
 });

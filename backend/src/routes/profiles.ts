@@ -2,6 +2,7 @@ import { Router, Response, NextFunction } from 'express';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
 import { LIFE_MODE_VALUES } from '../../../shared/scoring';
+import { logger } from '../logger';
 
 export const profileRouter = Router();
 
@@ -30,7 +31,7 @@ profileRouter.get('/:id', requireAuth, requireOwner, async (req: AuthRequest, re
     if (result.rows.length === 0) return res.status(404).json({ error: 'Profile not found' });
     res.json({ profile: result.rows[0] });
   } catch (err) {
-    console.error('GET /profiles/:id error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'profiles-get-failed' }, 'GET /profiles/:id error');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -87,7 +88,7 @@ profileRouter.patch('/:id', requireAuth, requireOwner, async (req: AuthRequest, 
     if (result.rows.length === 0) return res.status(404).json({ error: 'Profile not found' });
     res.json({ profile: result.rows[0] });
   } catch (err) {
-    console.error('PATCH /profiles/:id error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'profiles-patch-failed' }, 'PATCH /profiles/:id error');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -102,7 +103,7 @@ profileRouter.get('/:id/members', requireAuth, requireOwner, async (req: AuthReq
     );
     res.json({ members: result.rows });
   } catch (err) {
-    console.error('GET /profiles/:id/members error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'profiles-members-get-failed' }, 'GET /profiles/:id/members error');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -136,7 +137,7 @@ profileRouter.post('/:id/members', requireAuth, requireOwner, async (req: AuthRe
     );
     res.status(201).json({ member: result.rows[0] });
   } catch (err) {
-    console.error('POST /profiles/:id/members error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'profiles-members-post-failed' }, 'POST /profiles/:id/members error');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -152,7 +153,7 @@ profileRouter.delete('/:id/members/:memberId', requireAuth, requireOwner, async 
     if (result.rows.length === 0) return res.status(404).json({ error: 'Member not found' });
     res.json({ deleted: true });
   } catch (err) {
-    console.error('DELETE /profiles/:id/members/:memberId error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'profiles-members-delete-failed' }, 'DELETE /profiles/:id/members/:memberId error');
     res.status(500).json({ error: 'Internal server error' });
   }
 });

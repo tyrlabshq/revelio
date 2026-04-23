@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
+import { logger } from '../logger';
 
 export const pantryRouter = Router();
 
@@ -46,7 +47,7 @@ async function ensurePantryTable(): Promise<void> {
 }
 
 // Bootstrap table on first import
-ensurePantryTable().catch(console.error);
+ensurePantryTable().catch(err => logger.error({ err: (err as Error)?.message, event: 'pantry-table-setup-failed' }, '[pantry] table setup error'));
 
 // ─── POST /pantry — add item ──────────────────────────────────────────────────
 pantryRouter.post('/', async (req: AuthRequest, res: Response) => {
@@ -97,7 +98,7 @@ pantryRouter.post('/', async (req: AuthRequest, res: Response) => {
 
     return res.status(201).json({ ok: true, barcode, name, score, grade });
   } catch (err) {
-    console.error('[pantry] POST error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'pantry-post-failed' }, '[pantry] POST error');
     return res.status(500).json({ error: 'Failed to add item' });
   }
 });
@@ -115,7 +116,7 @@ pantryRouter.delete('/:barcode', async (req: AuthRequest, res: Response) => {
     if (result.rowCount === 0) return res.status(404).json({ error: 'Item not found' });
     return res.json({ ok: true, barcode });
   } catch (err) {
-    console.error('[pantry] DELETE error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'pantry-delete-failed' }, '[pantry] DELETE error');
     return res.status(500).json({ error: 'Failed to remove item' });
   }
 });
@@ -145,7 +146,7 @@ pantryRouter.get('/', async (req: AuthRequest, res: Response) => {
 
     return res.json({ items });
   } catch (err) {
-    console.error('[pantry] GET error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'pantry-get-failed' }, '[pantry] GET error');
     return res.status(500).json({ error: 'Failed to fetch pantry' });
   }
 });
@@ -220,7 +221,7 @@ pantryRouter.get('/score', async (req: AuthRequest, res: Response) => {
       })),
     });
   } catch (err) {
-    console.error('[pantry] score error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'pantry-score-failed' }, '[pantry] score error');
     return res.status(500).json({ error: 'Failed to compute household score' });
   }
 });

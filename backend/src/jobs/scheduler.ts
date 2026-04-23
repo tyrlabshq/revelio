@@ -77,13 +77,13 @@ async function weeklyTick(): Promise<void> {
   if (key === lastFiredIsoWeek) return;
   lastFiredIsoWeek = key;
 
-  console.log(`[scheduler] firing weekly digest at ${now.toISOString()} (week ${key})`);
+  logger.info({ event: 'scheduler-weekly-digest-firing', week: key }, `[scheduler] firing weekly digest`);
   try {
     const results = await sendWeeklyDigest();
     const sent = results.filter(r => r.sent).length;
-    console.log(`[scheduler] weekly digest done: ${results.length} processed, ${sent} emails sent`);
+    logger.info({ event: 'scheduler-weekly-digest-done', processed: results.length, sent }, `[scheduler] weekly digest done`);
   } catch (err) {
-    console.error('[scheduler] weekly digest failed:', err);
+    logger.error({ err: (err as Error)?.message, event: 'scheduler-weekly-digest-failed' }, '[scheduler] weekly digest failed');
   }
 }
 
@@ -189,7 +189,7 @@ export function startSchedulers(): void {
     void creatorPayoutsTick();
   }, TICK_MS);
 
-  console.log('[scheduler] started — weekly digest Mon 15:00 UTC, fdaRecalls every 6h, brandTrends daily 16:00 UTC, creatorPayouts daily 17:00 UTC, priceCheck daily 18:00 UTC');
+  logger.info({ event: 'scheduler-started' }, '[scheduler] started — weekly digest Mon 15:00 UTC, fdaRecalls every 6h, brandTrends daily 16:00 UTC, creatorPayouts daily 17:00 UTC, priceCheck daily 18:00 UTC');
 }
 
 export function stopSchedulers(): void {

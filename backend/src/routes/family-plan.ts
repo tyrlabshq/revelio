@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
 import { hasProAccess } from '../middleware/familyTier';
+import { logger } from '../logger';
 
 export const familyPlanRouter = Router();
 
@@ -91,7 +92,7 @@ familyPlanRouter.get('/', requireAuth, async (req: AuthRequest, res: Response) =
       tier,
     });
   } catch (err: any) {
-    console.error('[family-plan GET] error:', err.message);
+    logger.error({ err: err?.message, event: 'family-plan-get-failed' }, '[family-plan GET] error');
     return res.status(500).json({ error: 'Failed to load family plan' });
   }
 });
@@ -157,7 +158,7 @@ familyPlanRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) 
       created: true,
     });
   } catch (err: any) {
-    console.error('[family-plan POST] error:', err.message);
+    logger.error({ err: err?.message, event: 'family-plan-post-failed' }, '[family-plan POST] error');
     return res.status(500).json({ error: 'Failed to create family plan' });
   }
 });
@@ -220,7 +221,7 @@ familyPlanRouter.post('/invite', requireAuth, async (req: AuthRequest, res: Resp
       expiresAt: result.rows[0].expires_at,
     });
   } catch (err: any) {
-    console.error('[family-plan/invite] error:', err.message);
+    logger.error({ err: err?.message, event: 'family-plan-invite-failed' }, '[family-plan/invite] error');
     return res.status(500).json({ error: 'Failed to generate invite' });
   }
 });
@@ -305,7 +306,7 @@ familyPlanRouter.post('/join', requireAuth, async (req: AuthRequest, res: Respon
 
     return res.json({ ok: true, planId: plan.id });
   } catch (err: any) {
-    console.error('[family-plan/join] error:', err.message);
+    logger.error({ err: err?.message, event: 'family-plan-join-failed' }, '[family-plan/join] error');
     return res.status(500).json({ error: 'Failed to join family plan' });
   }
 });
@@ -343,7 +344,7 @@ familyPlanRouter.delete('/members/:userId', requireAuth, async (req: AuthRequest
 
     return res.json({ ok: true, removed: targetUserId });
   } catch (err: any) {
-    console.error('[family-plan/members DELETE] error:', err.message);
+    logger.error({ err: err?.message, event: 'family-plan-members-delete-failed' }, '[family-plan/members DELETE] error');
     return res.status(500).json({ error: 'Failed to remove member' });
   }
 });

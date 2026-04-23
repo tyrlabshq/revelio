@@ -2,6 +2,7 @@ import pLimit from 'p-limit';
 import { db } from '../db';
 import type { Nutriments, NutriScore, NovaGroup, EcoScore } from '../../../shared/scoring';
 import { getRedis } from '../lib/redis';
+import { logger } from '../logger';
 
 export interface ProductData {
   barcode: string;
@@ -89,7 +90,7 @@ async function redisGet(barcode: string): Promise<ProductData | null> {
     if (!raw) return null;
     return JSON.parse(raw) as ProductData;
   } catch (err) {
-    console.error('[productLookup] redis get failed:', (err as Error).message);
+    logger.error({ err: (err as Error).message, event: 'product-lookup-redis-get-failed' }, '[productLookup] redis get failed');
     return null;
   }
 }
@@ -100,7 +101,7 @@ async function redisSet(barcode: string, value: ProductData): Promise<void> {
   try {
     await redis.set(cacheKey(barcode), JSON.stringify(value), 'EX', SEVEN_DAYS_SEC);
   } catch (err) {
-    console.error('[productLookup] redis set failed:', (err as Error).message);
+    logger.error({ err: (err as Error).message, event: 'product-lookup-redis-set-failed' }, '[productLookup] redis set failed');
   }
 }
 
@@ -184,12 +185,14 @@ export function parseNutriments(raw: any): Nutriments {
 function normalizeNutriGrade(g: any): NutriScore | undefined {
   if (typeof g !== 'string') return undefined;
   const up = g.trim().toUpperCase();
+  // as any: Array.includes on a readonly-tuple literal narrows its arg to the tuple union — we're checking whether an arbitrary string is a member, which requires widening.
   return (['A', 'B', 'C', 'D', 'E'] as const).includes(up as any) ? (up as NutriScore) : undefined;
 }
 
 function normalizeEcoGrade(g: any): EcoScore | undefined {
   if (typeof g !== 'string') return undefined;
   const up = g.trim().toUpperCase();
+  // as any: same as normalizeNutriGrade — widen past the readonly-tuple's narrowed Array.includes signature.
   return (['A', 'B', 'C', 'D', 'E'] as const).includes(up as any) ? (up as EcoScore) : undefined;
 }
 
@@ -206,6 +209,7 @@ async function fetchFromSource(url: string): Promise<any | null> {
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;
+    // as any: OFF/OBF/OPF v2 API has no published TS types — the shape is validated by the status/product checks below.
     const data = await res.json() as any;
     if (data.status === 1 && data.product) return data.product;
   } catch {

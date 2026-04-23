@@ -14,6 +14,7 @@
 import { db } from '../db';
 import { getRedis } from '../lib/redis';
 import { scoreBarcode } from './scorer';
+import { logger } from '../logger';
 
 const CACHE_TTL_SEC = 24 * 60 * 60;
 const cacheKey = (slug: string) => `brand:summary:v1:${slug}`;
@@ -119,7 +120,7 @@ export async function getBrandSummary(slug: string): Promise<BrandSummary> {
       const cached = await redis.get(cacheKey(slug));
       if (cached) return JSON.parse(cached) as BrandSummary;
     } catch (err) {
-      console.error('[brandSummary] redis get failed:', (err as Error).message);
+      logger.error({ err: (err as Error).message, event: 'brand-summary-redis-get-failed' }, '[brandSummary] redis get failed');
     }
   }
 
@@ -172,7 +173,7 @@ export async function getBrandSummary(slug: string): Promise<BrandSummary> {
     try {
       await redis.set(cacheKey(slug), JSON.stringify(summary), 'EX', CACHE_TTL_SEC);
     } catch (err) {
-      console.error('[brandSummary] redis set failed:', (err as Error).message);
+      logger.error({ err: (err as Error).message, event: 'brand-summary-redis-set-failed' }, '[brandSummary] redis set failed');
     }
   }
 
