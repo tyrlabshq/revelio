@@ -81,6 +81,9 @@
 		674B2ED2425B200860DD94D9 /* ScanActivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6DCADF2C2C21954CC7F5B84 /* ScanActivityService.swift */; };
 		76B6FFD61B365A998EFD58DC /* ScanActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED50978BD6F3534FC994C35 /* ScanActivityAttributes.swift */; };
 		D671549B6094AC833250DBFA /* LifeModeSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F54B15EE4218F7E747286D /* LifeModeSelectView.swift */; };
+		AA890E5D59237F0B543DADE5 /* BrandDeepDiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4664CA9FC1219BB3DCB9AEE4 /* BrandDeepDiveView.swift */; };
+		FDEFC1F21268ED6C4884A719 /* BrandSummaryHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 388E9993C4D0C2A84CCB9D9F /* BrandSummaryHeader.swift */; };
+		0BF965788BB3146CF078894F /* PriceAlertButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE05A36949753FDA20D88B28 /* PriceAlertButton.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -172,6 +175,9 @@
 		C6DCADF2C2C21954CC7F5B84 /* ScanActivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanActivityService.swift; sourceTree = "<group>"; };
 		DED50978BD6F3534FC994C35 /* ScanActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanActivityAttributes.swift; sourceTree = "<group>"; };
 		95F54B15EE4218F7E747286D /* LifeModeSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeModeSelectView.swift; sourceTree = "<group>"; };
+		4664CA9FC1219BB3DCB9AEE4 /* BrandDeepDiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandDeepDiveView.swift; sourceTree = "<group>"; };
+		388E9993C4D0C2A84CCB9D9F /* BrandSummaryHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandSummaryHeader.swift; sourceTree = "<group>"; };
+		CE05A36949753FDA20D88B28 /* PriceAlertButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlertButton.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -263,6 +269,7 @@
 			children = (
 				FA1975F323CA83EF03BC0805 /* PantryView.swift */,
 				537A479496CB58F44D66B276 /* SwapCartView.swift */,
+				CE05A36949753FDA20D88B28 /* PriceAlertButton.swift */,
 			);
 			path = Pantry;
 			sourceTree = "<group>";
@@ -367,6 +374,7 @@
 				B001B001B001B001B0010001 /* Receipt */,
 				B002B002B002B002B0020002 /* Recalls */,
 				B003B003B003B003B0030003 /* Streaks */,
+				C001C001C001C001C0010001 /* Brand */,
 				FF8D526F09F86CC951559589 /* Scan */,
 				3CF541B57339D16358196328 /* Settings */,
 				413EF217B0CD2E177D211B58 /* Share */,
@@ -489,6 +497,15 @@
 				B1DC9011921CD0F113214073 /* StreakHeaderView.swift */,
 			);
 			path = Streaks;
+			sourceTree = "<group>";
+		};
+		C001C001C001C001C0010001 /* Brand */ = {
+			isa = PBXGroup;
+			children = (
+				4664CA9FC1219BB3DCB9AEE4 /* BrandDeepDiveView.swift */,
+				388E9993C4D0C2A84CCB9D9F /* BrandSummaryHeader.swift */,
+			);
+			path = Brand;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -664,6 +681,9 @@
 				674B2ED2425B200860DD94D9 /* ScanActivityService.swift in Sources */,
 				76B6FFD61B365A998EFD58DC /* ScanActivityAttributes.swift in Sources */,
 				D671549B6094AC833250DBFA /* LifeModeSelectView.swift in Sources */,
+				AA890E5D59237F0B543DADE5 /* BrandDeepDiveView.swift in Sources */,
+				FDEFC1F21268ED6C4884A719 /* BrandSummaryHeader.swift in Sources */,
+				0BF965788BB3146CF078894F /* PriceAlertButton.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
