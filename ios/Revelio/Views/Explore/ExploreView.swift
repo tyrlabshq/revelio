@@ -120,6 +120,11 @@ struct ExploreView: View {
     @State private var selectedCategory: ProductCategory? = nil
     @State private var showCategoryBrowse = false
 
+    // Respect VoiceOver / Reduce Motion: suppress the implicit spring/fade
+    // SwiftUI applies when the search/feed toggle swaps its subview, and
+    // strip the pulse from the lightweight shimmer placeholder.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var isSearchActive: Bool { !query.trimmingCharacters(in: .whitespaces).isEmpty }
 
     var body: some View {
@@ -141,6 +146,9 @@ struct ExploreView: View {
                             feedSections
                         }
                     }
+                    // When Reduce Motion is on, skip the implicit
+                    // swap-animation SwiftUI runs between the two subviews.
+                    .animation(reduceMotion ? nil : .default, value: isSearchActive)
                 }
                 .refreshable { await vm.loadFeed() }
             }

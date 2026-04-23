@@ -35,6 +35,10 @@ struct RecallsView: View {
     @State private var errorMessage: String?
     @State private var selected: RecallNotification?
 
+    // Respect VoiceOver / Reduce Motion: suppress the implicit list-insert
+    // spring and the error-toast slide when items or errorMessage change.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     private var apiBase: String {
         ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://api.revelio.app"
     }
@@ -75,6 +79,10 @@ struct RecallsView: View {
                 }
             }
         }
+        // Suppress the spring/fade SwiftUI applies when items or the error
+        // toast appear — the existing a11y pass does this for each view.
+        .animation(reduceMotion ? nil : .default, value: items.count)
+        .animation(reduceMotion ? nil : .default, value: errorMessage)
         .navigationTitle("Recalls")
         .navigationBarTitleDisplayMode(.large)
         .sheet(item: $selected) { item in

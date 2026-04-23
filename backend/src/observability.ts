@@ -8,6 +8,7 @@
  */
 
 import * as Sentry from '@sentry/node';
+import { logger } from './logger';
 
 let otelStarted = false;
 
@@ -54,8 +55,7 @@ export function initOtel(): void {
     process.once('SIGINT', shutdown);
   } catch (err) {
     // Fail-soft: surface, but don't crash the server.
-    // eslint-disable-next-line no-console
-    console.error('[otel] failed to initialize:', err);
+    logger.error({ err: (err as Error)?.message, event: 'otel-init-failed' }, '[otel] failed to initialize');
   }
 }
 
@@ -74,8 +74,7 @@ export function initSentry(): void {
       environment: process.env.NODE_ENV ?? 'development',
     });
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error('[sentry] failed to initialize:', err);
+    logger.error({ err: (err as Error)?.message, event: 'sentry-init-failed' }, '[sentry] failed to initialize');
   }
 }
 
