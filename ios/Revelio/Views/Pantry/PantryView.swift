@@ -154,13 +154,18 @@ struct PantryView: View {
 
 struct PantryFilterBar: View {
     @Binding var active: PantryGradeFilter
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(PantryGradeFilter.allCases, id: \.self) { filter in
                     Button {
-                        withAnimation(.easeInOut(duration: 0.18)) { active = filter }
+                        if reduceMotion {
+                            active = filter
+                        } else {
+                            withAnimation(.easeInOut(duration: 0.18)) { active = filter }
+                        }
                     } label: {
                         Text(filter.label)
                             .font(.system(size: 13, weight: .semibold))

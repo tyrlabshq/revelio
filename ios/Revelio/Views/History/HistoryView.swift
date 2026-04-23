@@ -29,6 +29,7 @@ struct ScanInsights: Codable {
 struct HistoryView: View {
     @ObservedObject private var historyManager = HistoryManager.shared
     @EnvironmentObject private var authViewModel: AuthViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // Pagination
     @State private var page = 1
@@ -154,7 +155,11 @@ struct HistoryView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        withAnimation { showFilters.toggle() }
+                        if reduceMotion {
+                            showFilters.toggle()
+                        } else {
+                            withAnimation { showFilters.toggle() }
+                        }
                     } label: {
                         Image(systemName: hasActiveFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
                             .foregroundColor(hasActiveFilters ? Theme.accent : Theme.textSecondary)
