@@ -16,25 +16,26 @@ struct HealthKitRow: View {
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(.pink)
                 .frame(width: 28)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Sync with Apple Health")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.subheadline)
                     .foregroundColor(Theme.textPrimary)
                 if !health.isHealthDataAvailable {
                     Text("Not available on this device")
-                        .font(.system(size: 11))
+                        .font(.caption)
                         .foregroundColor(Theme.textDim)
                 } else {
                     Text("Log dietary energy from scans")
-                        .font(.system(size: 11))
+                        .font(.caption)
                         .foregroundColor(Theme.textSecondary)
                 }
             }
 
             Spacer()
 
-            Toggle("", isOn: Binding(
+            Toggle("Sync with Apple Health", isOn: Binding(
                 get: { health.isEnabled },
                 set: { newValue in
                     pendingToggle = newValue
@@ -43,6 +44,7 @@ struct HealthKitRow: View {
             ))
             .labelsHidden()
             .disabled(!health.isHealthDataAvailable)
+            .accessibilityHint("Logs dietary energy from each scored product to HealthKit")
         }
         .padding(.vertical, 4)
     }

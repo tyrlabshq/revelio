@@ -18,6 +18,7 @@ struct ProfileView: View {
                             Image(systemName: "person.fill")
                                 .foregroundColor(Theme.accent)
                                 .font(.title2)
+                                .accessibilityHidden(true)
                         }
 
                         VStack(alignment: .leading, spacing: 4) {
@@ -40,6 +41,8 @@ struct ProfileView: View {
                         // Sign out button removed - auth is disabled
                     }
                     .padding(.vertical, 4)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Account: Guest, \(authViewModel.currentUser?.tier == "pro" ? "Pro Member" : "Free Plan")")
                 }
 
                 // Scan usage
@@ -112,6 +115,7 @@ struct ProfileView: View {
                             HStack {
                                 Image(systemName: "star.fill")
                                     .foregroundColor(Theme.accent)
+                                    .accessibilityHidden(true)
                                 Text("Upgrade to Pro")
                                     .foregroundColor(Theme.textPrimary)
                                 Spacer()
@@ -126,6 +130,8 @@ struct ProfileView: View {
                                 }
                             }
                         }
+                        .accessibilityLabel("Upgrade to Pro")
+                        .accessibilityHint("Opens the paywall with monthly and yearly pricing")
                     }
                 }
 

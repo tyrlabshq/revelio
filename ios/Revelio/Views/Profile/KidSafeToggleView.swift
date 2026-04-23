@@ -92,20 +92,22 @@ struct KidSafeToggleView: View {
                     Image(systemName: "figure.and.child.holdinghands")
                         .foregroundColor(Color(hex: "b45309"))
                         .font(.title3)
+                        .accessibilityHidden(true)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Kid-safe mode")
-                        .font(Theme.fontHeadline)
+                        .font(.headline)
                         .foregroundColor(Theme.textPrimary)
                     Text("For \(profileName)")
-                        .font(Theme.fontCaption)
+                        .font(.caption)
                         .foregroundColor(Theme.textSecondary)
                 }
                 Spacer()
-                Toggle("", isOn: isOn)
+                Toggle("Kid-safe mode for \(profileName)", isOn: isOn)
                     .labelsHidden()
                     .tint(Theme.accent)
                     .disabled(activeId == nil)
+                    .accessibilityHint("Downgrades products with concerning additives to grade F")
             }
 
             if isOn.wrappedValue {
@@ -145,8 +147,9 @@ struct KidSafeToggleView: View {
                 .foregroundColor(color)
                 .font(.system(size: 14, weight: .semibold))
                 .frame(width: 16)
+                .accessibilityHidden(true)
             Text(text)
-                .font(.system(size: 13))
+                .font(.footnote)
                 .foregroundColor(Theme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -173,13 +176,14 @@ struct KidSafeGradeBanner: View {
                     .font(.system(size: 20, weight: .heavy, design: .rounded))
                     .foregroundColor(Theme.danger)
             }
+            .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 Text("Kid-safe grade: \(kidSafeGrade)")
-                    .font(Theme.fontHeadline)
+                    .font(.headline)
                     .foregroundColor(Theme.textPrimary)
                 if let reason = reason, !reason.isEmpty {
                     Text(reason)
-                        .font(.system(size: 13))
+                        .font(.footnote)
                         .foregroundColor(Theme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -193,6 +197,8 @@ struct KidSafeGradeBanner: View {
                 .stroke(Theme.danger.opacity(0.3), lineWidth: 1)
         )
         .cornerRadius(12)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Kid-safe grade \(kidSafeGrade), avoid. \(reason ?? "")")
     }
 }
 

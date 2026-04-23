@@ -118,7 +118,10 @@ struct PantryView: View {
                         Image(systemName: "plus.circle.fill")
                             .foregroundColor(Theme.accent)
                             .font(.system(size: 22))
+                            .accessibilityHidden(true)
                     }
+                    .accessibilityLabel("Add to pantry")
+                    .accessibilityHint("Opens the scanner to add a new pantry item")
                 }
             }
         }
@@ -196,6 +199,17 @@ struct PantryScoreBar: View {
     let badPercent: Double
     let itemCount: Int
 
+    private var gradeMeaning: String {
+        switch grade.uppercased() {
+        case "A": return "clean"
+        case "B": return "good"
+        case "C": return "mixed"
+        case "D": return "concerning"
+        case "F": return "avoid"
+        default:  return "unknown"
+        }
+    }
+
     var body: some View {
         HStack(spacing: 16) {
             // Circular grade badge
@@ -219,6 +233,8 @@ struct PantryScoreBar: View {
                 }
             }
             .frame(width: 52, height: 52)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Pantry grade \(grade), \(gradeMeaning), score \(score) out of 100")
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Pantry Score")
@@ -250,10 +266,13 @@ struct PantryScoreBar: View {
     private func scoreStatLabel(color: Color, label: String, pct: Double) -> some View {
         HStack(spacing: 4) {
             Circle().fill(color).frame(width: 7, height: 7)
+                .accessibilityHidden(true)
             Text("\(Int(pct * 100))% \(label)")
-                .font(.system(size: 11, weight: .medium))
+                .font(.caption)
                 .foregroundColor(Theme.textSecondary)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(Int(pct * 100))% \(label)")
     }
 }
 
@@ -274,21 +293,23 @@ struct PantryRow: View {
                         Image(systemName: "photo")
                             .foregroundColor(Theme.textDim)
                             .font(.caption)
+                            .accessibilityHidden(true)
                     )
             }
             .frame(width: 52, height: 52)
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .accessibilityHidden(true)
 
             // Info column
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.productName)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.subheadline)
                     .foregroundColor(Theme.textPrimary)
                     .lineLimit(1)
 
                 if !item.brand.isEmpty {
                     Text(item.brand)
-                        .font(.system(size: 12))
+                        .font(.caption)
                         .foregroundColor(Theme.textSecondary)
                         .lineLimit(1)
                 }
@@ -296,14 +317,14 @@ struct PantryRow: View {
                 HStack(spacing: 8) {
                     if !item.flaggedIngredients.isEmpty {
                         Label("\(item.flaggedIngredients.count) flagged", systemImage: "exclamationmark.triangle.fill")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.caption2)
                             .foregroundColor(Theme.warning)
                     }
                     (Text(item.addedAt, style: .relative)
-                        .font(.system(size: 10))
+                        .font(.caption2)
                         .foregroundColor(Theme.textDim)
                     + Text(" ago")
-                        .font(.system(size: 10))
+                        .font(.caption2)
                         .foregroundColor(Theme.textDim))
                 }
             }
@@ -314,6 +335,8 @@ struct PantryRow: View {
             GradeBadge(grade: item.grade, score: item.score, size: .small)
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(item.productName)\(item.brand.isEmpty ? "" : " by \(item.brand)"), grade \(item.grade), score \(item.score)\(item.flaggedIngredients.isEmpty ? "" : ", \(item.flaggedIngredients.count) flagged ingredients")")
     }
 }
 
@@ -330,11 +353,13 @@ struct PantryEmptyState: View {
                     .font(.system(size: 64, weight: .ultraLight))
                     .foregroundColor(Theme.textDim)
                     .symbolRenderingMode(.hierarchical)
+                    .accessibilityHidden(true)
 
                 VStack(spacing: 8) {
                     Text("Your pantry is empty")
-                        .font(.system(size: 20, weight: .bold))
+                        .font(.title3.weight(.bold))
                         .foregroundColor(Theme.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
                     Text("Scan products to track what's in your kitchen and see how healthy your pantry really is.")
                         .font(.subheadline)
                         .foregroundColor(Theme.textSecondary)
@@ -346,7 +371,7 @@ struct PantryEmptyState: View {
                     showScanner = true
                 } label: {
                     Label("Scan your first product", systemImage: "barcode.viewfinder")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 14)
@@ -354,6 +379,8 @@ struct PantryEmptyState: View {
                         .cornerRadius(14)
                         .shadow(color: Theme.accent.opacity(0.35), radius: 8, x: 0, y: 4)
                 }
+                .accessibilityLabel("Scan your first product")
+                .accessibilityHint("Opens the barcode scanner")
             }
             Spacer()
         }

@@ -75,6 +75,8 @@ struct OnboardingView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
                     .padding(.horizontal, 32)
+                    .accessibilityLabel("Next")
+                    .accessibilityHint("Advances to the next onboarding slide")
 
                     Button("Skip") {
                         withAnimation { currentSlide = slides.count - 1 }
@@ -82,6 +84,7 @@ struct OnboardingView: View {
                     .font(.subheadline)
                     .foregroundColor(Theme.textSecondary)
                     .padding(.top, 16)
+                    .accessibilityHint("Jumps to the sign-in screen")
                 } else {
                     // Sign In with Apple button
                     SignInWithAppleButton(
@@ -109,6 +112,8 @@ struct OnboardingView: View {
                             .padding(.vertical, 12)
                     }
                     .padding(.top, 8)
+                    .accessibilityLabel("Continue as guest")
+                    .accessibilityHint("Uses Revelio without an account. You can sign in later in Settings.")
                     
                     // Privacy note
                     Text("By signing in, you agree to our Terms of Service and Privacy Policy.")
@@ -172,6 +177,7 @@ private struct SlideView: View {
                     .font(.system(size: 72, weight: .light))
                     .foregroundColor(slide.iconColor)
             }
+            .accessibilityHidden(true)
 
             // Mock UI card (slide-specific)
             SlideIllustration(slide: slide)
@@ -184,6 +190,7 @@ private struct SlideView: View {
                     .fontWeight(.bold)
                     .foregroundColor(Theme.textPrimary)
                     .multilineTextAlignment(.center)
+                    .accessibilityAddTraits(.isHeader)
 
                 Text(slide.subtitle)
                     .font(.body)

@@ -18,14 +18,20 @@ struct ScoreBadgesView: View {
                 if let g = nutriScoreGrade {
                     NutriScorePill(grade: g)
                         .onTapGesture { showLegend = .nutri }
+                        .accessibilityHint("Opens the Nutri-Score legend")
+                        .accessibilityAddTraits(.isButton)
                 }
                 if let nova = novaGroup {
                     NovaGroupPill(group: nova)
                         .onTapGesture { showLegend = .nova }
+                        .accessibilityHint("Opens the Nova group legend")
+                        .accessibilityAddTraits(.isButton)
                 }
                 if let eg = ecoScoreGrade {
                     EcoScorePill(grade: eg)
                         .onTapGesture { showLegend = .eco }
+                        .accessibilityHint("Opens the Eco-Score legend")
+                        .accessibilityAddTraits(.isButton)
                 }
                 Spacer()
             }
@@ -126,6 +132,7 @@ struct EcoScorePill: View {
             Image(systemName: "leaf.fill")
                 .font(.system(size: 10, weight: .bold))
                 .foregroundColor(.white.opacity(0.9))
+                .accessibilityHidden(true)
             Text("ECO")
                 .font(.system(size: 9, weight: .bold, design: .rounded))
                 .foregroundColor(.white.opacity(0.9))
