@@ -154,13 +154,18 @@ struct PantryView: View {
 
 struct PantryFilterBar: View {
     @Binding var active: PantryGradeFilter
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(PantryGradeFilter.allCases, id: \.self) { filter in
                     Button {
-                        withAnimation(.easeInOut(duration: 0.18)) { active = filter }
+                        if reduceMotion {
+                            active = filter
+                        } else {
+                            withAnimation(.easeInOut(duration: 0.18)) { active = filter }
+                        }
                     } label: {
                         Text(filter.label)
                             .font(.system(size: 13, weight: .semibold))
@@ -353,6 +358,7 @@ struct PantryEmptyState: View {
                     .font(.system(size: 64, weight: .ultraLight))
                     .foregroundColor(Theme.textDim)
                     .symbolRenderingMode(.hierarchical)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility3)
                     .accessibilityHidden(true)
 
                 VStack(spacing: 8) {
@@ -396,6 +402,7 @@ struct PantryFilterEmptyState: View {
                 Image(systemName: filterIcon)
                     .font(.system(size: 48, weight: .light))
                     .foregroundColor(Theme.textDim)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility3)
                     .padding(.top, 60)
                 Text(filterMessage)
                     .font(.subheadline)
@@ -440,6 +447,7 @@ struct PantryManualScanSheet: View {
                     Image(systemName: "barcode.viewfinder")
                         .font(.system(size: 72, weight: .ultraLight))
                         .foregroundColor(Theme.accent)
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility3)
 
                     VStack(spacing: 8) {
                         Text("Scan to Add")

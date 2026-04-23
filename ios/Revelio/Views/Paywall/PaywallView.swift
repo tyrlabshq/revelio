@@ -18,6 +18,7 @@ struct PaywallView: View {
     @State private var isPurchasing = false
     @State private var errorMessage: String?
     @State private var purchaseSuccess = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     enum Plan { case monthly, annual }
 
@@ -167,7 +168,11 @@ struct PaywallView: View {
 
     private func planButton(_ title: String, plan: Plan, badge: String? = nil) -> some View {
         Button {
-            withAnimation(.spring(response: 0.3)) { selectedPlan = plan }
+            if reduceMotion {
+                selectedPlan = plan
+            } else {
+                withAnimation(.spring(response: 0.3)) { selectedPlan = plan }
+            }
         } label: {
             HStack(spacing: 4) {
                 Text(title)
@@ -204,6 +209,7 @@ struct PaywallView: View {
                     Text("35")
                         .font(.system(size: 48, weight: .bold))
                         .foregroundColor(Theme.textPrimary)
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility3)
                     Text(".99")
                         .font(.title2)
                         .fontWeight(.semibold)
@@ -233,6 +239,7 @@ struct PaywallView: View {
                     Text("3")
                         .font(.system(size: 48, weight: .bold))
                         .foregroundColor(Theme.textPrimary)
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility3)
                     Text(".99")
                         .font(.title2)
                         .fontWeight(.semibold)

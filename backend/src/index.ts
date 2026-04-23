@@ -34,6 +34,11 @@ import { familyPlanRouter } from './routes/family-plan';
 import { friendInvitesRouter } from './routes/friend-invites';
 import { receiptsRouter } from './routes/receipts';
 import { brandsRouter } from './routes/brands';
+import { priceAlertsRouter } from './routes/price-alerts';
+import { adminRouter } from './routes/admin';
+import { statusRouter } from './routes/status';
+import { payoutsRouter } from './routes/payouts';
+import { stripeWebhookRouter } from './routes/stripe-webhook';
 import { requestIdMiddleware, errorHandler } from './middleware/errorHandler';
 import { ensureAlternativesTable } from './db';
 import { logger, httpLogger } from './logger';
@@ -101,6 +106,11 @@ app.use('/.well-known', wellKnownRouter);
 // rejected requests don't pay JSON parse cost.
 app.use(globalLimiter);
 
+// Stripe webhooks: MUST be mounted before express.json() because the
+// signature verification (stripe.webhooks.constructEvent) requires the raw
+// request bytes. The router attaches its own express.raw parser locally.
+app.use('/webhooks/stripe', stripeWebhookRouter);
+
 app.use(express.json());
 app.use(requestIdMiddleware);
 
@@ -131,6 +141,13 @@ app.use('/family-plan', familyPlanRouter);
 app.use('/friend-invites', friendInvitesRouter);
 app.use('/receipts', receiptsRouter);
 app.use('/brands', brandsRouter);
+app.use('/payouts', payoutsRouter);
+app.use('/price-alerts', priceAlertsRouter);
+// Operator-only dashboard + JSON metrics (requires is_admin bit on the
+// user_profiles row — see middleware/requireAdmin.ts).
+app.use('/admin', adminRouter);
+// Public status endpoint: no auth, returns build SHA + job run health.
+app.use('/status', statusRouter);
 // Public SSR preview pages for shareable links (TikTok/bio/etc). No auth —
 // these render minimal OG-tagged HTML and trigger the iOS/Android universal
 // link handoff into the app when installed.
