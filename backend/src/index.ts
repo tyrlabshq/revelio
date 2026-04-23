@@ -156,6 +156,8 @@ app.use('/p', pRouter);
 // ─── Error handling ───────────────────────────────────────────────────────────
 // Sentry error handler (attached if the current @sentry/node exposes it —
 // removed from v8's ESM API but left on the namespace for compat).
+// as any: @sentry/node v8 dropped `Handlers` from the public types but kept it
+// on the runtime namespace; we feature-detect with optional chaining below.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const sentryErrHandler = (Sentry as any).Handlers?.errorHandler?.();
 if (typeof sentryErrHandler === 'function') {

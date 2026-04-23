@@ -36,6 +36,8 @@ export function initOtel(): void {
       instrumentations: [getNodeAutoInstrumentations()],
     });
 
+    // as any: NodeSDK.start() signature changed from Promise<void> to void across
+    // @opentelemetry/sdk-node versions; cast keeps us compatible with both.
     // NodeSDK.start() is synchronous in @opentelemetry/sdk-node ≥0.50.
     // It used to return a Promise<void> — cast to any to stay compatible
     // with both signatures without tripping strict mode.
@@ -44,6 +46,7 @@ export function initOtel(): void {
     otelStarted = true;
 
     const shutdown = () => {
+      // as any: NodeSDK.shutdown() return type skews across SDK versions — Promise.resolve normalizes both.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       Promise.resolve((sdk as any).shutdown()).catch(() => {}).finally(() => process.exit(0));
     };
