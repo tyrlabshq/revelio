@@ -28,6 +28,11 @@ import { familyPlanRouter } from '../src/routes/family-plan';
 import { friendInvitesRouter } from '../src/routes/friend-invites';
 import { receiptsRouter } from '../src/routes/receipts';
 import { priceAlertsRouter } from '../src/routes/price-alerts';
+import { adminRouter } from '../src/routes/admin';
+import { statusRouter } from '../src/routes/status';
+import { payoutsRouter } from '../src/routes/payouts';
+import { stripeWebhookRouter } from '../src/routes/stripe-webhook';
+import { brandsRouter } from '../src/routes/brands';
 
 // Tests skip gracefully when no TEST_DATABASE_URL is configured so CI stays
 // green until someone wires a postgres service container. Once it's set, all
@@ -37,6 +42,10 @@ export const hasTestDatabase = (): boolean => !!process.env.TEST_DATABASE_URL;
 export async function buildApp(): Promise<Express> {
   const app = express();
   app.use(cors());
+
+  // Stripe webhook receiver needs the raw body; mount BEFORE express.json() —
+  // mirrors the production ordering in src/index.ts.
+  app.use('/webhooks/stripe', stripeWebhookRouter);
   app.use(express.json());
 
   app.use('/auth', authRouter);
@@ -62,6 +71,10 @@ export async function buildApp(): Promise<Express> {
   app.use('/friend-invites', friendInvitesRouter);
   app.use('/receipts', receiptsRouter);
   app.use('/price-alerts', priceAlertsRouter);
+  app.use('/brands', brandsRouter);
+  app.use('/payouts', payoutsRouter);
+  app.use('/admin', adminRouter);
+  app.use('/status', statusRouter);
   app.use('/p', pRouter);
   app.use('/.well-known', wellKnownRouter);
 
