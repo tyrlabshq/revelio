@@ -6,6 +6,7 @@
 
 import OpenAI from 'openai';
 import { db } from '../db';
+import { logger } from '../logger';
 
 const BATCH_SIZE = 100;
 const EMBED_MODEL = 'text-embedding-3-small';
@@ -111,7 +112,7 @@ export async function embedMissingProducts(limit = BATCH_SIZE): Promise<number> 
       );
       wrote += 1;
     } catch (err) {
-      console.error('[embedProducts] write failed for', rows[i].barcode, err);
+      logger.error({ err: (err as Error)?.message, event: 'embed-products-write-failed', barcode: rows[i].barcode }, '[embedProducts] write failed');
     }
   }
 
@@ -128,7 +129,7 @@ export async function embedAllMissingProducts(maxBatches = 1000): Promise<number
     const wrote = await embedMissingProducts(BATCH_SIZE);
     if (wrote === 0) break;
     total += wrote;
-    console.log(`[embedProducts] batch ${i + 1}: wrote ${wrote} (running total ${total})`);
+    logger.info({ event: 'embed-products-batch-complete', batch: i + 1, wrote, runningTotal: total }, `[embedProducts] batch ${i + 1}`);
   }
   return total;
 }
@@ -139,11 +140,11 @@ if (require.main === module) {
   const runner = all ? embedAllMissingProducts() : embedMissingProducts();
   runner
     .then(n => {
-      console.log(`[embedProducts] done, wrote ${n} embeddings`);
+      logger.info({ event: 'embed-products-done', count: n }, `[embedProducts] done, wrote ${n} embeddings`);
       process.exit(0);
     })
     .catch(err => {
-      console.error('[embedProducts] fatal:', err);
+      logger.error({ err: (err as Error)?.message, event: 'embed-products-fatal' }, '[embedProducts] fatal');
       process.exit(1);
     });
 }

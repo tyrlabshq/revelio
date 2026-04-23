@@ -16,6 +16,7 @@
 // Uses native fetch; no new npm dependency is introduced.
 
 import { db } from '../db';
+import { logger } from '../logger';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -238,7 +239,7 @@ async function sendViaSendGrid(
     });
     return res.ok;
   } catch (err) {
-    console.error('[weeklyInsights] sendgrid error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'weekly-insights-sendgrid-failed' }, '[weeklyInsights] sendgrid error');
     return false;
   }
 }
@@ -263,7 +264,7 @@ async function sendViaResend(
     });
     return res.ok;
   } catch (err) {
-    console.error('[weeklyInsights] resend error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'weekly-insights-resend-failed' }, '[weeklyInsights] resend error');
     return false;
   }
 }
@@ -285,7 +286,7 @@ async function deliver(
     return { sent: ok, provider: 'resend' };
   }
 
-  console.log('[weeklyInsights] no provider configured — would send to', to, '—', subject);
+  logger.info({ event: 'weekly-insights-no-provider', subject }, '[weeklyInsights] no provider configured');
   return { sent: false, provider: 'none' };
 }
 
@@ -360,7 +361,7 @@ export async function sendWeeklyDigest(
         const r = await buildDigestForUser(row.id as string);
         results.push(r);
       } catch (err) {
-        console.error('[weeklyInsights] failed for user', row.id, err);
+        logger.error({ err: (err as Error)?.message, event: 'weekly-insights-user-failed' }, '[weeklyInsights] failed for user');
       }
     }
 
