@@ -8,9 +8,12 @@
 // Current jobs:
 //   - weeklyInsights (Mon 15:00 UTC): per-user digest email.
 //   - fdaRecalls (every 6h): ingest openFDA recalls + notify affected users.
+//   - priceCheck (daily 18:00 UTC): fetch affiliate prices + fire drop alerts.
 
+import { logger } from '../logger';
 import { sendWeeklyDigest } from './weeklyInsights';
 import { ingestRecentRecalls } from './fdaRecalls';
+import { runPriceCheck } from './priceCheck';
 
 const TICK_MS = 60 * 1000;
 const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
@@ -18,9 +21,19 @@ const TARGET_DAY_UTC = 1;   // 0=Sun, 1=Mon
 const TARGET_HOUR_UTC = 15; // 15:00 UTC
 const TARGET_MINUTE_UTC = 0;
 
+const PRICE_CHECK_HOUR_UTC = 18;
+const PRICE_CHECK_MINUTE_UTC = 0;
+
 let lastFiredIsoWeek: string | null = null;
+let lastFiredPriceDay: string | null = null;
 let weeklyHandle: ReturnType<typeof setInterval> | null = null;
 let recallsHandle: ReturnType<typeof setInterval> | null = null;
+let priceHandle: ReturnType<typeof setInterval> | null = null;
+
+// UTC calendar-day key (e.g. "2026-04-23") — used to deduplicate daily fires.
+function utcDayKey(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
 
 // ISO week-year key (e.g. "2026-W16") — used to deduplicate fires within a week.
 function isoWeekKey(d: Date): string {
@@ -55,11 +68,31 @@ async function weeklyTick(): Promise<void> {
   }
 }
 
+async function priceCheckTick(): Promise<void> {
+  const now = new Date();
+  if (
+    now.getUTCHours() !== PRICE_CHECK_HOUR_UTC ||
+    now.getUTCMinutes() !== PRICE_CHECK_MINUTE_UTC
+  ) {
+    return;
+  }
+  const key = utcDayKey(now);
+  if (key === lastFiredPriceDay) return;
+  lastFiredPriceDay = key;
+
+  try {
+    const result = await runPriceCheck();
+    logger.info({ event: 'price_check_fired', day: key, ...result });
+  } catch (err) {
+    logger.error({ event: 'price_check_failed', err: (err as Error)?.message });
+  }
+}
+
 /**
  * Start all schedulers. Safe to call multiple times — no-ops on re-invocation.
  */
 export function startSchedulers(): void {
-  if (weeklyHandle || recallsHandle) return;
+  if (weeklyHandle || recallsHandle || priceHandle) return;
 
   // Weekly digest (Mon 15:00 UTC)
   weeklyHandle = setInterval(() => {
@@ -76,10 +109,16 @@ export function startSchedulers(): void {
     });
   }, SIX_HOURS_MS);
 
-  console.log('[scheduler] started — weekly digest Mon 15:00 UTC, fdaRecalls every 6h');
+  // Daily price check (18:00 UTC). Ticked every minute; guarded by utcDayKey.
+  priceHandle = setInterval(() => {
+    void priceCheckTick();
+  }, TICK_MS);
+
+  console.log('[scheduler] started — weekly digest Mon 15:00 UTC, fdaRecalls every 6h, priceCheck daily 18:00 UTC');
 }
 
 export function stopSchedulers(): void {
   if (weeklyHandle) { clearInterval(weeklyHandle); weeklyHandle = null; }
   if (recallsHandle) { clearInterval(recallsHandle); recallsHandle = null; }
+  if (priceHandle) { clearInterval(priceHandle); priceHandle = null; }
 }
