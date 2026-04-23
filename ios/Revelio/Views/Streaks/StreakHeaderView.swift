@@ -51,6 +51,7 @@ struct StreakHeaderView: View {
                 Image(systemName: "flame.fill")
                     .font(.system(size: 26, weight: .bold))
                     .foregroundColor(s.currentStreakDays > 0 ? .orange : Theme.textDim)
+                    .accessibilityHidden(true)
                 Text("\(s.currentStreakDays)")
                     .font(.system(size: 20, weight: .heavy, design: .rounded))
                     .foregroundColor(Theme.textPrimary)
@@ -59,7 +60,7 @@ struct StreakHeaderView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(streakTitle(for: s.currentStreakDays))
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundColor(Theme.textPrimary)
 
                 // Progress bar
@@ -74,9 +75,10 @@ struct StreakHeaderView: View {
                     }
                 }
                 .frame(height: 6)
+                .accessibilityHidden(true)
 
                 Text(goalText(remaining: remaining, goal: goal, progress: s.weeklyProgress))
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.caption)
                     .foregroundColor(Theme.textSecondary)
             }
         }
@@ -84,6 +86,8 @@ struct StreakHeaderView: View {
         .background(Theme.surface)
         .cornerRadius(14)
         .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 1)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(streakTitle(for: s.currentStreakDays)). \(goalText(remaining: remaining, goal: goal, progress: s.weeklyProgress))")
     }
 
     private var placeholder: some View {

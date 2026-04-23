@@ -25,6 +25,9 @@ jobs:
       - name: Typecheck
         run: cd backend && ./node_modules/.bin/tsc --noEmit
 
+      - name: Unit + integration tests (DB-dependent specs skip gracefully)
+        run: cd backend && ./node_modules/.bin/vitest run
+
   migrations-dry-run:
     name: Migrations dry-run
     runs-on: ubuntu-latest

@@ -14,28 +14,25 @@ export const wellKnownRouter = Router();
 // We match every /p/<barcode> landing URL; the app's UniversalLinkHandler
 // parses the path and routes to the scan result screen.
 //
-// Sample response (verbatim what `curl https://revelio.app/.well-known/apple-app-site-association` returns):
+// The `appclips` payload advertises the same /p/* pattern for the App Clip
+// target (bundle `app.revelio.Revelio.Clip`). When a user taps a
+// revelio.app/p/<barcode> link without the full app installed, iOS fetches
+// this manifest, sees the `appclips` stanza, and presents the App Clip card.
+// Once the full app is installed, iOS prefers the `applinks` entry and hands
+// the URL off to the main app via NSUserActivityTypeBrowsingWeb.
+//
+// Sample response:
 //   {
-//     "applinks": {
-//       "apps": [],
-//       "details": [
-//         {
-//           "appIDs": ["TEAMID.app.revelio.Revelio"],
-//           "components": [
-//             { "/": "/p/*", "comment": "Product preview deep link" }
-//           ]
-//         }
-//       ]
-//     },
-//     "webcredentials": {
-//       "apps": ["TEAMID.app.revelio.Revelio"]
-//     }
+//     "applinks": { "apps": [], "details": [ { "appIDs": ["TEAMID.app.revelio.Revelio"], "components": [ { "/": "/p/*", "comment": "Product preview deep link" } ] } ] },
+//     "appclips":  { "apps": ["TEAMID.app.revelio.Revelio.Clip"] },
+//     "webcredentials": { "apps": ["TEAMID.app.revelio.Revelio"] }
 //   }
 //
 // TEAMID is a placeholder — the main session must swap it for the Apple
 // Developer team ID once the cert is in place.
 
 const IOS_BUNDLE_ID = 'app.revelio.Revelio';
+const IOS_APPCLIP_BUNDLE_ID = 'app.revelio.Revelio.Clip';
 const IOS_TEAM_ID_PLACEHOLDER = 'TEAMID';
 
 const AASA_PAYLOAD = {
@@ -52,6 +49,13 @@ const AASA_PAYLOAD = {
         ],
       },
     ],
+  },
+  // appclips: per Apple, this MUST list the fully-qualified App Clip bundle
+  // identifier (NOT the parent app's). iOS matches the invocation URL against
+  // the parent's `applinks.components` path list to decide which /p/* URLs
+  // launch the clip — so both stanzas share the same /p/* component set.
+  appclips: {
+    apps: [`${IOS_TEAM_ID_PLACEHOLDER}.${IOS_APPCLIP_BUNDLE_ID}`],
   },
   // webcredentials lets Password AutoFill share Keychain items between the
   // site and the app; harmless to include even if we never use it today.

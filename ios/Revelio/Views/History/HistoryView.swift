@@ -158,7 +158,10 @@ struct HistoryView: View {
                     } label: {
                         Image(systemName: hasActiveFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
                             .foregroundColor(hasActiveFilters ? Theme.accent : Theme.textSecondary)
+                            .accessibilityHidden(true)
                     }
+                    .accessibilityLabel(hasActiveFilters ? "Edit active filters" : "Show filters")
+                    .accessibilityHint("Toggles the filter panel for category, grade, and date range")
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     weeklyReportToggle
@@ -188,7 +191,10 @@ struct HistoryView: View {
         } label: {
             Image(systemName: weeklyReportEnabled ? "bell.fill" : "bell")
                 .foregroundColor(weeklyReportEnabled ? Theme.accent : Theme.textSecondary)
+                .accessibilityHidden(true)
         }
+        .accessibilityLabel(weeklyReportEnabled ? "Weekly report notifications on" : "Weekly report notifications off")
+        .accessibilityHint("Toggles the Sunday weekly report push notification")
     }
 
     private var hasActiveFilters: Bool {
@@ -200,9 +206,11 @@ struct HistoryView: View {
             Image(systemName: "clock.badge.questionmark")
                 .font(.system(size: 56, weight: .light))
                 .foregroundColor(Theme.textDim)
+                .accessibilityHidden(true)
             Text("No scans yet")
-                .font(.headline.weight(.semibold))
+                .font(.headline)
                 .foregroundColor(Theme.textPrimary)
+                .accessibilityAddTraits(.isHeader)
             Text("Start scanning products to build your history")
                 .font(.subheadline)
                 .foregroundColor(Theme.textSecondary)
@@ -621,21 +629,27 @@ struct HistoryRow: View {
             } placeholder: {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Theme.surfaceElevated)
-                    .overlay(Image(systemName: "photo").foregroundColor(Theme.textDim))
+                    .overlay(
+                        Image(systemName: "photo")
+                            .foregroundColor(Theme.textDim)
+                            .accessibilityHidden(true)
+                    )
             }
             .frame(width: 52, height: 52)
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 4) {
                     Text(scan.productName)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.subheadline)
                         .foregroundColor(Theme.textPrimary)
                         .lineLimit(1)
                     if isFavorite {
                         Image(systemName: "heart.fill")
                             .font(.system(size: 10))
                             .foregroundColor(.pink)
+                            .accessibilityLabel("Favorite")
                     }
                 }
                 Text(scan.brand)
@@ -643,13 +657,13 @@ struct HistoryRow: View {
                     .foregroundColor(Theme.textSecondary)
                     .lineLimit(1)
                 Text(scan.category.icon + " " + scan.category.displayName)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.caption2)
                     .foregroundColor(Theme.accent)
                 (Text(scan.scannedAt, style: .relative)
-                    .font(.system(size: 10))
+                    .font(.caption2)
                     .foregroundColor(Theme.textDim)
                 + Text(" ago")
-                    .font(.system(size: 10))
+                    .font(.caption2)
                     .foregroundColor(Theme.textDim))
             }
 
@@ -661,6 +675,8 @@ struct HistoryRow: View {
         .background(Theme.surface)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.03), radius: 4, x: 0, y: 1)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(scan.productName) by \(scan.brand), \(scan.category.displayName), grade \(scan.grade), score \(scan.displayScore)\(isFavorite ? ", favorite" : "")")
     }
 }
 

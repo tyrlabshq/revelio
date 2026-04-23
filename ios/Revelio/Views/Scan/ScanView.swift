@@ -14,18 +14,25 @@ struct ScanView: View {
                         Text("REVELIO")
                             .font(.system(size: 20, weight: .heavy, design: .rounded))
                             .foregroundColor(Theme.accent)
+                            .accessibilityAddTraits(.isHeader)
                         Spacer()
                         Button { viewModel.toggleTorch() } label: {
                             Image(systemName: viewModel.torchOn ? "bolt.fill" : "bolt.slash")
                                 .foregroundColor(viewModel.torchOn ? Theme.warning : Theme.textSecondary)
                                 .font(.system(size: 18))
+                                .accessibilityHidden(true)
                         }
+                        .accessibilityLabel(viewModel.torchOn ? "Turn off flashlight" : "Turn on flashlight")
+                        .accessibilityHint("Toggles the camera torch for scanning in low light")
                         Button { showManualEntry = true } label: {
                             Image(systemName: "keyboard")
                                 .foregroundColor(Theme.textSecondary)
                                 .font(.system(size: 18))
+                                .accessibilityHidden(true)
                         }
                         .padding(.leading, 12)
+                        .accessibilityLabel("Enter barcode manually")
+                        .accessibilityHint("Opens a keyboard entry sheet if you can't scan the code")
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 14)
@@ -80,6 +87,8 @@ struct ScanView: View {
                                                 .foregroundColor(Theme.accent)
                                         }
                                         .padding(.top, 4)
+                                        .accessibilityLabel("Having trouble, enter manually")
+                                        .accessibilityHint("Opens the manual barcode entry keyboard")
                                     }
                                 }
                                 .padding(.horizontal, 20)
@@ -120,7 +129,11 @@ struct ScanFrameOverlay: View {
     let cornerLength: CGFloat = 30
     let frameSize: CGFloat = 260
     let lineWidth: CGFloat = 4
-    
+
+    // The corner brackets pulse softly to draw attention. Skip the pulse when
+    // Reduce Motion is enabled — the brackets still render, just static.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     private var screenWidth: CGFloat { UIScreen.main.bounds.width }
     private var screenHeight: CGFloat { UIScreen.main.bounds.height }
     private var frameX: CGFloat { (screenWidth - frameSize) / 2 }
@@ -171,20 +184,23 @@ struct ScanFrameOverlay: View {
             }
             .shadow(color: Theme.accent.opacity(pulseOpacity), radius: 12, x: 0, y: 0)
             .onAppear {
+                guard !reduceMotion else { return }
                 withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
                     pulseOpacity = 0.8
                 }
             }
-            
+
             // Hint text
             VStack {
                 Spacer()
                 Text("Tap to scan a barcode")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.footnote)
                     .foregroundColor(Theme.textDim)
                     .padding(.bottom, 100)
+                    .accessibilityLabel("Point the camera at a barcode to scan")
             }
         }
+        .accessibilityElement(children: .contain)
     }
 }
 

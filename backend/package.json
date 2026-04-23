@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "build": "tsc",
-    "start": "node dist/backend/src/index.js"
+    "start": "node dist/backend/src/index.js",
+    "test": "vitest"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
@@ -26,6 +27,7 @@
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "rate-limit-redis": "^4.3.1",
+    "stripe": "^22.0.2",
     "uuid": "^9.0.0",
     "zod": "^4.3.6"
   },
@@ -34,9 +36,13 @@
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.6",
     "@types/pg": "^8.10.9",
+    "@types/supertest": "^6.0.2",
     "@types/uuid": "^9.0.7",
+    "@vitest/coverage-v8": "^2.1.8",
     "nodemon": "^3.0.2",
+    "supertest": "^7.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^2.1.8"
   }
 }

@@ -112,7 +112,9 @@ struct PaywallView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .foregroundColor(Theme.textSecondary)
+                        .accessibilityHidden(true)
                 }
+                .accessibilityLabel("Close paywall")
             }
         }
         .alert("You're Pro! 🎉", isPresented: $purchaseSuccess) {
@@ -134,11 +136,13 @@ struct PaywallView: View {
                     .font(.system(size: 36))
                     .foregroundColor(Theme.accent)
             }
+            .accessibilityHidden(true)
 
             Text("Upgrade to Revelio Pro")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(Theme.textPrimary)
+                .accessibilityAddTraits(.isHeader)
 
             Text("Full ingredient transparency. No limits.")
                 .font(.subheadline)
@@ -326,10 +330,12 @@ struct PaywallView: View {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundColor(Theme.success)
                 .font(.subheadline)
+                .accessibilityLabel("included")
         } else {
             Image(systemName: "minus")
                 .foregroundColor(Theme.textDim)
                 .font(.subheadline)
+                .accessibilityLabel("not included")
         }
     }
 
@@ -362,6 +368,8 @@ struct PaywallView: View {
             .shadow(color: Theme.accent.opacity(0.3), radius: 8, x: 0, y: 4)
         }
         .disabled(isPurchasing)
+        .accessibilityLabel(selectedPlan == .annual ? "Start free trial" : "Subscribe to monthly plan")
+        .accessibilityHint(selectedPlan == .annual ? "Starts a 7-day free trial of Revelio Pro, then $35.99 per year" : "Subscribes for $3.99 per month")
     }
 
     // ─── Purchase logic ───────────────────────────────────────────────────────

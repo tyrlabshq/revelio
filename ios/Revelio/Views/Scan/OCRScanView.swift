@@ -86,11 +86,13 @@ struct OCRScanView: View {
             Image(systemName: "text.viewfinder")
                 .font(.system(size: 44, weight: .light))
                 .foregroundColor(Theme.accent)
+                .accessibilityHidden(true)
             Text("Couldn't find this product")
-                .font(Theme.fontHeadline)
+                .font(.headline)
                 .foregroundColor(Theme.textPrimary)
+                .accessibilityAddTraits(.isHeader)
             Text("Snap the ingredients panel and we'll score it on-device.")
-                .font(Theme.fontBody)
+                .font(.body)
                 .foregroundColor(Theme.textSecondary)
                 .multilineTextAlignment(.center)
         }
@@ -113,11 +115,14 @@ struct OCRScanView: View {
                     Image(systemName: "photo.on.rectangle.angled")
                         .font(.system(size: 32, weight: .thin))
                         .foregroundColor(Theme.textDim)
+                        .accessibilityHidden(true)
                     Text("No image yet")
-                        .font(Theme.fontCaption)
+                        .font(.caption)
                         .foregroundColor(Theme.textDim)
                 }
                 .frame(height: 200)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("No label image selected")
             }
         }
     }
@@ -149,7 +154,7 @@ struct OCRScanView: View {
                 showCameraSheet = true
             } label: {
                 Label("Take Photo", systemImage: "camera.fill")
-                    .font(Theme.fontHeadline)
+                    .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .background(Theme.accent)
@@ -157,10 +162,12 @@ struct OCRScanView: View {
                     .cornerRadius(12)
             }
             .disabled(isProcessing)
+            .accessibilityLabel("Take a photo")
+            .accessibilityHint("Opens the camera to photograph the ingredient panel")
 
             PhotosPicker(selection: $pickerItem, matching: .images, photoLibrary: .shared()) {
                 Label("Pick from Library", systemImage: "photo.on.rectangle")
-                    .font(Theme.fontHeadline)
+                    .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .background(Theme.surface)
@@ -169,6 +176,8 @@ struct OCRScanView: View {
                     .cornerRadius(12)
             }
             .disabled(isProcessing)
+            .accessibilityLabel("Pick from photo library")
+            .accessibilityHint("Selects an existing photo to scan ingredients from")
 
             if !extractedIngredients.isEmpty {
                 Button {

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+      App Clip associated domains use the `appclips:` prefix (distinct
+      from `applinks:` which the full app uses). The AASA file at
+      /.well-known/apple-app-site-association already advertises the
+      App Clip bundle id app.revelio.Revelio.Clip under the `appclips`
+      key, so a tap on a revelio.app URL on a device without the full
+      app installed will launch this clip.
+    -->
+    <key>com.apple.developer.associated-domains</key>
+    <array>
+        <string>appclips:revelio.app</string>
+    </array>
+    <!--
+      Parent app identifier. Must match the main app's bundle ID so the
+      system can surface upgrade prompts from the clip to the full app.
+    -->
+    <key>com.apple.developer.parent-application-identifiers</key>
+    <array>
+        <string>$(AppIdentifierPrefix)app.revelio.Revelio</string>
+    </array>
+    <key>com.apple.developer.on-demand-install-capable</key>
+    <true/>
+</dict>
+</plist>

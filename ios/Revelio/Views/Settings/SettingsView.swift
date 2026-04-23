@@ -143,6 +143,7 @@ struct SettingsView: View {
                     Image(systemName: "person.fill")
                         .foregroundColor(Theme.accent)
                         .font(.title2)
+                        .accessibilityHidden(true)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -172,6 +173,8 @@ struct SettingsView: View {
                     Spacer()
                 }
             }
+            .accessibilityLabel("Sign out")
+            .accessibilityHint("Ends the current session and returns to onboarding")
         }
     }
 
@@ -189,15 +192,17 @@ struct SettingsView: View {
                     Spacer()
                     if recallUnreadCount > 0 {
                         Text("\(recallUnreadCount)")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.caption.weight(.bold))
                             .foregroundColor(.white)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 2)
                             .background(Theme.danger)
                             .clipShape(Capsule())
+                            .accessibilityLabel("\(recallUnreadCount) unread")
                     }
                 }
             }
+            .accessibilityHint("Opens FDA recall alerts for products you've scanned")
         }
     }
 

@@ -144,15 +144,17 @@ struct DupeFinderView: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Cleaner Dupes")
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.headline)
                     .foregroundColor(Theme.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
                 Text("Same flavor, better grade")
-                    .font(.system(size: 12))
+                    .font(.caption)
                     .foregroundColor(Theme.textSecondary)
             }
             Spacer()
             Image(systemName: "sparkles")
                 .foregroundColor(Theme.accent)
+                .accessibilityHidden(true)
         }
         .padding(.horizontal, 16)
     }
@@ -201,20 +203,25 @@ private struct DupeCard: View {
                 default:
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Theme.surfaceElevated)
-                        .overlay(Image(systemName: "photo").foregroundColor(Theme.textDim))
+                        .overlay(
+                            Image(systemName: "photo")
+                                .foregroundColor(Theme.textDim)
+                                .accessibilityHidden(true)
+                        )
                 }
             }
             .frame(height: 100)
             .clipShape(RoundedRectangle(cornerRadius: 12))
+            .accessibilityHidden(true)
 
             // Brand + Name
             VStack(alignment: .leading, spacing: 2) {
                 Text(dupe.brand)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.caption)
                     .foregroundColor(Theme.textSecondary)
                     .lineLimit(1)
                 Text(dupe.name)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.subheadline)
                     .foregroundColor(Theme.textPrimary)
                     .lineLimit(2)
             }
@@ -234,10 +241,12 @@ private struct DupeCard: View {
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Grade \(dupe.grade), score \(dupe.score) out of 100")
 
             // Why it matches
             Text(whyBlurb ?? "Similar flavor profile and use-case in \(dupe.category).")
-                .font(.system(size: 11))
+                .font(.caption)
                 .foregroundColor(Theme.textSecondary)
                 .lineLimit(3)
 
@@ -245,15 +254,18 @@ private struct DupeCard: View {
             Link(destination: URL(string: dupe.affiliateUrl) ?? URL(string: "https://revelio.app")!) {
                 HStack(spacing: 6) {
                     Image(systemName: "cart.fill")
+                        .accessibilityHidden(true)
                     Text("Shop")
                 }
-                .font(.system(size: 12, weight: .semibold))
+                .font(.caption.weight(.semibold))
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
                 .background(Theme.accent)
                 .cornerRadius(10)
             }
+            .accessibilityLabel("Shop \(dupe.name) by \(dupe.brand)")
+            .accessibilityHint("Opens the affiliate retailer in your browser")
         }
         .padding(12)
         .background(Theme.surface)
