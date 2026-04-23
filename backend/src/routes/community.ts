@@ -11,6 +11,7 @@
 import { Router } from 'express';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
+import { logger } from '../logger';
 
 export const communityRouter = Router();
 
@@ -48,7 +49,7 @@ async function ensureCommunityTables(): Promise<void> {
   await db.query(`CREATE INDEX IF NOT EXISTS idx_hos_barcode ON hall_of_shame_votes(barcode)`);
 }
 
-ensureCommunityTables().catch(err => console.error('[community] table setup error:', err));
+ensureCommunityTables().catch(err => logger.error({ err: (err as Error)?.message, event: 'community-table-setup-failed' }, '[community] table setup error'));
 
 // ─── POST /community/reviews — upsert review for current user ────────────────
 
@@ -85,7 +86,7 @@ communityRouter.post('/reviews', requireAuth, async (req: AuthRequest, res) => {
       },
     });
   } catch (err) {
-    console.error('POST /community/reviews error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'community-reviews-post-failed' }, 'POST /community/reviews error');
     res.status(500).json({ error: 'Failed to save review' });
   }
 });
@@ -130,7 +131,7 @@ communityRouter.get('/reviews/:barcode', async (req, res) => {
       })),
     });
   } catch (err) {
-    console.error('GET /community/reviews/:barcode error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'community-reviews-get-failed' }, 'GET /community/reviews/:barcode error');
     res.status(500).json({ error: 'Failed to fetch reviews' });
   }
 });
@@ -154,7 +155,7 @@ communityRouter.post('/hall-of-shame/:barcode', requireAuth, async (req: AuthReq
     );
     res.status(201).json({ vote: result.rows[0] });
   } catch (err) {
-    console.error('POST /community/hall-of-shame/:barcode error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'community-hall-of-shame-post-failed' }, 'POST /community/hall-of-shame/:barcode error');
     res.status(500).json({ error: 'Failed to record vote' });
   }
 });
@@ -210,7 +211,7 @@ communityRouter.get('/hall-of-shame', async (req, res) => {
       })),
     });
   } catch (err) {
-    console.error('GET /community/hall-of-shame error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'community-hall-of-shame-get-failed' }, 'GET /community/hall-of-shame error');
     res.status(500).json({ error: 'Failed to load Hall of Shame' });
   }
 });

@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
+import { logger } from '../logger';
 
 export const recallsRouter = Router();
 
@@ -35,7 +36,7 @@ recallsRouter.get('/mine', requireAuth, async (req: AuthRequest, res: Response) 
     const unreadCount = result.rows.filter(r => r.opened_at === null).length;
     res.json({ data: result.rows, unreadCount });
   } catch (err) {
-    console.error('[recalls] GET /mine error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'recalls-mine-failed' }, '[recalls] GET /mine error');
     res.status(500).json({ error: 'Failed to fetch recalls' });
   }
 });
@@ -65,7 +66,7 @@ recallsRouter.post('/:id/opened', requireAuth, async (req: AuthRequest, res: Res
     }
     res.json({ ok: true, updated: result.rowCount });
   } catch (err) {
-    console.error('[recalls] POST /:id/opened error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'recalls-opened-failed' }, '[recalls] POST /:id/opened error');
     res.status(500).json({ error: 'Failed to mark recall opened' });
   }
 });
@@ -93,7 +94,7 @@ recallsRouter.post('/device-token', requireAuth, async (req: AuthRequest, res: R
     );
     res.json({ ok: true });
   } catch (err) {
-    console.error('[recalls] POST /device-token error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'recalls-device-token-failed' }, '[recalls] POST /device-token error');
     res.status(500).json({ error: 'Failed to register device token' });
   }
 });

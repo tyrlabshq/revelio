@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
+import { logger } from '../logger';
 
 export const referralsRouter = Router();
 
@@ -56,7 +57,7 @@ referralsRouter.post('/apply', requireAuth, async (req: AuthRequest, res: Respon
       attribution: result.rows[0]
     });
   } catch (err) {
-    console.error('[referrals/apply]', err);
+    logger.error({ err: (err as Error)?.message, event: 'referrals-apply-failed' }, '[referrals/apply]');
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -119,7 +120,7 @@ referralsRouter.get('/my-stats', requireAuth, async (req: AuthRequest, res: Resp
       monthEarningsCents: parseInt(monthEarnings.rows[0].month_earnings_cents)
     });
   } catch (err) {
-    console.error('[referrals/my-stats]', err);
+    logger.error({ err: (err as Error)?.message, event: 'referrals-my-stats-failed' }, '[referrals/my-stats]');
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -187,7 +188,7 @@ referralsRouter.post('/creator-apply', requireAuth, async (req: AuthRequest, res
         : 'Application submitted. We\'ll review and reach out within 48 hours.'
     });
   } catch (err) {
-    console.error('[referrals/creator-apply]', err);
+    logger.error({ err: (err as Error)?.message, event: 'referrals-creator-apply-failed' }, '[referrals/creator-apply]');
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -217,7 +218,7 @@ referralsRouter.get('/payout-history', requireAuth, async (req: AuthRequest, res
 
     return res.json({ history: history.rows });
   } catch (err) {
-    console.error('[referrals/payout-history]', err);
+    logger.error({ err: (err as Error)?.message, event: 'referrals-payout-history-failed' }, '[referrals/payout-history]');
     return res.status(500).json({ error: 'Internal server error' });
   }
 });

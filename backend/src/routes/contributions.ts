@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
+import { logger } from '../logger';
 
 export const contributionsRouter = Router();
 
@@ -51,7 +52,7 @@ contributionsRouter.post('/', requireAuth, async (req: AuthRequest, res: Respons
       contribution: result.rows[0],
     });
   } catch (err: any) {
-    console.error('[contributions] insert error:', err.message);
+    logger.error({ err: err?.message, event: 'contributions-insert-failed' }, '[contributions] insert error');
     return res.status(500).json({ error: 'Failed to submit contribution' });
   }
 });
@@ -78,7 +79,7 @@ contributionsRouter.get('/pending', requireAuth, async (req: AuthRequest, res: R
     );
     return res.json({ contributions: result.rows });
   } catch (err: any) {
-    console.error('[contributions] pending fetch error:', err.message);
+    logger.error({ err: err?.message, event: 'contributions-pending-fetch-failed' }, '[contributions] pending fetch error');
     return res.status(500).json({ error: 'Failed to fetch pending contributions' });
   }
 });

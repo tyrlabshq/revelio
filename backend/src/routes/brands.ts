@@ -10,6 +10,7 @@ import {
   getBrandSummary,
   slugifyBrand,
 } from '../services/brandSummary';
+import { logger } from '../logger';
 
 export const brandsRouter = Router();
 
@@ -46,7 +47,7 @@ brandsRouter.get('/:slug', async (req, res) => {
       products: result.products,
     });
   } catch (err) {
-    console.error('[brands] GET /:slug error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'brands-list-failed' }, '[brands] GET /:slug error');
     res.status(500).json({ error: 'Failed to load brand products' });
   }
 });
@@ -60,7 +61,7 @@ brandsRouter.get('/:slug/summary', async (req, res) => {
     const summary = await getBrandSummary(slug);
     res.json(summary);
   } catch (err) {
-    console.error('[brands] GET /:slug/summary error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'brands-summary-failed' }, '[brands] GET /:slug/summary error');
     res.status(500).json({ error: 'Failed to load brand summary' });
   }
 });

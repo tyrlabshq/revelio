@@ -57,6 +57,8 @@ webhookRouter.post(
     let raw = '';
     req.on('data', (chunk: Buffer) => { raw += chunk.toString(); });
     req.on('end', () => {
+      // as any: attaching rawBody onto Express's Request type to preserve the
+      // raw body for HMAC verification — there's no public Request.rawBody field.
       (req as any).rawBody = raw;
       try {
         req.body = JSON.parse(raw);
@@ -68,6 +70,7 @@ webhookRouter.post(
   },
   async (req, res) => {
     const signature = req.headers['x-revenuecat-signature'] as string | undefined;
+    // as any: read the rawBody we stashed above; Express's Request has no typed rawBody.
     const rawBody = (req as any).rawBody as string;
 
     if (!verifyRevenueCatSignature(rawBody, signature)) {

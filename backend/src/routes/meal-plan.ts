@@ -5,6 +5,7 @@
 import { Router } from 'express';
 import { requireAuth, AuthRequest } from './auth';
 import { generate7DayPlan } from '../services/mealPlanner';
+import { logger } from '../logger';
 
 export const mealPlanRouter = Router();
 
@@ -19,7 +20,7 @@ mealPlanRouter.get('/', requireAuth, async (req: AuthRequest, res) => {
     const plan = await generate7DayPlan({ userId: req.user.userId });
     return res.json(plan);
   } catch (err: any) {
-    console.error('[meal-plan] error:', err?.message || err);
+    logger.error({ err: err?.message, event: 'meal-plan-failed' }, '[meal-plan] error');
     return res.status(500).json({ error: 'Failed to generate meal plan' });
   }
 });

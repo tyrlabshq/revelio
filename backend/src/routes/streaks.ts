@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth, AuthRequest } from './auth';
 import { getStreak, setWeeklyGoal, weeklyScanCount } from '../services/streaks';
+import { logger } from '../logger';
 
 export const streaksRouter = Router();
 
@@ -25,7 +26,7 @@ streaksRouter.get('/me', requireAuth, async (req: AuthRequest, res) => {
       remainingToGoal: Math.max(0, streak.weeklyGoal - weeklyProgress),
     });
   } catch (err: any) {
-    console.error('[streaks] me error:', err.message);
+    logger.error({ err: err?.message, event: 'streaks-me-failed' }, '[streaks] me error');
     return res.status(500).json({ error: 'Failed to fetch streak' });
   }
 });
@@ -54,7 +55,7 @@ streaksRouter.patch('/goal', requireAuth, async (req: AuthRequest, res) => {
       weeklyGoal: streak.weeklyGoal,
     });
   } catch (err: any) {
-    console.error('[streaks] goal error:', err.message);
+    logger.error({ err: err?.message, event: 'streaks-goal-failed' }, '[streaks] goal error');
     return res.status(500).json({ error: 'Failed to update weekly goal' });
   }
 });

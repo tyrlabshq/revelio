@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db';
 import { requireAuth, AuthRequest } from './auth';
+import { logger } from '../logger';
 
 export const scansRouter = Router();
 
@@ -65,7 +66,7 @@ scansRouter.get('/', async (req: AuthRequest, res) => {
       hasMore: offset + rows.rows.length < total,
     });
   } catch (err) {
-    console.error('GET /scans error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'scans-list-failed' }, 'GET /scans error');
     res.status(500).json({ error: 'Failed to fetch scan history' });
   }
 });
@@ -172,7 +173,7 @@ scansRouter.get('/insights', async (req: AuthRequest, res) => {
         : null,
     });
   } catch (err) {
-    console.error('GET /scans/insights error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'scans-insights-failed' }, 'GET /scans/insights error');
     res.status(500).json({ error: 'Failed to compute insights' });
   }
 });
@@ -193,7 +194,7 @@ scansRouter.delete('/:id', async (req: AuthRequest, res) => {
     }
     res.json({ ok: true, deleted: id });
   } catch (err) {
-    console.error('DELETE /scans/:id error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'scans-delete-failed' }, 'DELETE /scans/:id error');
     res.status(500).json({ error: 'Failed to delete scan' });
   }
 });

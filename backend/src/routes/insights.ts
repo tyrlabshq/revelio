@@ -9,6 +9,7 @@
 import { Router } from 'express';
 import { requireAuth, AuthRequest } from './auth';
 import { buildDigestForUser } from '../jobs/weeklyInsights';
+import { logger } from '../logger';
 
 export const insightsRouter = Router();
 
@@ -28,7 +29,7 @@ insightsRouter.post('/send-now', requireAuth, async (req: AuthRequest, res) => {
       html: result.html,
     });
   } catch (err) {
-    console.error('POST /insights/send-now error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'insights-send-now-failed' }, 'POST /insights/send-now error');
     res.status(500).json({ error: 'Failed to build digest' });
   }
 });

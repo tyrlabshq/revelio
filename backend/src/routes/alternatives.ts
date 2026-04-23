@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db';
 import { findAlternatives } from '../services/alternatives';
+import { logger } from '../logger';
 
 export const alternativesRouter = Router();
 
@@ -23,7 +24,7 @@ alternativesRouter.get('/:barcode', async (req, res) => {
 
     return res.json({ alternatives });
   } catch (err) {
-    console.error('Alternatives error:', err);
+    logger.error({ err: (err as Error)?.message, event: 'alternatives-fetch-failed' }, 'Alternatives error');
     return res.status(500).json({ error: 'Failed to fetch alternatives' });
   }
 });

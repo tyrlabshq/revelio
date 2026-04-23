@@ -4,6 +4,7 @@
 // Redis is a performance layer, never the source of truth.
 
 import Redis from 'ioredis';
+import { logger } from '../logger';
 
 let client: Redis | null = null;
 let initialized = false;
@@ -30,10 +31,10 @@ export function getRedis(): Redis | null {
     client.on('error', (err) => {
       // Single error listener to avoid unhandled 'error' events crashing
       // the process. Do not log PII — barcode keys only.
-      console.error('[redis] client error:', err.message);
+      logger.error({ err: err.message, event: 'redis-client-error' }, '[redis] client error');
     });
   } catch (err) {
-    console.error('[redis] failed to construct client:', (err as Error).message);
+    logger.error({ err: (err as Error).message, event: 'redis-client-init-failed' }, '[redis] failed to construct client');
     client = null;
   }
 

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth, AuthRequest } from './auth';
 import { explainIngredient, streamIngredientChat } from '../services/ingredientAI';
 import { hasProAccess } from '../middleware/familyTier';
+import { logger } from '../logger';
 
 export const ingredientRouter = Router();
 
@@ -85,7 +86,7 @@ ingredientRouter.get('/:name/explain', requireAuth, async (req: AuthRequest, res
       cached: result.cached,
     });
   } catch (err: any) {
-    console.error('[ingredients/explain] error:', err.message);
+    logger.error({ err: err?.message, event: 'ingredient-explain-failed' }, '[ingredients/explain] error');
     return res.status(500).json({ error: 'Failed to generate explanation' });
   }
 });
@@ -152,7 +153,7 @@ ingredientRouter.post('/:name/chat', requireAuth, async (req: AuthRequest, res) 
     res.write(`event: done\ndata: [DONE]\n\n`);
     res.end();
   } catch (err: any) {
-    console.error('[ingredients/chat] stream error:', err?.message || err);
+    logger.error({ err: err?.message, event: 'ingredient-chat-stream-failed' }, '[ingredients/chat] stream error');
     try {
       res.write(`event: error\ndata: ${JSON.stringify({ error: 'stream failed' })}\n\n`);
     } catch { /* noop */ }
