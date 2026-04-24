@@ -166,11 +166,11 @@ export function startSchedulers(): void {
 
   // FDA recalls: kick once on boot so cold starts don't wait 6 hours.
   void ingestRecentRecalls().catch(err => {
-    console.error('[scheduler] initial fdaRecalls run failed:', err);
+    logger.error({ err: (err as Error)?.message, event: 'scheduler-fda-recalls-initial-failed' }, '[scheduler] initial fdaRecalls run failed');
   });
   recallsHandle = setInterval(() => {
     void ingestRecentRecalls().catch(err => {
-      console.error('[scheduler] fdaRecalls run failed:', err);
+      logger.error({ err: (err as Error)?.message, event: 'scheduler-fda-recalls-tick-failed' }, '[scheduler] fdaRecalls run failed');
     });
   }, SIX_HOURS_MS);
 
