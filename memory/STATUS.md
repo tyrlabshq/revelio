@@ -31,6 +31,7 @@ _(populate with current in-flight tasks)_
 ## Recently Completed
 
 <!-- BEGIN_AUTO:RECENTLY_COMPLETED -->
+- **PR #8** — feat: add DECISIONS.md + LESSONS.md scaffolds _(merged 2026-04-25 by @tyrlabshq)_
 - **PR #7** — feat: cross-agent memory infra + auto-regen STATUS.md _(merged 2026-04-25 by @tyrlabshq)_
 - **PR #6** — P1: fix path-to-regexp CVE + audit migrations + finish scheduler logger _(merged 2026-04-24 by @tyrlabshq)_
 - **PR #5** — Wave 5b: a11y animation guards + brand nav wire + observability logger _(merged 2026-04-23 by @tyrlabshq)_
