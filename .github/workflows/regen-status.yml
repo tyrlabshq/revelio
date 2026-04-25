@@ -1,0 +1,45 @@
+name: Regenerate STATUS.md
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  regen:
+    # Skip if the bot's own push triggered this (prevents loops)
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Regenerate STATUS.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/regen-status.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet memory/STATUS.md; then
+            echo "STATUS.md unchanged — nothing to commit"
+            exit 0
+          fi
+
+          git add memory/STATUS.md
+          git commit -m "chore: auto-regenerate STATUS.md [skip ci]"
+          git push
