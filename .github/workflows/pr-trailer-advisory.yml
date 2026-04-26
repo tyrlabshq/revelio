@@ -1,0 +1,68 @@
+name: PR Trailer Advisory
+
+# Posts an advisory comment on PRs over ~100 LOC that have no Decision/Lesson
+# trailers, prompting the author to confirm none are warranted. Soft pressure,
+# not a merge gate. Idempotent — only comments once per PR (skips if a previous
+# advisory comment from this workflow is already present).
+
+on:
+  pull_request:
+    types: [opened, synchronize, edited]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  advisory:
+    if: github.event.pull_request.user.login != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check trailer presence and PR size
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          ADDITIONS: ${{ github.event.pull_request.additions }}
+          DELETIONS: ${{ github.event.pull_request.deletions }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+
+          THRESHOLD=100
+          MARKER="<!-- pr-trailer-advisory:v1 -->"
+
+          TOTAL=$((ADDITIONS + DELETIONS))
+          if [ "$TOTAL" -lt "$THRESHOLD" ]; then
+            echo "PR is ${TOTAL} LOC (< ${THRESHOLD}) — no advisory needed"
+            exit 0
+          fi
+
+          # PR_BODY env var is never interpolated into shell — only piped via printf.
+          if printf '%s' "$PR_BODY" | grep -qE '^(Decision-Title|Lesson):' ; then
+            echo "PR has trailers — no advisory needed"
+            exit 0
+          fi
+
+          EXISTING=$(gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" \
+            --jq "[.[] | select(.body | contains(\"${MARKER}\"))] | length")
+          if [ "$EXISTING" -gt 0 ]; then
+            echo "advisory already posted — skipping"
+            exit 0
+          fi
+
+          BODY=$(cat <<EOF
+          ${MARKER}
+          📝 **Memory trailer advisory** — this PR is ${TOTAL} LOC with no \`Decision-*:\` or \`Lesson:\` trailers in the body.
+
+          If this PR introduces an architectural decision, a non-obvious gotcha, or a build/tooling fact that future agents should know, please add trailers so they auto-append to \`memory/DECISIONS.md\` / \`memory/LESSONS.md\` on merge. See workspace \`CLAUDE.md\` for the convention.
+
+          If no trailers are warranted (typo fix, dep bump, refactor, etc.), ignore this — it's advisory only and does not block merge.
+          EOF
+          )
+
+          gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" \
+            -f body="$BODY" \
+            >/dev/null
+
+          echo "advisory comment posted on PR #${PR_NUMBER} (${TOTAL} LOC)"

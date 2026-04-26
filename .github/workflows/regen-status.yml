@@ -25,6 +25,11 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Extract Decision/Lesson trailers from latest merged PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/extract-pr-memory.py
+
       - name: Regenerate STATUS.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
