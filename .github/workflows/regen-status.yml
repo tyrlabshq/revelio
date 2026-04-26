@@ -30,16 +30,20 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 scripts/regen-status.py
 
+      - name: Archive old SESSION_LOG entries
+        run: python3 scripts/archive-session-log.py
+
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet memory/STATUS.md; then
-            echo "STATUS.md unchanged — nothing to commit"
+          # Stage anything under memory/ (tracked changes + new archive files).
+          git add memory/
+          if git diff --cached --quiet; then
+            echo "no auto-managed memory changes — nothing to commit"
             exit 0
           fi
 
-          git add memory/STATUS.md
-          git commit -m "chore: auto-regenerate STATUS.md [skip ci]"
+          git commit -m "chore: auto-regenerate memory artifacts [skip ci]"
           git push
